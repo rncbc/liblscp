@@ -41,8 +41,8 @@ struct _lscp_client_t
     // Client socket stuff.
     lscp_client_proc_t  pfnCallback;
     void *              pvData;
-    lscp_socket_agent_t tcp;
-    lscp_socket_agent_t udp;
+    lscp_socket_agent_t cmd;
+    lscp_socket_agent_t evt;
     // Session identifier.
     char *              sessid;
     // Client struct persistent caches.
@@ -70,44 +70,49 @@ struct _lscp_client_t
 
 
 //-------------------------------------------------------------------------
+// Local client request executive.
+
+lscp_status_t   lscp_client_call            (lscp_client_t *pClient, const char *pszQuery);
+void            lscp_client_set_result      (lscp_client_t *pClient, char *pszResult, int iErrno);
+
+//-------------------------------------------------------------------------
 // General utility function prototypes.
 
-char *      lscp_strtok             (char *pchBuffer, const char *pszSeps, char **ppch);
-char *      lscp_ltrim              (char *psz);
-char *      lscp_unquote            (char **ppsz, int dup);
+char *          lscp_strtok                 (char *pchBuffer, const char *pszSeps, char **ppch);
+char *          lscp_ltrim                  (char *psz);
+char *          lscp_unquote                (char **ppsz, int dup);
 
-char **     lscp_szsplit_create     (const char *pszCsv, const char *pszSeps);
-void        lscp_szsplit_destroy    (char **ppszSplit);
+char **         lscp_szsplit_create         (const char *pszCsv, const char *pszSeps);
+void            lscp_szsplit_destroy        (char **ppszSplit);
 #ifdef LSCP_SZSPLIT_COUNT
-int         lscp_szsplit_count      (char **ppszSplit);
-int         lscp_szsplit_size       (char **ppszSplit);
+int             lscp_szsplit_count          (char **ppszSplit);
+int             lscp_szsplit_size           (char **ppszSplit);
 #endif
 
-int *       lscp_isplit_create      (const char *pszCsv, const char *pszSeps);
-void        lscp_isplit_destroy     (int *ppiSplit);
+int *           lscp_isplit_create          (const char *pszCsv, const char *pszSeps);
+void            lscp_isplit_destroy         (int *ppiSplit);
 #ifdef LSCP_ISPLIT_COUNT
-int         lscp_isplit_count       (int *ppiSplit);
-int         lscp_isplit_size        (int *ppiSplit);
+int             lscp_isplit_count           (int *ppiSplit);
+int             lscp_isplit_size            (int *ppiSplit);
 #endif
-
 
 //-------------------------------------------------------------------------
 // Engine struct helper functions.
 
-void        lscp_engine_info_init   (lscp_engine_info_t *pEngineInfo);
-void        lscp_engine_info_reset  (lscp_engine_info_t *pEngineInfo);
+void            lscp_engine_info_init       (lscp_engine_info_t *pEngineInfo);
+void            lscp_engine_info_reset      (lscp_engine_info_t *pEngineInfo);
 
 //-------------------------------------------------------------------------
 // Channel struct helper functions.
 
-void        lscp_channel_info_init  (lscp_channel_info_t *pChannelInfo);
-void        lscp_channel_info_reset (lscp_channel_info_t *pChannelInfo);
+void            lscp_channel_info_init      (lscp_channel_info_t *pChannelInfo);
+void            lscp_channel_info_reset     (lscp_channel_info_t *pChannelInfo);
 
 //-------------------------------------------------------------------------
 // Driver struct helper functions.
 
-void        lscp_driver_info_init   (lscp_driver_info_t *pDriverInfo);
-void        lscp_driver_info_reset  (lscp_driver_info_t *pDriverInfo);
+void            lscp_driver_info_init       (lscp_driver_info_t *pDriverInfo);
+void            lscp_driver_info_reset      (lscp_driver_info_t *pDriverInfo);
 
 
 #endif // __LSCP_COMMON_H

@@ -40,31 +40,35 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
     char *pszToken;
     char *pch;
 
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
     lscp_driver_info_reset(pDriverInfo);
-
-    if (lscp_client_query(pClient, pszQuery) != LSCP_OK)
-        return NULL;
-
-    pszResult = lscp_client_get_result(pClient);
-    pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
-    while (pszToken) {
-        if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
-            pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-            if (pszToken)
-                pDriverInfo->description = lscp_unquote(&pszToken, 1);
+    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pDriverInfo->description = lscp_unquote(&pszToken, 1);
+            }
+            else if (strcasecmp(pszToken, "VERSION") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pDriverInfo->version = lscp_unquote(&pszToken, 1);
+            }
+            else if (strcasecmp(pszToken, "PARAMETERS") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pDriverInfo->parameters = lscp_szsplit_create(pszToken, ",");
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
-        else if (strcasecmp(pszToken, "VERSION") == 0) {
-            pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-            if (pszToken)
-                pDriverInfo->version = lscp_unquote(&pszToken, 1);
-        }
-        else if (strcasecmp(pszToken, "PARAMETERS") == 0) {
-            pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-            if (pszToken)
-                pDriverInfo->parameters = lscp_szsplit_create(pszToken, ",");
-        }
-        pszToken = lscp_strtok(NULL, pszSeps, &(pch));
     }
+    
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
 
     return pDriverInfo;
 }
@@ -86,13 +90,19 @@ const char ** lscp_get_available_audio_drivers ( lscp_client_t *pClient )
 {
     const char *pszSeps = ",";
 
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
     if (pClient->audio_drivers) {
         lscp_szsplit_destroy(pClient->audio_drivers);
         pClient->audio_drivers = NULL;
     }
 
-    if (lscp_client_query(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
         pClient->audio_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
 
     return (const char **) pClient->audio_drivers;
 }
@@ -212,8 +222,16 @@ lscp_status_t lscp_destroy_audio_device ( lscp_client_t *pClient, int iAudioDevi
 int lscp_get_audio_devices ( lscp_client_t *pClient )
 {
     int iAudioDevices = -1;
-    if (lscp_client_query(pClient, "GET AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
         iAudioDevices = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
     return iAudioDevices;
 }
 
@@ -234,13 +252,19 @@ int *lscp_list_audio_devices ( lscp_client_t *pClient )
     if (pClient == NULL)
         return NULL;
 
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
     if (pClient->audio_devices) {
         lscp_isplit_destroy(pClient->audio_devices);
         pClient->audio_devices = NULL;
     }
 
-    if (lscp_client_query(pClient, "LIST AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
         pClient->audio_devices = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
 
     return pClient->audio_devices;
 }
@@ -393,13 +417,19 @@ const char** lscp_get_available_midi_drivers ( lscp_client_t *pClient )
 {
     const char *pszSeps = ",";
 
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
     if (pClient->midi_drivers) {
         lscp_szsplit_destroy(pClient->midi_drivers);
         pClient->midi_drivers = NULL;
     }
 
-    if (lscp_client_query(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
         pClient->midi_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    // Unlock this section up.
+    lscp_mutex_unlock(pClient->mutex);
 
     return (const char **) pClient->midi_drivers;
 }
@@ -521,8 +551,16 @@ lscp_status_t lscp_destroy_midi_device ( lscp_client_t *pClient, int iMidiDevice
 int lscp_get_midi_devices ( lscp_client_t *pClient )
 {
     int iMidiDevices = -1;
-    if (lscp_client_query(pClient, "GET MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
         iMidiDevices = atoi(lscp_client_get_result(pClient));
+        
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
     return iMidiDevices;
 }
 
@@ -543,13 +581,19 @@ int *lscp_list_midi_devices ( lscp_client_t *pClient )
     if (pClient == NULL)
         return NULL;
 
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
     if (pClient->midi_devices) {
         lscp_isplit_destroy(pClient->midi_devices);
         pClient->midi_devices = NULL;
     }
 
-    if (lscp_client_query(pClient, "LIST MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
         pClient->midi_devices = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
 
     return pClient->midi_devices;
 }

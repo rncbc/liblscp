@@ -94,8 +94,8 @@ typedef struct _lscp_server_t
     lscp_connect_list_t connects;
     lscp_server_proc_t  pfnCallback;
     void               *pvData;
-    lscp_socket_agent_t tcp;
-    lscp_socket_agent_t udp;
+    lscp_socket_agent_t cmd;
+    lscp_socket_agent_t evt;
     lscp_thread_t      *pWatchdog;
     int                 iWatchdog;
     int                 iSleep;

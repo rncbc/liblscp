@@ -51,6 +51,7 @@ typedef struct _lscp_channel_info_t
     char **       audio_routing;
     char *        instrument_file;
     int           instrument_nr;
+    int           instrument_status;
     int           midi_device;
     int           midi_port;
     int           midi_channel;

@@ -34,7 +34,153 @@
 
 
 //-------------------------------------------------------------------------
-// General utility functions.
+// Local client request executive.
+
+// Result buffer internal settler.
+void lscp_client_set_result ( lscp_client_t *pClient, char *pszResult, int iErrno )
+{
+    if (pClient->pszResult)
+        free(pClient->pszResult);
+    pClient->pszResult = NULL;
+
+    pClient->iErrno = iErrno;
+
+    if (pszResult)
+        pClient->pszResult = strdup(lscp_ltrim(pszResult));
+}
+
+// The main client requester call executive.
+lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
+{
+    fd_set fds;                         // File descriptor list for select().
+    int    fd, fdmax;                   // Maximum file descriptor number.
+    struct timeval tv;                  // For specifying a timeout value.
+    int    iSelect;                     // Holds select return status.
+    int    iTimeout;
+    int    cchQuery;
+    char   achResult[LSCP_BUFSIZ];
+    int    cchResult;
+    const  char *pszSeps = ":[]";
+    char  *pszResult;
+    char  *pszToken;
+    char  *pch;
+    int    iErrno;
+
+    lscp_status_t ret = LSCP_FAILED;
+
+    if (pClient == NULL)
+        return ret;
+
+    pszResult = NULL;
+    iErrno = -1;
+
+    // Check if command socket socket is still valid.
+    if (pClient->cmd.sock == INVALID_SOCKET) {
+        pszResult = "Connection closed or no longer valid";
+        lscp_client_set_result(pClient, pszResult, iErrno);
+        return ret;
+    }
+
+    // Send data, and then, wait for the result...
+    cchQuery = strlen(pszQuery);
+    if (send(pClient->cmd.sock, pszQuery, cchQuery, 0) < cchQuery) {
+        lscp_socket_perror("_lscp_client_call: send");
+        pszResult = "Failure during send operation";
+        lscp_client_set_result(pClient, pszResult, iErrno);
+        return ret;
+    }
+
+    // Prepare for waiting on select...
+    fd = (int) pClient->cmd.sock;
+    FD_ZERO(&fds);
+    FD_SET((unsigned int) fd, &fds);
+    fdmax = fd;
+
+    // Use the timeout select feature...
+    iTimeout = pClient->iTimeout;
+    if (iTimeout > 1000) {
+        tv.tv_sec = iTimeout / 1000;
+        iTimeout -= tv.tv_sec * 1000;
+    }
+    else tv.tv_sec = 0;
+    tv.tv_usec = iTimeout * 1000;
+
+    // Wait for event...
+    iSelect = select(fdmax + 1, &fds, NULL, NULL, &tv);
+    if (iSelect > 0 && FD_ISSET(fd, &fds)) {
+        // May recv now...
+        cchResult = recv(pClient->cmd.sock, achResult, sizeof(achResult), 0);
+        if (cchResult > 0) {
+            // Assume early success.
+            ret = LSCP_OK;
+            // Always force the result to be null terminated (and trim trailing CRLFs)!
+            while (cchResult > 0 && (achResult[cchResult - 1] == '\n' || achResult[cchResult- 1] == '\r'))
+                cchResult--;
+            achResult[cchResult] = (char) 0;
+            // Check if the response it's an error or warning message.
+            if (strncasecmp(achResult, "WRN:", 4) == 0)
+                ret = LSCP_WARNING;
+            else if (strncasecmp(achResult, "ERR:", 4) == 0)
+                ret = LSCP_ERROR;
+            // So we got a result...
+            if (ret == LSCP_OK) {
+                // Reset errno in case of success.
+                iErrno = 0;
+                // Is it a special successful response?
+                if (strncasecmp(achResult, "OK[", 3) == 0) {
+                    // Parse the OK message, get the return string under brackets...
+                    pszToken = lscp_strtok(achResult, pszSeps, &(pch));
+                    if (pszToken)
+                        pszResult = lscp_strtok(NULL, pszSeps, &(pch));
+                }
+                else pszResult = achResult;
+                // The result string is now set to the command response, if any.
+            } else {
+                // Parse the error/warning message, skip first colon...
+                pszToken = lscp_strtok(achResult, pszSeps, &(pch));
+                if (pszToken) {
+                    // Get the error number...
+                    pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                    if (pszToken) {
+                        iErrno = atoi(pszToken);
+                        // And make the message text our final result.
+                        pszResult = lscp_strtok(NULL, pszSeps, &(pch));
+                    }
+                }
+                // The result string is set to the error/warning message text.
+            }
+        }
+        else if (cchResult == 0) {
+            // Damn, server disconnected, we better free everything down here.
+            lscp_socket_agent_free(&(pClient->evt));
+            lscp_socket_agent_free(&(pClient->cmd));
+            // Fake a result message.
+            ret = LSCP_QUIT;
+            pszResult = "Server terminated the connection";
+            iErrno = (int) ret;
+        } else {
+            // What's down?
+            lscp_socket_perror("_lscp_client_call: recv");
+            pszResult = "Failure during receive operation";
+        }
+    }   // Check if select has timed out.
+    else if (iSelect == 0) {
+        // Fake a result message.
+        ret = LSCP_TIMEOUT;
+        pszResult = "Timeout during receive operation";
+        iErrno = (int) ret;
+   }
+    else lscp_socket_perror("_lscp_client_call: select");
+
+    // Make the result official...
+    lscp_client_set_result(pClient, pszResult, iErrno);
+
+    return ret;
+}
+
+
+//-------------------------------------------------------------------------
+// Other general utility functions.
 
 // Trimming left spaces...
 char *lscp_ltrim ( char *psz )
@@ -298,16 +444,17 @@ void lscp_engine_info_reset ( lscp_engine_info_t *pEngineInfo )
 
 void lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
 {
-    pChannelInfo->engine_name     = NULL;
-    pChannelInfo->audio_device    = 0;
-    pChannelInfo->audio_channels  = 0;
-    pChannelInfo->audio_routing   = NULL;
-    pChannelInfo->instrument_file = NULL;
-    pChannelInfo->instrument_nr   = 0;
-    pChannelInfo->midi_device     = 0;
-    pChannelInfo->midi_port       = 0;
-    pChannelInfo->midi_channel    = 0;
-    pChannelInfo->volume          = 0.0;
+    pChannelInfo->engine_name       = NULL;
+    pChannelInfo->audio_device      = 0;
+    pChannelInfo->audio_channels    = 0;
+    pChannelInfo->audio_routing     = NULL;
+    pChannelInfo->instrument_file   = NULL;
+    pChannelInfo->instrument_nr     = 0;
+    pChannelInfo->instrument_status = 0;
+    pChannelInfo->midi_device       = 0;
+    pChannelInfo->midi_port         = 0;
+    pChannelInfo->midi_channel      = 0;
+    pChannelInfo->volume            = 0.0;
 }
 
 void lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )

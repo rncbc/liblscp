@@ -41,13 +41,13 @@ static void             _lscp_connect_list_free         (lscp_connect_list_t *pL
 static lscp_connect_t  *_lscp_connect_list_find_addr    (lscp_connect_list_t *pList, struct sockaddr_in *pAddr);
 static lscp_connect_t  *_lscp_connect_list_find_sock    (lscp_connect_list_t *pList, lscp_socket_t sock);
 
-static lscp_status_t    _lscp_server_udp_recv           (lscp_server_t *pServer);
+static lscp_status_t    _lscp_server_evt_recv           (lscp_server_t *pServer);
 
 static void             _lscp_server_thread_proc        (lscp_server_t *pServer);
 static void             _lscp_server_select_proc        (lscp_server_t *pServer);
 
-static void             _lscp_server_tcp_proc           (void *pvServer);
-static void             _lscp_server_udp_proc           (void *pvServer);
+static void             _lscp_server_cmd_proc           (void *pvServer);
+static void             _lscp_server_evt_proc           (void *pvServer);
 
 static void             _lscp_watchdog_scan             (lscp_server_t *pServer);
 
@@ -197,7 +197,7 @@ static void _lscp_connect_proc ( void *pvConnect )
     lscp_connect_t *pConnect = (lscp_connect_t *) pvConnect;
     lscp_server_t  *pServer  = pConnect->server;
 
-    while (pServer->tcp.iState && pConnect->client.iState) {
+    while (pServer->cmd.iState && pConnect->client.iState) {
         if (_lscp_connect_recv(pConnect) != LSCP_OK)
             pConnect->client.iState = 0;
     }
@@ -307,7 +307,7 @@ static lscp_status_t _lscp_connect_send ( lscp_connect_t *pConnect, const char *
     memcpy((char *) &addr, (char *) &(pConnect->client.addr), cAddr);
     addr.sin_port = htons((short) pConnect->port);
 
-    if (sendto((pConnect->server)->udp.sock, pchBuffer, cchBuffer, 0, (struct sockaddr *) &addr, cAddr) == cchBuffer)
+    if (sendto((pConnect->server)->evt.sock, pchBuffer, cchBuffer, 0, (struct sockaddr *) &addr, cAddr) == cchBuffer)
         ret = LSCP_OK;
     else
         lscp_socket_perror("_lscp_connect_send: sendto");
@@ -329,16 +329,16 @@ static lscp_status_t _lscp_connect_ping ( lscp_connect_t *pConnect )
     fprintf(stderr, "_lscp_connect_ping: pConnect=%p: addr=%s port=%d sessid=%s.\n", pConnect, inet_ntoa(pConnect->client.addr.sin_addr), pConnect->port, pConnect->sessid);
 #endif
 
-    sprintf(szBuffer, "PING %d %s\r\n", ntohs((pConnect->server)->udp.addr.sin_port), pConnect->sessid);
+    sprintf(szBuffer, "PING %d %s\r\n", ntohs((pConnect->server)->evt.addr.sin_port), pConnect->sessid);
 
     return _lscp_connect_send(pConnect, szBuffer, strlen(szBuffer));
 }
 
 
 //-------------------------------------------------------------------------
-// TCP service (stream oriented).
+// Command service (stream oriented).
 
-static lscp_status_t _lscp_server_udp_recv ( lscp_server_t *pServer )
+static lscp_status_t _lscp_server_evt_recv ( lscp_server_t *pServer )
 {
     lscp_status_t ret = LSCP_FAILED;
     struct sockaddr_in addr;
@@ -348,10 +348,10 @@ static lscp_status_t _lscp_server_udp_recv ( lscp_server_t *pServer )
     lscp_connect_t *pConnect;
 
     cAddr = sizeof(addr);
-    cchBuffer = recvfrom(pServer->udp.sock, achBuffer, sizeof(achBuffer), 0, (struct sockaddr *) &addr, &cAddr);
+    cchBuffer = recvfrom(pServer->evt.sock, achBuffer, sizeof(achBuffer), 0, (struct sockaddr *) &addr, &cAddr);
     if (cchBuffer > 0) {
 #ifdef DEBUG
-        lscp_socket_trace("_lscp_server_udp_recv: recvfrom", &addr, achBuffer, cchBuffer);
+        lscp_socket_trace("_lscp_server_evt_recv: recvfrom", &addr, achBuffer, cchBuffer);
 #endif
         // Just do a simple check for PONG events (ignore sessid).
         if (strncmp(achBuffer, "PONG ", 5) == 0) {
@@ -361,7 +361,7 @@ static lscp_status_t _lscp_server_udp_recv ( lscp_server_t *pServer )
         }
         ret = LSCP_OK;
     }
-    else lscp_socket_perror("_lscp_server_udp_recv: recvfrom");
+    else lscp_socket_perror("_lscp_server_evt_recv: recvfrom");
 
     return ret;
 }
@@ -378,12 +378,12 @@ static void _lscp_server_thread_proc ( lscp_server_t *pServer )
     fprintf(stderr, "_lscp_server_thread_proc: Server listening for connections.\n");
 #endif
 
-    while (pServer->tcp.iState) {
+    while (pServer->cmd.iState) {
         cAddr = sizeof(struct sockaddr_in);
-        sock = accept(pServer->tcp.sock, (struct sockaddr *) &addr, &cAddr);
+        sock = accept(pServer->cmd.sock, (struct sockaddr *) &addr, &cAddr);
         if (sock == INVALID_SOCKET) {
             lscp_socket_perror("_lscp_server_thread_proc: accept");
-            pServer->tcp.iState = 0;
+            pServer->cmd.iState = 0;
         } else {
             pConnect = _lscp_connect_create(pServer, sock, &addr, cAddr);
             if (pConnect) {
@@ -421,22 +421,22 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
     FD_ZERO(&select_fds);
 
     // Add the listeners to the master set
-    FD_SET((unsigned int) pServer->tcp.sock, &master_fds);
-    FD_SET((unsigned int) pServer->udp.sock, &master_fds);
+    FD_SET((unsigned int) pServer->cmd.sock, &master_fds);
+    FD_SET((unsigned int) pServer->evt.sock, &master_fds);
 
     // Keep track of the biggest file descriptor;
     // So far, it's ourself, the listener.
-    if ((int) pServer->udp.sock > (int) pServer->tcp.sock)
-        fdmax = (int) pServer->udp.sock;
+    if ((int) pServer->evt.sock > (int) pServer->cmd.sock)
+        fdmax = (int) pServer->evt.sock;
     else
-        fdmax = (int) pServer->tcp.sock;
+        fdmax = (int) pServer->cmd.sock;
 
     // To start counting for regular watchdog simulation.
     gettimeofday(&tv1, NULL);
     gettimeofday(&tv2, NULL);
 
     // Main loop...
-    while (pServer->tcp.iState) {
+    while (pServer->cmd.iState) {
 
         // Use a copy of the master.
         select_fds = master_fds;
@@ -451,20 +451,20 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
 
         if (iSelect < 0) {
             lscp_socket_perror("_lscp_server_select_proc: select");
-            pServer->tcp.iState = 0;
+            pServer->cmd.iState = 0;
         }
         else if (iSelect > 0) {
             // Run through the existing connections looking for data to read...
             for (fd = 0; fd < fdmax + 1; fd++) {
                 if (FD_ISSET(fd, &select_fds)) {    // We got one!!
-                    // Is it ourselves, the TCP listener?
-                    if (fd == (int) pServer->tcp.sock) {
+                    // Is it ourselves, the command listener?
+                    if (fd == (int) pServer->cmd.sock) {
                         // Accept the connection...
                         cAddr = sizeof(struct sockaddr_in);
-                        sock = accept(pServer->tcp.sock, (struct sockaddr *) &addr, &cAddr);
+                        sock = accept(pServer->cmd.sock, (struct sockaddr *) &addr, &cAddr);
                         if (sock == INVALID_SOCKET) {
                             lscp_socket_perror("_lscp_server_select_proc: accept");
-                            pServer->tcp.iState = 0;
+                            pServer->cmd.iState = 0;
                         } else {
                             // Add to master set.
                             FD_SET((unsigned int) sock, &master_fds);
@@ -479,11 +479,11 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
                             }
                         }
                         // Done with one new connection.
-                    } else if (fd == (int) pServer->udp.sock) {
-                        // Or to the UDP listener?
-                        if (_lscp_server_udp_recv(pServer) != LSCP_OK)
-                            pServer->tcp.iState = 0;
-                        // Done with UDP transaction.
+                    } else if (fd == (int) pServer->evt.sock) {
+                        // Or from the event listener?
+                        if (_lscp_server_evt_recv(pServer) != LSCP_OK)
+                            pServer->cmd.iState = 0;
+                        // Done with event transaction.
                     } else {
                         // Otherwise it's trivial transaction...
                         lscp_mutex_lock(pServer->connects.mutex);
@@ -522,7 +522,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
 }
 
 
-static void _lscp_server_tcp_proc ( void *pvServer )
+static void _lscp_server_cmd_proc ( void *pvServer )
 {
     lscp_server_t *pServer = (lscp_server_t *) pvServer;
 
@@ -534,23 +534,23 @@ static void _lscp_server_tcp_proc ( void *pvServer )
 
 
 //-------------------------------------------------------------------------
-// UDP service (datagram oriented).
+// Event service (datagram oriented).
 
-static void _lscp_server_udp_proc ( void *pvServer )
+static void _lscp_server_evt_proc ( void *pvServer )
 {
     lscp_server_t *pServer = (lscp_server_t *) pvServer;
 
 #ifdef DEBUG
-    fprintf(stderr, "_lscp_server_udp_proc: Server waiting for events.\n");
+    fprintf(stderr, "_lscp_server_evt_proc: Server waiting for events.\n");
 #endif
 
-    while (pServer->udp.iState) {
-        if (_lscp_server_udp_recv(pServer) != LSCP_OK)
-            pServer->udp.iState = 0;
+    while (pServer->evt.iState) {
+        if (_lscp_server_evt_recv(pServer) != LSCP_OK)
+            pServer->evt.iState = 0;
     }
 
 #ifdef DEBUG
-    fprintf(stderr, "_lscp_server_udp_proc: Server closing.\n");
+    fprintf(stderr, "_lscp_server_evt_proc: Server closing.\n");
 #endif
 }
 
@@ -692,24 +692,24 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
     fprintf(stderr, "lscp_server_create: pServer=%p: iPort=%d.\n", pServer, iPort);
 #endif
 
-    // Prepare the TCP stream server socket...
+    // Prepare the command stream server socket...
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == INVALID_SOCKET) {
-        lscp_socket_perror("lscp_server_create: tcp: socket");
+        lscp_socket_perror("lscp_server_create: cmd: socket");
         free(pServer);
         return NULL;
     }
 
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
-        lscp_socket_perror("lscp_server_create: tcp: setsockopt(SO_REUSEADDR)");
+        lscp_socket_perror("lscp_server_create: cmd: setsockopt(SO_REUSEADDR)");
 #if defined(WIN32)
     if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
-        lscp_socket_perror("lscp_server_create: tcp: setsockopt(SO_DONTLINGER)");
+        lscp_socket_perror("lscp_server_create: cmd: setsockopt(SO_DONTLINGER)");
 #endif
 
 #ifdef DEBUG
-    lscp_socket_getopts("lscp_server_create: tcp", sock);
+    lscp_socket_getopts("lscp_server_create: cmd", sock);
 #endif
 
     cAddr = sizeof(struct sockaddr_in);
@@ -719,14 +719,14 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
     addr.sin_port = htons((short) iPort);
 
     if (bind(sock, (const struct sockaddr *) &addr, cAddr) == SOCKET_ERROR) {
-        lscp_socket_perror("lscp_server_create: tcp: bind");
+        lscp_socket_perror("lscp_server_create: cmd: bind");
         closesocket(sock);
         free(pServer);
         return NULL;
     }
 
     if (listen(sock, 10) == SOCKET_ERROR) {
-        lscp_socket_perror("lscp_server_create: tcp: listen");
+        lscp_socket_perror("lscp_server_create: cmd: listen");
         closesocket(sock);
         free(pServer);
         return NULL;
@@ -734,35 +734,35 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 
     if (iPort == 0) {
         if (getsockname(sock, (struct sockaddr *) &addr, &cAddr) == SOCKET_ERROR) {
-            lscp_socket_perror("lscp_server_create: tcp: getsockname");
+            lscp_socket_perror("lscp_server_create: cmd: getsockname");
             closesocket(sock);
             free(pServer);
         }
-        // Make TCP and UDP ports equal?
+        // Make command and event ports equal?
         iPort = ntohs(addr.sin_port);
     }
 
-    lscp_socket_agent_init(&(pServer->tcp), sock, &addr, cAddr);
+    lscp_socket_agent_init(&(pServer->cmd), sock, &addr, cAddr);
 
 #ifdef DEBUG
-    fprintf(stderr, "lscp_server_create: tcp: sock=%d addr=%s port=%d.\n", pServer->tcp.sock, inet_ntoa(pServer->tcp.addr.sin_addr), ntohs(pServer->tcp.addr.sin_port));
+    fprintf(stderr, "lscp_server_create: cmd: sock=%d addr=%s port=%d.\n", pServer->cmd.sock, inet_ntoa(pServer->cmd.addr.sin_addr), ntohs(pServer->cmd.addr.sin_port));
 #endif
 
-    // Prepare the UDP datagram server socket...
+    // Prepare the event datagram server socket...
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == INVALID_SOCKET) {
-        lscp_socket_perror("lscp_server_create: udp: socket");
-        lscp_socket_agent_free(&(pServer->tcp));
+        lscp_socket_perror("lscp_server_create: evt: socket");
+        lscp_socket_agent_free(&(pServer->cmd));
         free(pServer);
         return NULL;
     }
 
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
-        lscp_socket_perror("lscp_server_create: udp: setsockopt(SO_REUSEADDR)");
+        lscp_socket_perror("lscp_server_create: evt: setsockopt(SO_REUSEADDR)");
 
 #ifdef DEBUG
-    lscp_socket_getopts("lscp_server_create: udp", sock);
+    lscp_socket_getopts("lscp_server_create: evt", sock);
 #endif
 
     cAddr = sizeof(struct sockaddr_in);
@@ -772,8 +772,8 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
     addr.sin_port = htons((short) iPort);
 
     if (bind(sock, (const struct sockaddr *) &addr, cAddr) == SOCKET_ERROR) {
-        lscp_socket_perror("lscp_server_create: udp: bind");
-        lscp_socket_agent_free(&(pServer->tcp));
+        lscp_socket_perror("lscp_server_create: evt: bind");
+        lscp_socket_agent_free(&(pServer->cmd));
         closesocket(sock);
         free(pServer);
         return NULL;
@@ -781,35 +781,35 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 
     if (iPort == 0) {
         if (getsockname(sock, (struct sockaddr *) &addr, &cAddr) == SOCKET_ERROR) {
-            lscp_socket_perror("lscp_server_create: udp: getsockname");
-            lscp_socket_agent_free(&(pServer->tcp));
+            lscp_socket_perror("lscp_server_create: evt: getsockname");
+            lscp_socket_agent_free(&(pServer->cmd));
             closesocket(sock);
             free(pServer);
             return NULL;
         }
     }
 
-    lscp_socket_agent_init(&(pServer->udp), sock, &addr, cAddr);
+    lscp_socket_agent_init(&(pServer->evt), sock, &addr, cAddr);
 
 #ifdef DEBUG
-    fprintf(stderr, "lscp_server_create: udp: sock=%d addr=%s port=%d.\n", pServer->udp.sock, inet_ntoa(pServer->udp.addr.sin_addr), ntohs(pServer->udp.addr.sin_port));
+    fprintf(stderr, "lscp_server_create: evt: sock=%d addr=%s port=%d.\n", pServer->evt.sock, inet_ntoa(pServer->evt.addr.sin_addr), ntohs(pServer->evt.addr.sin_port));
 #endif
 
     // Now's finally time to startup threads...
 
-    // TCP/Main service thread...
-    if (lscp_socket_agent_start(&(pServer->tcp), _lscp_server_tcp_proc, pServer, 0) != LSCP_OK) {
-        lscp_socket_agent_free(&(pServer->tcp));
-        lscp_socket_agent_free(&(pServer->udp));
+    // Command service thread...
+    if (lscp_socket_agent_start(&(pServer->cmd), _lscp_server_cmd_proc, pServer, 0) != LSCP_OK) {
+        lscp_socket_agent_free(&(pServer->cmd));
+        lscp_socket_agent_free(&(pServer->evt));
         free(pServer);
         return NULL;
     }
 
     if (pServer->mode == LSCP_SERVER_THREAD) {
-        // UDP service thread...
-        if (lscp_socket_agent_start(&(pServer->udp), _lscp_server_udp_proc, pServer, 0) != LSCP_OK) {
-            lscp_socket_agent_free(&(pServer->tcp));
-            lscp_socket_agent_free(&(pServer->udp));
+        // Event service thread...
+        if (lscp_socket_agent_start(&(pServer->evt), _lscp_server_evt_proc, pServer, 0) != LSCP_OK) {
+            lscp_socket_agent_free(&(pServer->cmd));
+            lscp_socket_agent_free(&(pServer->evt));
             free(pServer);
             return NULL;
         }
@@ -840,9 +840,9 @@ lscp_status_t lscp_server_join ( lscp_server_t *pServer )
 
 //  if (pServer->mode == LSCP_SERVER_THREAD) {
 //      lscp_thread_join(pServer->pWatchdog);
-//      lscp_socket_agent_join(&(pServer->udp));
+//      lscp_socket_agent_join(&(pServer->evt));
 //  }
-    lscp_socket_agent_join(&(pServer->tcp));
+    lscp_socket_agent_join(&(pServer->cmd));
 
     return LSCP_OK;
 }
@@ -866,8 +866,8 @@ lscp_status_t lscp_server_destroy ( lscp_server_t *pServer )
         pServer->iWatchdog = 0;
         lscp_thread_destroy(pServer->pWatchdog);
     }
-    lscp_socket_agent_free(&(pServer->udp));
-    lscp_socket_agent_free(&(pServer->tcp));
+    lscp_socket_agent_free(&(pServer->evt));
+    lscp_socket_agent_free(&(pServer->cmd));
     _lscp_connect_list_free(&(pServer->connects));
 
     free(pServer);
@@ -937,7 +937,7 @@ lscp_status_t lscp_server_result ( lscp_connect_t *pConnect, const char *pchBuff
 /**
  *  Register client as a subscriber of event broadcast messages.
  *
- *  @param pConnect     Pointer to client connection instance structure.
+ *  @param pConnect Pointer to client connection instance structure.
  *  @param iPort    UDP port number of the requesting client connection.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
