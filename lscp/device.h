@@ -148,6 +148,11 @@ lscp_device_port_info_t *lscp_get_midi_port_info        (lscp_client_t *pClient,
 lscp_param_info_t *     lscp_get_midi_port_param_info   (lscp_client_t *pClient, int iMidiDevice, int iMidiPort, const char *pszParam);
 lscp_status_t           lscp_set_midi_port_param        (lscp_client_t *pClient, int iMidiDevice, int iMidiPort, lscp_param_t *pParam);
 
+//-------------------------------------------------------------------------
+// Generic parameter list functions.
+
+const char *            lscp_get_param_value            (lscp_param_t *pParams, const char *pszParam);
+
 
 #if defined(__cplusplus)
 }

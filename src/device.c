@@ -73,6 +73,7 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
     }
+    else pDriverInfo = NULL;
     
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -113,6 +114,7 @@ static lscp_device_info_t *_lscp_device_info_query ( lscp_client_t *pClient, lsc
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
     }
+    else pDeviceInfo = NULL;
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -153,6 +155,7 @@ static lscp_device_port_info_t *_lscp_device_port_info_query ( lscp_client_t *pC
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
     }
+    else pDevicePortInfo = NULL;
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -247,6 +250,7 @@ static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
     }
+    else pParamInfo = NULL;
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -945,6 +949,22 @@ lscp_status_t lscp_set_midi_port_param ( lscp_client_t *pClient, int iMidiDevice
     lscp_param_concat(szQuery, sizeof(szQuery), pParam);
     return lscp_client_query(pClient, szQuery);
 }
+
+
+//-------------------------------------------------------------------------
+// Generic parameter list functions.
+
+const char *lscp_get_param_value ( lscp_param_t *pParams, const char *pszParam )
+{
+    int i;
+    
+    for (i = 0; pParams && pParams[i].key; i++) {
+        if (strcasecmp(pParams[i].key, pszParam) == 0)
+            return (const char *) pParams[i].value;
+    }
+    return NULL;
+}
+
 
 // end of device.c
 

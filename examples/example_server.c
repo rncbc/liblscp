@@ -116,12 +116,12 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
             // Getting all available audio output drivers.
             // GET AVAILABLE_AUDIO_OUTPUT_DRIVERS
-            pszResult = "Alsa,Jack,CoreAudio\r\n";
+            pszResult = "Alsa,Jack\r\n";
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_DRIVERS")) {
             // Getting all available MIDI input drivers.
             // GET AVAILABLE_MIDI_INPUT_DRIVERS
-            pszResult = "Alsa,MidiShare,CoreMidi\r\n";
+            pszResult = "Alsa\r\n";
         }
         else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER", "INFO")) {
             // Getting informations about a specific audio output driver.
@@ -129,7 +129,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             if (lscp_parser_test(&tok, "Alsa")) {
                 pszResult = "DESCRIPTION: 'ALSA PCM'\r\n"
                             "VERSION: '1.0'\r\n"
-                            "PARAMETERS: channels,samplerate,active,card\r\n";
+                            "PARAMETERS: channels,samplerate,active\r\n";
             }
             else if (lscp_parser_test(&tok, "Jack")) {
                 pszResult = "DESCRIPTION: JACK Audio Connection Kit\r\n"
@@ -151,46 +151,99 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER_PARAMETER", "INFO")) {
             // Getting informations about a specific audio output driver parameter.
             // GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO <audio-output-type> <param>
-            if (lscp_parser_test2(&tok, "Alsa", "active")) {
-                pszResult = "DESCRIPTION: 'ALSA PCM device active state'\r\n"
-                            "TYPE: BOOL\r\n"
-                            "MANDATORY: TRUE\r\n"
-                            "FIX: TRUE\r\n"
-                            "MULTIPLICITY: FALSE\r\n"
-                            "DEPENDS: channels,samplerate,card\r\n"
-                            "DEFAULT: TRUE\r\n"
-                            "RANGE_MIN: FALSE\r\n"
-                            "RANGE_MAX: TRUE\r\n"
-                            "POSSIBILITIES: FALSE,TRUE\r\n";
+            if (lscp_parser_test(&tok, "Alsa")) {
+                if (lscp_parser_test(&tok, "active")) {
+                    pszResult = "DESCRIPTION: 'ALSA PCM active state'\r\n"
+                                "TYPE: BOOL\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "DEPENDS: channels,samplerate,card\r\n"
+                                "DEFAULT: TRUE\r\n"
+                                "RANGE_MIN: FALSE\r\n"
+                                "RANGE_MAX: TRUE\r\n"
+                                "POSSIBILITIES: FALSE,TRUE\r\n";
+                }
+                else if (lscp_parser_test(&tok, "channels")) {
+                    pszResult = "DESCRIPTION: 'Number of ALSA PCM channels'\r\n"
+                                "TYPE: INT\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "DEFAULT: 2\r\n";
+                }
+                else if (lscp_parser_test(&tok, "samplerate")) {
+                    pszResult = "DESCRIPTION: 'ALSA PCM sample rate'\r\n"
+                                "TYPE: INT\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: TRUE\r\n"
+                                "DEFAULT: 44100\r\n"
+                                "POSSIBILITIES: 44100,48000,96000\r\n";
+                }
+                else ret = LSCP_FAILED;
             }
-            else if (lscp_parser_test2(&tok, "Jack", "active")) {
-                pszResult = "DESCRIPTION: 'JACK device active state'\r\n"
-                            "TYPE: BOOL\r\n"
-                            "MANDATORY: TRUE\r\n"
-                            "FIX: TRUE\r\n"
-                            "MULTIPLICITY: FALSE\r\n"
-                            "DEPENDS: channels,samplerate\r\n"
-                            "DEFAULT: TRUE\r\n"
-                            "RANGE_MIN: FALSE\r\n"
-                            "RANGE_MAX: TRUE\r\n"
-                            "POSSIBILITIES: FALSE,TRUE\r\n";
+            else if (lscp_parser_test(&tok, "Jack")) {
+                if (lscp_parser_test(&tok, "active")) {
+                    pszResult = "DESCRIPTION: 'JACK active state'\r\n"
+                                "TYPE: BOOL\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "DEPENDS: channels,samplerate\r\n"
+                                "DEFAULT: TRUE\r\n"
+                                "RANGE_MIN: FALSE\r\n"
+                                "RANGE_MAX: TRUE\r\n"
+                                "POSSIBILITIES: FALSE,TRUE\r\n";
+                }
+                else if (lscp_parser_test(&tok, "channels")) {
+                    pszResult = "DESCRIPTION: 'Number of JACK audio channels'\r\n"
+                                "TYPE: INT\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "DEFAULT: 2\r\n";
+                }
+                else if (lscp_parser_test(&tok, "samplerate")) {
+                    pszResult = "DESCRIPTION: 'JACK sample rate'\r\n"
+                                "TYPE: INT\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: TRUE\r\n"
+                                "DEFAULT: 44100\r\n"
+                                "POSSIBILITIES: 44100,48000,96000\r\n";
+                }
+                else ret = LSCP_FAILED;
             }
             else ret = LSCP_FAILED;
         }
         else if (lscp_parser_test2(&tok, "MIDI_INPUT_DRIVER_PARAMETER", "INFO")) {
             // Getting informations about a specific MIDI input driver parameter.
             // GET MIDI_INPUT_DRIVER_PARAMETER INFO <midi-input-type> <param>
-            if (lscp_parser_test2(&tok, "Alsa", "active")) {
-                pszResult = "DESCRIPTION: 'ALSA Sequencer device active state'\r\n"
-                            "TYPE: BOOL\r\n"
-                            "MANDATORY: TRUE\r\n"
-                            "FIX: TRUE\r\n"
-                            "MULTIPLICITY: FALSE\r\n"
-                            "DEPENDS: channels,ports\r\n"
-                            "DEFAULT: TRUE\r\n"
-                            "RANGE_MIN: FALSE\r\n"
-                            "RANGE_MAX: TRUE\r\n"
-                            "POSSIBILITIES: FALSE,TRUE\r\n";
+            if (lscp_parser_test(&tok, "Alsa")) {
+                if (lscp_parser_test(&tok, "active")) {
+                    pszResult = "DESCRIPTION: 'ALSA Sequencer device active state'\r\n"
+                                "TYPE: BOOL\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: TRUE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "DEPENDS: channels,ports\r\n"
+                                "DEFAULT: TRUE\r\n"
+                                "RANGE_MIN: FALSE\r\n"
+                                "RANGE_MAX: TRUE\r\n"
+                                "POSSIBILITIES: FALSE,TRUE\r\n";
+                }
+                else if (lscp_parser_test(&tok, "ports")) {
+                    pszResult = "DESCRIPTION: 'Number of ALSA Sequencer ports'\r\n"
+                                "TYPE: INT\r\n"
+                                "MANDATORY: FALSE\r\n"
+                                "FIX: FALSE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "DEFAULT: 1\r\n"
+                                "RANGE_MIN: 1\r\n"
+                                "RANGE_MAX: 4\r\n";
+                }
+                else ret = LSCP_FAILED;
             }
             else ret = LSCP_FAILED;
         }
@@ -213,6 +266,67 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                             "active: TRUE\r\n"
                             "channels: 16\r\n"
                             "ports: 1\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_CHANNEL", "INFO")) {
+            // Getting informations about an audio channel.
+            // GET AUDIO_OUTPUT_CHANNEL INFO <audio-device-id> <audio-channel>
+            if (lscp_parser_nextint(&tok) < iAudioDevice) {
+                pszResult = "name: DummyMonitor\r\n"
+                            "is_mix_channel: FALSE\r\n"
+                            "mix_channel_destination: 0\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "MIDI_INPUT_PORT", "INFO")) {
+            // Getting informations about a MIDI port.
+            // GET MIDI_INPUT_PORT INFO <midi-device-id> <midi-port>
+            if (lscp_parser_nextint(&tok) < iMidiDevice) {
+                pszResult = "name: DummyKeyboard\r\n"
+                            "alsa_seq_bindings: '64:0'\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_CHANNEL_PARAMETER", "INFO")) {
+            // Getting informations about specific audio channel parameter.
+            // GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO <audio-device-id> <audio-channel> <param>
+            if (lscp_parser_nextint(&tok) < iAudioDevice) {
+                lscp_parser_nextint(&tok);
+                if (lscp_parser_test(&tok, "is_mix_channel")) {
+                    pszResult = "DESCRIPTION: 'Whether this is an audio mix channel'\r\n"
+                                "TYPE: BOOL\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: FALSE\r\n"
+                                "MULTIPLICITY: FALSE\r\n"
+                                "POSSIBILITIES: FALSE,TRUE\r\n";
+                }
+                else if (lscp_parser_test(&tok, "mix_channel_destination")) {
+                    pszResult = "DESCRIPTION: 'Audio mix channel destination'\r\n"
+                                "TYPE: INT\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: FALSE\r\n"
+                                "MULTIPLICITY: TRUE\r\n"
+                                "POSSIBILITIES: 0,1\r\n";
+                }
+                else ret = LSCP_FAILED;
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "MIDI_INPUT_PORT_PARAMETER", "INFO")) {
+            // Getting informations about specific MIDI port parameter.
+            // GET MIDI_INPUT_PORT_PARAMETER INFO <midi-device-id> <midi-port> <param>
+            if (lscp_parser_nextint(&tok) < iMidiDevice) {
+                lscp_parser_nextint(&tok);
+                if (lscp_parser_test(&tok, "alsa_seq_bindings")) {
+                    pszResult = "DESCRIPTION: 'Alsa sequencer port bindings'\r\n"
+                                "TYPE: STRING\r\n"
+                                "MANDATORY: TRUE\r\n"
+                                "FIX: FALSE\r\n"
+                                "MULTIPLICITY: TRUE\r\n"
+                                "POSSIBILITIES: '64:0','68:0','68:1'\r\n";
+                }
+                else ret = LSCP_FAILED;
             }
             else ret = LSCP_FAILED;
         }
@@ -344,7 +458,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         // Adding a new sampler channel:
         // ADD CHANNEL
         if (iSamplerChannel < 16) {
-            sprintf(szTemp, "OK[%d]", iSamplerChannel++);         
+            sprintf(szTemp, "OK[%d]", iSamplerChannel++);
             pszResult = szTemp;
         } else {
             iSamplerChannel = 0;
@@ -438,6 +552,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 }
 
 ////////////////////////////////////////////////////////////////////////
+
 
 void server_usage (void)
 {

@@ -817,6 +817,7 @@ int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams
     if (cchBuffer + 2 < cchMaxBuffer) {
         pszBuffer[cchBuffer++] = '\r';
         pszBuffer[cchBuffer++] = '\n';
+        pszBuffer[cchBuffer ]  = (char) 0;
     }
     
     return cchBuffer;
