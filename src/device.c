@@ -46,7 +46,7 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
         return NULL;
 
     pszResult = lscp_client_get_result(pClient);
-    pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+    pszToken = lscp_strtok(pszResult, pszSeps, &(pch));
     while (pszToken) {
         if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
             pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
@@ -90,7 +90,7 @@ const char ** lscp_get_available_audio_drivers ( lscp_client_t *pClient )
         lscp_szsplit_destroy(pClient->audio_drivers);
         pClient->audio_drivers = NULL;
     }
-   
+
     if (lscp_client_query(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
         pClient->audio_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
@@ -135,7 +135,7 @@ lscp_driver_info_t* lscp_get_audio_driver_info ( lscp_client_t *pClient, const c
 lscp_param_info_t *lscp_get_audio_driver_param_info ( lscp_client_t *pClient, const char *pszAudioDriver, const char *pszParam, lscp_param_t *pDepList )
 {
     lscp_param_info_t *pParamInfo = NULL;
-    
+
     if (pClient == NULL)
         return NULL;
     if (pszAudioDriver == NULL)
@@ -371,7 +371,7 @@ const char** lscp_get_available_midi_drivers ( lscp_client_t *pClient )
         lscp_szsplit_destroy(pClient->midi_drivers);
         pClient->midi_drivers = NULL;
     }
-    
+
     if (lscp_client_query(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
         pClient->midi_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 

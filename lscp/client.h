@@ -80,6 +80,7 @@ typedef enum _lscp_usage_t
 //-------------------------------------------------------------------------
 // Client socket main structure.
 
+/** Client opaque descriptor struct. */
 typedef struct _lscp_client_t lscp_client_t;
 
 /** Client callback procedure prototype. */
