@@ -24,7 +24,13 @@
 
 #include <ctype.h>
 
-// Chunk size magic: 
+// Case unsensitive comparison substitutes.
+#if defined(WIN32)
+#define strcasecmp      stricmp
+#define strncasecmp     strnicmp
+#endif
+
+// Chunk size magic:
 // LSCP_SPLIT_CHUNK1 = 2 ^ LSCP_SPLIT_CHUNK2
 #define LSCP_SPLIT_CHUNK1   4
 #define LSCP_SPLIT_CHUNK2   2
@@ -105,41 +111,47 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps)
 
     // Make a copy of the original string.
     pszHead = strdup(pszCsv);
+    if (pszHead == NULL)
+        return NULL;
+
     // Initial size is one chunk away.
     iSize = LSCP_SPLIT_CHUNK1;
     // Allocate and split...
     ppszSplit = (char **) malloc(iSize * sizeof(char *));
-    if (pszHead && ppszSplit) {
-        cchSeps = strlen(pszSeps);
-        i = 0;
-        ppszSplit[i++] = pszHead;
-        while ((pch = strstr(pszHead, pszSeps)) != NULL) {
-            // Do we need to grow?
-            if (i >= iSize) {
-                // Yes, but only grow in chunks.
-                iSize += LSCP_SPLIT_CHUNK1;
-                // Allocate and copy to new split array.
-                ppszNewSplit = (char **) malloc(iSize * sizeof(char *));
-                if (ppszNewSplit) {
-                    for (j = 0; j < i; j++)
-                        ppszNewSplit[j] = ppszSplit[j];
-                    free(ppszSplit);
-                    ppszSplit = ppszNewSplit;
-                }
+    if (ppszSplit == NULL)
+        return NULL;
+
+    // Go for it...
+    cchSeps = strlen(pszSeps);
+    i = 0;
+    ppszSplit[i++] = pszHead;
+    while ((pch = strpbrk(pszHead, pszSeps)) != NULL) {
+        // Do we need to grow?
+        if (i >= iSize) {
+            // Yes, but only grow in chunks.
+            iSize += LSCP_SPLIT_CHUNK1;
+            // Allocate and copy to new split array.
+            ppszNewSplit = (char **) malloc(iSize * sizeof(char *));
+            if (ppszNewSplit) {
+                for (j = 0; j < i; j++)
+                    ppszNewSplit[j] = ppszSplit[j];
+                free(ppszSplit);
+                ppszSplit = ppszNewSplit;
             }
-            // Pre-advance to next item.
-            pszHead = pch + cchSeps;
-            // Trim and null terminate current item.
-            while (isspace(*(pch - 1)) && pch > ppszSplit[0])
-                --pch;
-            *pch = (char) 0;
-            // Make it official.
-            ppszSplit[i++] = (char *) _lscp_ltrim(pszHead);
         }
-        // NULL terminate split array.
-        for ( ; i < iSize; i++)
-            ppszSplit[i] = NULL;
+        // Pre-advance to next item.
+        pszHead = pch + cchSeps;
+        // Trim and null terminate current item.
+        while (isspace(*(pch - 1)) && pch > ppszSplit[0])
+            --pch;
+        *pch = (char) 0;
+        // Make it official.
+        ppszSplit[i++] = (char *) _lscp_ltrim(pszHead);
     }
+
+    // NULL terminate split array.
+    for ( ; i < iSize; i++)
+        ppszSplit[i] = NULL;
 
     return ppszSplit;
 }
@@ -715,9 +727,9 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
                 pszToken = strtok_r(achResult, pszSeps, &(pch));
                 if (pszToken)
                     pszResult = strtok_r(NULL, pszSeps, &(pch));
-            } 
+            }
             else pszResult = achResult;
-            // The result string is now set to the command response, if any. 
+            // The result string is now set to the command response, if any.
         } else {
             // Parse the error/warning message, skip first colon...
             pszToken = strtok_r(achResult, pszSeps, &(pch));
@@ -730,7 +742,7 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
                     pszResult = strtok_r(NULL, pszSeps, &(pch));
                 }
             }
-            // The result string is set to the error/warning message text. 
+            // The result string is set to the error/warning message text.
         }
     }
 
@@ -1012,7 +1024,7 @@ int lscp_get_channels ( lscp_client_t *pClient )
  *
  *  @param pClient  Pointer to client instance structure.
  *
- *  @returns The new sampler channel number identifier, 
+ *  @returns The new sampler channel number identifier,
  *  or -1 in case of failure.
  */
 int lscp_add_channel ( lscp_client_t *pClient )

@@ -25,12 +25,6 @@
 
 #include "lscp/socket.h"
 
-// Case unsensitive comparison substitutes.
-#if defined(WIN32)
-#define strcasecmp      stricmp
-#define strncasecmp     strnicmp
-#endif
-
 #if defined(__cplusplus)
 extern "C" {
 #endif

@@ -279,10 +279,10 @@ int main (int argc, char *argv[] )
             cchLine--;
         szLine[cchLine] = '\0';
 
-        if (strcasecmp(szLine, "exit") == 0 || strcasecmp(szLine, "quit") == 0)
+        if (strcmp(szLine, "exit") == 0 || strcmp(szLine, "quit") == 0)
             break;
         else
-        if (strcasecmp(szLine, "list") == 0) {
+        if (strcmp(szLine, "list") == 0) {
             for (p = pServer->connects.first; p; p = p->next) {
                 printf("client: sock=%d addr=%s tcp.port=%d udp.port=%d ping=%d sessid=%s.\n",
                     p->client.sock,
@@ -295,7 +295,7 @@ int main (int argc, char *argv[] )
             }
         }
         else
-        if (cchLine > 0 && strcasecmp(szLine, "help") != 0)
+        if (cchLine > 0 && strcmp(szLine, "help") != 0)
             lscp_server_broadcast(pServer, szLine, strlen(szLine));
         else
             server_usage();
@@ -313,4 +313,3 @@ int main (int argc, char *argv[] )
 }
 
 // end of example_server.c
-
