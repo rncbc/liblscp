@@ -37,7 +37,7 @@
 // Chunk size legal calculator.
 #define LSCP_SPLIT_SIZE(n) ((((n) >> LSCP_SPLIT_CHUNK2) + 1) << LSCP_SPLIT_CHUNK2)
 
-// Default timeout value.
+// Default timeout value (in miliseconds).
 #define LSCP_TIMEOUT_MSECS  200
 
 
@@ -724,9 +724,11 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
  */
 lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, int cchBuffer, char *pchResult, int *pcchResult )
 {
-    fd_set fds;                         // File descriptor list for select().
-    int    fd, fdmax;                   // Maximum file descriptor number.
-    struct timeval tv;                  // For specifying a timeout value.
+    fd_set fds;         // File descriptor list for select().
+    int    fd, fdmax;   // Maximum file descriptor number.
+    struct timeval tv;  // For specifying a timeout value.
+    int    iSelect;     // Holds select return status.
+    int    iTimeout;
 
     lscp_status_t ret = LSCP_FAILED;
 
@@ -752,24 +754,28 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, 
     fdmax = fd;
 
     // Use the timeout select feature...
-    if (pClient->iTimeout > 1000) {
-        tv.tv_sec  = pClient->iTimeout / 1000;
-        tv.tv_usec = 0;
-    } else {
-        tv.tv_sec  = 0;
-        tv.tv_usec = pClient->iTimeout * 1000;
+    iTimeout = pClient->iTimeout;
+    if (iTimeout > 1000) {
+        tv.tv_sec = iTimeout / 1000;
+        iTimeout -= tv.tv_sec * 1000;
     }
+    else tv.tv_sec = 0;
+    tv.tv_usec = iTimeout * 1000;
 
     // Wait for event...
-    if (select(fdmax + 1, &fds, NULL, NULL, &tv) > 0 && FD_ISSET(fd, &fds)) {
+    iSelect = select(fdmax + 1, &fds, NULL, NULL, &tv);
+    if (iSelect > 0 && FD_ISSET(fd, &fds)) {
         // May recv now...
         *pcchResult = recv(pClient->tcp.sock, pchResult, *pcchResult, 0);
         if (*pcchResult < 1)
             lscp_socket_perror("lscp_client_call: recv");
         else
             ret = LSCP_OK;
-    }
-    else lscp_socket_perror("lscp_client_call: select");
+    }   // Check if select has timed out.
+    else if (iSelect == 0)
+        ret = LSCP_TIMEOUT;
+    else
+        lscp_socket_perror("lscp_client_call: select");
 
     return ret;
 }
@@ -888,7 +894,9 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
             }
             // The result string is set to the error/warning message text.
         }
-    }
+    }   // Handle timeouts distinctively.
+    else if (ret == LSCP_TIMEOUT)
+        pszResult = "Timeout during receive operation";
 
     // Make the result official...
     _lscp_client_set_result(pClient, pszResult, iErrno);
