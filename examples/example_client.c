@@ -62,28 +62,37 @@ float client_test_elapsed ( clock_t *pclk ) { return (float) ((long) clock() - *
 void client_test ( lscp_client_t *pClient )
 {
     int iSamplerChannel;
+    const char **ppszEngines, *pszEngine;
+    int iEngine;
     
-    CLIENT_TEST(pClient, lscp_get_available_engines(pClient));
-    CLIENT_TEST(pClient, lscp_get_engine_info(pClient, "DefaultEngine"));
-    
-    CLIENT_TEST(pClient, iSamplerChannel = lscp_get_channels(pClient)); iSamplerChannel++;
-    CLIENT_TEST(pClient, lscp_add_channel(pClient));
-    CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_load_engine(pClient, "DefaultEngine", iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_load_instrument(pClient, "DefaultInstrument.gig", 0, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_get_channel_voice_count(pClient, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_get_channel_stream_count(pClient, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, LSCP_AUDIO_ALSA));
-    CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0));
-    CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, LSCP_MIDI_ALSA));
-    CLIENT_TEST(pClient, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
-    CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, "130:0"));
-    CLIENT_TEST(pClient, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
-    CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));
-    CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
+    CLIENT_TEST(pClient, ppszEngines = lscp_get_available_engines(pClient));
+    if (ppszEngines == NULL) {
+        fprintf(stderr, "client_test: No engines available.\n");
+        return;
+    }
+
+    for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
+        pszEngine = ppszEngines[iEngine];
+        CLIENT_TEST(pClient, lscp_get_engine_info(pClient, pszEngine));
+        CLIENT_TEST(pClient, iSamplerChannel = lscp_get_channels(pClient)); iSamplerChannel++;
+        CLIENT_TEST(pClient, lscp_add_channel(pClient));
+        CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_load_engine(pClient, pszEngine, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_load_instrument(pClient, "DefaultInstrument.gig", 0, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_get_channel_voice_count(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_get_channel_stream_count(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, LSCP_AUDIO_ALSA));
+        CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, LSCP_MIDI_ALSA));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, "130:0"));
+        CLIENT_TEST(pClient, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
+        CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -155,6 +164,10 @@ int main (int argc, char *argv[] )
             if (lscp_client_call(pClient, szLine, strlen(szLine), szResp, &cchResp) == LSCP_OK) {
                 szResp[cchResp] = (char) 0;
                 fputs(szResp, stdout);
+            }
+            if (cchResp < 1) {
+                fprintf(stderr, "lscp_client: server closed connection.\n");
+                break;
             }
         }
         else client_usage();
