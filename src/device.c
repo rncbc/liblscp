@@ -343,7 +343,7 @@ lscp_status_t lscp_set_audio_channel_param ( lscp_client_t *pClient, int iAudioD
     if (iAudioDevice < 0)
         return ret;
     if (iAudioChannel < 0)
-        return NULL;
+        return ret;
     if (pParam == NULL)
         return ret;
 
@@ -626,7 +626,7 @@ lscp_status_t lscp_set_midi_port_param ( lscp_client_t *pClient, int iMidiDevice
     if (iMidiDevice < 0)
         return ret;
     if (iMidiPort < 0)
-        return NULL;
+        return ret;
     if (pParam == NULL)
         return ret;
 
