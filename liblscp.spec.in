@@ -1,0 +1,64 @@
+
+%define name    @PACKAGE@
+%define version @VERSION@
+%define release 1
+%define prefix  @prefix@
+
+Summary:	LinuxSampler control protocol API.
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:		%{prefix}
+Copyright:	LGPL
+Group:		Sound
+Source0:	%{name}-%{version}.tar.gz
+URL:		http://www.linuxsampler.org/
+BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
+
+%description
+LinuxSampler control protocol API.
+
+%package devel
+Summary:	LinuxSampler control protocol API libraries and include files.
+Group:		Development/Libraries
+Requires:	%{name} = %{version}
+
+%description devel
+LinuxSampler control protocol API libraries and include files.
+
+%prep
+
+%setup
+
+%build
+make -f Makefile.cvs
+./configure --prefix=%{prefix}
+make
+
+%install
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+mkdir -p $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+%clean
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%{prefix}/lib/liblscp.so*
+
+%files devel
+%defattr(-,root,root)
+%doc doc/html/*
+%{prefix}/lib/liblscp.a
+%{prefix}/lib/liblscp.la
+%{prefix}/lib/pkgconfig/liblscp.pc
+%{prefix}/include/lscp
+
+%changelog
+* Mon Apr 26 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Server stuff moved out (stays on examples source package)
+
+* Sat Apr 24 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Created initial liblscp.spec.in
