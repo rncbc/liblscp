@@ -1417,4 +1417,18 @@ lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
 }
 
 
+/**
+ *  Resetting the sampler:
+ *  RESET
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_reset_sampler ( lscp_client_t *pClient )
+{
+    return lscp_client_query(pClient, "RESET\r\n");
+}
+
+
 // end of client.c

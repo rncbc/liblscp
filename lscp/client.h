@@ -160,6 +160,8 @@ lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient,
 
 lscp_status_t           lscp_reset_channel              (lscp_client_t *pClient, int iSamplerChannel);
 
+lscp_status_t           lscp_reset_sampler              (lscp_client_t *pClient);
+
 
 #if defined(__cplusplus)
 }

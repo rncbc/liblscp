@@ -415,7 +415,7 @@ void client_test_audio_driver ( lscp_client_t *pClient, const char *pszAudioDriv
 }
 
 
-void client_test_all ( lscp_client_t *pClient )
+void client_test_all ( lscp_client_t *pClient, int step )
 {
     const char **ppszAudioDrivers, **ppszMidiDrivers, **ppszEngines;
     const char *pszAudioDriver, *pszMidiDriver, *pszEngine;
@@ -424,6 +424,7 @@ void client_test_all ( lscp_client_t *pClient )
     int iNewAudioDevice, iNewMidiDevice;
     int *piAudioDevices, *piMidiDevices;
 
+    g_test_step  = step;
     g_test_count = 0;
     g_test_fails = 0;
 
@@ -473,6 +474,9 @@ void client_test_all ( lscp_client_t *pClient )
         }
         CLIENT_TEST(pClient, status, lscp_destroy_audio_device(pClient, iNewAudioDevice));
     }
+
+    CLIENT_TEST(pClient, status, lscp_reset_sampler(pClient));
+    
     printf("\n\n");
     printf("  Total: %d tests, %d failed.\n\n", g_test_count, g_test_fails);
 }
@@ -536,13 +540,10 @@ int main (int argc, char *argv[] )
             lscp_client_unsubscribe(pClient, LSCP_EVENT_MISCELLANEOUS);
         else
         if (strcmp(szLine, "test") == 0)
-            client_test_all(pClient);
+            client_test_all(pClient, 0);
         else
-        if (strcmp(szLine, "teststep") == 0 || strcmp(szLine, "test step") == 0) {
-            g_test_step = 1;
-            client_test_all(pClient);
-            g_test_step = 0;
-        }
+        if (strcmp(szLine, "teststep") == 0 || strcmp(szLine, "test step") == 0)
+            client_test_all(pClient, 1);
         else
         if (cchLine > 0 && strcmp(szLine, "help") != 0) {
             szLine[cchLine++] = '\r';

@@ -473,11 +473,19 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else
             ret = LSCP_FAILED;
     }
-    else if (lscp_parser_test2(&tok, "RESET", "CHANNEL")) {
-        // Resetting a sampler channel:
-        // RESET CHANNEL <sampler-channel>
-        if (lscp_parser_nextint(&tok) > iSamplerChannel)
-            ret = LSCP_FAILED;
+    else if (lscp_parser_test(&tok, "RESET")) {
+        if (lscp_parser_test(&tok, "CHANNEL")) {
+            // Resetting a sampler channel:
+            // RESET CHANNEL <sampler-channel>
+            if (lscp_parser_nextint(&tok) > iSamplerChannel)
+                ret = LSCP_FAILED;
+        } else {
+            // Reset sampler:
+            // RESET
+            iSamplerChannel = 0;
+            iAudioDevice = 0;
+            iMidiDevice = 0;
+        }
     }
     else if (lscp_parser_test(&tok, "CREATE")) {
         if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
