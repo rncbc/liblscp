@@ -63,6 +63,9 @@ const char *lscp_event_to_text ( lscp_event_t event )
       case LSCP_EVENT_MISCELLANEOUS:
         pszText = "MISCELLANEOUS";
         break;
+      case LSCP_EVENT_NONE:
+      default:
+        break;
     }
 
     return pszText;
