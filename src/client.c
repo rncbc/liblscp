@@ -410,7 +410,7 @@ const char* lscp_client_build   (void) { return __DATE__ " " __TIME__; }
  *  @returns The new client instance pointer if successfull, which shall be
  *  used on all subsequent client calls, NULL otherwise.
  */
-lscp_client_t* lscp_client_create ( char *pszHost, int iPort, lscp_client_proc_t pfnCallback, void *pvData )
+lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_proc_t pfnCallback, void *pvData )
 {
     lscp_client_t  *pClient;
     struct hostent *pHost;

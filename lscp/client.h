@@ -139,7 +139,7 @@ const char *            lscp_client_build               (void);
 //-------------------------------------------------------------------------
 // Client socket functions.
 
-lscp_client_t *         lscp_client_create              (char *pszHost, int iPort, lscp_client_proc_t pfnCallback, void *pvData);
+lscp_client_t *         lscp_client_create              (const char *pszHost, int iPort, lscp_client_proc_t pfnCallback, void *pvData);
 lscp_status_t           lscp_client_join                (lscp_client_t *pClient);
 lscp_status_t           lscp_client_destroy             (lscp_client_t *pClient);
 
