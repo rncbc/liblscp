@@ -50,15 +50,199 @@ lscp_status_t client_callback ( lscp_client_t *pClient, lscp_event_t event, cons
 
 ////////////////////////////////////////////////////////////////////////
 
+void client_test_int ( int i )
+{
+    printf("%d\n", i);
+}
+
+void client_test_status ( lscp_status_t s )
+{
+    const char *pszStatus;
+    
+    switch (s) {
+      case LSCP_OK:         pszStatus = "OK";       break;
+      case LSCP_FAILED:     pszStatus = "FAILED";   break;
+      case LSCP_ERROR:      pszStatus = "ERROR";    break;
+      case LSCP_WARNING:    pszStatus = "WARNING";  break;
+      case LSCP_TIMEOUT:    pszStatus = "TIMEOUT";  break;
+      case LSCP_QUIT:       pszStatus = "QUIT";     break;
+      default:              pszStatus = "NONE";     break;
+    }
+    
+    printf("%s\n", pszStatus);
+}
+
+
+void client_test_isplit ( int *piSplit )
+{
+    int i;
+
+    printf("{");
+    for (i = 0; piSplit && piSplit[i] >= 0; i++) {
+        if (i > 0)
+            printf(",");
+        printf(" %d", piSplit[i]);
+    }
+    printf(" }\n");
+}
+
+void client_test_szsplit ( char **ppszSplit )
+{
+    int i;
+
+    printf("{");
+    for (i = 0; ppszSplit && ppszSplit[i]; i++) {
+        if (i > 0)
+            printf(",");
+        printf(" %s", ppszSplit[i]);
+    }
+    printf(" }\n");
+}
+
+void client_test_params ( lscp_param_t *pParams )
+{
+    int i;
+
+    printf("{");
+    for (i = 0; pParams && pParams[i].key; i++) {
+        if (i > 0)
+            printf(",");
+        printf(" %s='%s'", pParams[i].key, pParams[i].value);
+    }
+    printf(" }\n");
+}
+
+void client_test_param_info ( lscp_param_info_t *pParamInfo )
+{
+    const char *pszType;
+    
+    if (pParamInfo == NULL) {
+        printf("(nil)\n");
+        return;
+    }
+    switch (pParamInfo->type) {
+      case LSCP_TYPE_BOOL:      pszType = "BOOL";   break;
+      case LSCP_TYPE_INT:       pszType = "INT";    break;
+      case LSCP_TYPE_FLOAT:     pszType = "FLOAT";  break;
+      case LSCP_TYPE_STRING:    pszType = "STRING"; break;
+      default:                  pszType = "NONE";   break;
+    }
+    printf("{\n");
+    printf("    param_info.type                = %d (%s)\n", (int) pParamInfo->type, pszType);
+    printf("    param_info.description         = %s\n", pParamInfo->description);
+    printf("    param_info.mandatory           = %d\n", pParamInfo->mandatory);
+    printf("    param_info.fix                 = %d\n", pParamInfo->fix);
+    printf("    param_info.multiplicity        = %d\n", pParamInfo->multiplicity);
+    printf("    param_info.depends             = "); client_test_szsplit(pParamInfo->depends);
+    printf("    param_info.defaultv            = %s\n", pParamInfo->defaultv);
+    printf("    param_info.range_min           = %s\n", pParamInfo->range_min);
+    printf("    param_info.range_max           = %s\n", pParamInfo->range_max);
+    printf("    param_info.possibilities       = "); client_test_szsplit(pParamInfo->possibilities);
+    printf("  }\n");
+}
+
+void client_test_driver_info ( lscp_driver_info_t *pDriverInfo )
+{
+    if (pDriverInfo == NULL) {
+        printf("(nil)\n");
+        return;
+    }
+    printf("{\n");
+    printf("    driver_info.description        = %s\n", pDriverInfo->description);
+    printf("    driver_info.version            = %s\n", pDriverInfo->version);
+    printf("    driver_info.parameters         = "); client_test_szsplit(pDriverInfo->parameters);
+    printf("  }\n");
+}
+
+void client_test_device_info ( lscp_device_info_t *pDeviceInfo )
+{
+    if (pDeviceInfo == NULL) {
+        printf("(nil)\n");
+        return;
+    }
+    printf("{\n");
+    printf("    device_info.driver             = %s\n", pDeviceInfo->driver);
+    printf("    device_info.params             = "); client_test_params(pDeviceInfo->params);
+    printf("  }\n");
+}
+
+void client_test_device_port_info ( lscp_device_port_info_t *pDevicePortInfo )
+{
+    if (pDevicePortInfo == NULL) {
+        printf("(nil)\n");
+        return;
+    }
+    printf("{\n");
+    printf("    device_port_info.name          = %s\n", pDevicePortInfo->name);
+    printf("    device_port_info.params        = "); client_test_params(pDevicePortInfo->params);
+    printf("  }\n");
+}
+
+void client_test_engine_info ( lscp_engine_info_t *pEngineInfo )
+{
+    if (pEngineInfo == NULL) {
+        printf("(nil)\n");
+        return;
+    }
+    printf("{\n");
+    printf("    engine_info.description        = %s\n", pEngineInfo->description);
+    printf("    engine_info.version            = %s\n", pEngineInfo->version);
+    printf("  }\n");
+}
+
+void client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
+{
+    if (pChannelInfo == NULL) {
+        printf("(nil)\n");
+        return;
+    }
+    printf("{\n");
+    printf("    channel_info.engine_name       = %s\n", pChannelInfo->engine_name);
+    printf("    channel_info.audio_device      = %d\n", pChannelInfo->audio_device);
+    printf("    channel_info.audio_channels    = %d\n", pChannelInfo->audio_channels);
+    printf("    channel_info.audio_routing     = "); client_test_szsplit(pChannelInfo->audio_routing);
+    printf("    channel_info.instrument_file   = %s\n", pChannelInfo->instrument_file);
+    printf("    channel_info.instrument_nr     = %d\n", pChannelInfo->instrument_nr);
+    printf("    channel_info.instrument_status = %d\n", pChannelInfo->instrument_status);
+    printf("    channel_info.midi_device       = %d\n", pChannelInfo->midi_device);
+    printf("    channel_info.midi_port         = %d\n", pChannelInfo->midi_port);
+    printf("    channel_info.midi_channel      = %d\n", pChannelInfo->midi_channel);
+    printf("    channel_info.volume            = %g\n", pChannelInfo->volume);
+    printf("  }\n");
+}
+
+void client_test_buffer_fill ( lscp_buffer_fill_t *pBufferFill )
+{
+    printf("{ <%p> }\n", pBufferFill);
+}
+
+////////////////////////////////////////////////////////////////////////
+
+static int g_teststep = 0;
+
 void  client_test_start   ( clock_t *pclk ) { *pclk = clock(); }
 float client_test_elapsed ( clock_t *pclk ) { return (float) ((long) clock() - *pclk) / (float) CLOCKS_PER_SEC; }
 
-#define CLIENT_TEST(p, x) { clock_t c; void *v;\
-    printf(#x ":\n"); client_test_start(&c); v = (void *) (x); \
-    printf("  elapsed=%gs\n", client_test_elapsed(&c)); \
-    printf("  ret=%p (%d)\n", v, (int) v); \
-    printf("  errno=%d\n", lscp_client_get_errno(p)); \
-    printf("  result=\"%s\"\n", lscp_client_get_result(p)); }
+typedef int *                       isplit;
+typedef char **                     szsplit;
+typedef lscp_status_t               status;
+typedef lscp_driver_info_t *        driver_info;
+typedef lscp_device_info_t *        device_info;
+typedef lscp_device_port_info_t *   device_port_info;
+typedef lscp_param_info_t  *        param_info;
+typedef lscp_engine_info_t *        engine_info;
+typedef lscp_channel_info_t *       channel_info;
+typedef lscp_buffer_fill_t *        buffer_fill;
+
+#define CLIENT_TEST(p, t, x) { clock_t c; void *v; \
+    printf("\n" #x ":\n"); client_test_start(&c); v = (void *) (x); \
+    printf("  elapsed=%gs  errno=%d  result='%s...' ret=", \
+        client_test_elapsed(&c), \
+        lscp_client_get_errno(p), \
+        lscp_client_get_result(p)); \
+    client_test_##t((t)(v)); \
+    if (g_teststep) getchar(); }
+
 
 void client_test ( lscp_client_t *pClient )
 {
@@ -68,75 +252,74 @@ void client_test ( lscp_client_t *pClient )
     int iAudioDevice, iMidiDevice;
     int iSamplerChannel;
 
-    CLIENT_TEST(pClient, ppszAudioDrivers = lscp_get_available_audio_drivers(pClient));
+    CLIENT_TEST(pClient, szsplit, ppszAudioDrivers = lscp_get_available_audio_drivers(pClient));
     if (ppszAudioDrivers == NULL) {
         fprintf(stderr, "client_test: No audio drivers available.\n");
         return;
     }
 
-    CLIENT_TEST(pClient, ppszMidiDrivers = lscp_get_available_midi_drivers(pClient));
+    CLIENT_TEST(pClient, szsplit, ppszMidiDrivers = lscp_get_available_midi_drivers(pClient));
     if (ppszMidiDrivers == NULL) {
         fprintf(stderr, "client_test: No MIDI drivers available.\n");
         return;
     }
 
-    CLIENT_TEST(pClient, ppszEngines = lscp_get_available_engines(pClient));
+    CLIENT_TEST(pClient, szsplit, ppszEngines = lscp_get_available_engines(pClient));
     if (ppszEngines == NULL) {
         fprintf(stderr, "client_test: No engines available.\n");
         return;
     }
 
-    CLIENT_TEST(pClient, lscp_get_audio_devices(pClient));
-    CLIENT_TEST(pClient, lscp_list_audio_devices(pClient));
+    CLIENT_TEST(pClient, int, lscp_get_audio_devices(pClient));
+    CLIENT_TEST(pClient, isplit, lscp_list_audio_devices(pClient));
 
-    CLIENT_TEST(pClient, lscp_get_midi_devices(pClient));
-    CLIENT_TEST(pClient, lscp_list_midi_devices(pClient));
+    CLIENT_TEST(pClient, int, lscp_get_midi_devices(pClient));
+    CLIENT_TEST(pClient, isplit, lscp_list_midi_devices(pClient));
 
     for (iAudioDriver = 0; ppszAudioDrivers[iAudioDriver]; iAudioDriver++) {
      pszAudioDriver = ppszAudioDrivers[iAudioDriver];
      printf("\n--- pszAudioDriver=\"%s\" ---\n", pszAudioDriver);
-     CLIENT_TEST(pClient, lscp_get_audio_driver_info(pClient, pszAudioDriver));
-     CLIENT_TEST(pClient, lscp_get_audio_driver_param_info(pClient, pszAudioDriver, "active", NULL));
-     CLIENT_TEST(pClient, iAudioDevice = lscp_create_audio_device(pClient, pszAudioDriver, NULL));
-     CLIENT_TEST(pClient, lscp_get_audio_device_info(pClient, iAudioDevice));
+     CLIENT_TEST(pClient, driver_info, lscp_get_audio_driver_info(pClient, pszAudioDriver));
+     CLIENT_TEST(pClient, param_info, lscp_get_audio_driver_param_info(pClient, pszAudioDriver, "active", NULL));
+     CLIENT_TEST(pClient, int, iAudioDevice = lscp_create_audio_device(pClient, pszAudioDriver, NULL));
+     CLIENT_TEST(pClient, device_info, lscp_get_audio_device_info(pClient, iAudioDevice));
      for (iMidiDriver = 0; ppszMidiDrivers[iMidiDriver]; iMidiDriver++) {
       pszMidiDriver = ppszMidiDrivers[iMidiDriver];
       printf("\n--- pszMidiDriver=\"%s\" ---\n", pszMidiDriver);
-      CLIENT_TEST(pClient, lscp_get_midi_driver_info(pClient, pszMidiDriver));
-      CLIENT_TEST(pClient, lscp_get_midi_driver_param_info(pClient, pszMidiDriver, "active", NULL));
-      CLIENT_TEST(pClient, iMidiDevice = lscp_create_midi_device(pClient, pszMidiDriver, NULL));
-      CLIENT_TEST(pClient, lscp_get_midi_device_info(pClient, iMidiDevice));
+      CLIENT_TEST(pClient, driver_info, lscp_get_midi_driver_info(pClient, pszMidiDriver));
+      CLIENT_TEST(pClient, param_info, lscp_get_midi_driver_param_info(pClient, pszMidiDriver, "active", NULL));
+      CLIENT_TEST(pClient, int, iMidiDevice = lscp_create_midi_device(pClient, pszMidiDriver, NULL));
+      CLIENT_TEST(pClient, device_info, lscp_get_midi_device_info(pClient, iMidiDevice));
       for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
         pszEngine = ppszEngines[iEngine];
         printf("\n--- pszEngine=\"%s\" ---\n", pszEngine);
-        CLIENT_TEST(pClient, lscp_get_engine_info(pClient, pszEngine));
-        CLIENT_TEST(pClient, lscp_get_channels(pClient));
-        CLIENT_TEST(pClient, lscp_list_channels(pClient));
-        CLIENT_TEST(pClient, iSamplerChannel = lscp_add_channel(pClient));
-        printf(">>> iSamplerChannel=\"%d\"\n", iSamplerChannel);
-        CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_load_engine(pClient, pszEngine, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_load_instrument(pClient, "DefaultInstrument.gig", 0, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_get_channel_voice_count(pClient, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_get_channel_stream_count(pClient, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_get_channel_stream_usage(pClient, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, pszAudioDriver));
-        CLIENT_TEST(pClient, lscp_set_channel_audio_device(pClient, iSamplerChannel, 0));
-        CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0, 1));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, pszMidiDriver));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_device(pClient, iSamplerChannel, 0));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, 0));
-        CLIENT_TEST(pClient, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
-        CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, engine_info, lscp_get_engine_info(pClient, pszEngine));
+        CLIENT_TEST(pClient, int, lscp_get_channels(pClient));
+        CLIENT_TEST(pClient, isplit, lscp_list_channels(pClient));
+        CLIENT_TEST(pClient, int, iSamplerChannel = lscp_add_channel(pClient));
+        CLIENT_TEST(pClient, channel_info, lscp_get_channel_info(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, status, lscp_load_engine(pClient, pszEngine, iSamplerChannel));
+        CLIENT_TEST(pClient, status, lscp_load_instrument(pClient, "DefaultInstrument.gig", 0, iSamplerChannel));
+        CLIENT_TEST(pClient, int, lscp_get_channel_voice_count(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, int, lscp_get_channel_stream_count(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, int, lscp_get_channel_stream_usage(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, buffer_fill, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
+        CLIENT_TEST(pClient, buffer_fill, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
+        CLIENT_TEST(pClient, status, lscp_set_channel_audio_type(pClient, iSamplerChannel, pszAudioDriver));
+        CLIENT_TEST(pClient, status, lscp_set_channel_audio_device(pClient, iSamplerChannel, 0));
+        CLIENT_TEST(pClient, status, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0, 1));
+        CLIENT_TEST(pClient, status, lscp_set_channel_midi_type(pClient, iSamplerChannel, pszMidiDriver));
+        CLIENT_TEST(pClient, status, lscp_set_channel_midi_device(pClient, iSamplerChannel, 0));
+        CLIENT_TEST(pClient, status, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
+        CLIENT_TEST(pClient, status, lscp_set_channel_midi_port(pClient, iSamplerChannel, 0));
+        CLIENT_TEST(pClient, status, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
+        CLIENT_TEST(pClient, channel_info, lscp_get_channel_info(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, status, lscp_reset_channel(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, status, lscp_remove_channel(pClient, iSamplerChannel));
       }
-      CLIENT_TEST(pClient, lscp_destroy_midi_device(pClient, iMidiDevice));
+      CLIENT_TEST(pClient, status, lscp_destroy_midi_device(pClient, iMidiDevice));
      }
-     CLIENT_TEST(pClient, lscp_destroy_audio_device(pClient, iAudioDevice));
+     CLIENT_TEST(pClient, status, lscp_destroy_audio_device(pClient, iAudioDevice));
     }
 
 }
@@ -200,6 +383,12 @@ int main (int argc, char *argv[] )
         else
         if (strcmp(szLine, "test") == 0)
             client_test(pClient);
+        else
+        if (strcmp(szLine, "teststep") == 0) {
+            g_teststep = 1;
+            client_test(pClient);
+            g_teststep = 0;
+        }
         else
         if (cchLine > 0 && strcmp(szLine, "help") != 0) {
             szLine[cchLine++] = '\r';

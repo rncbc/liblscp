@@ -331,8 +331,13 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
         // Adding a new sampler channel:
         // ADD CHANNEL
-        sprintf(szTemp, "OK[%d]", iSamplerChannel++);
-        pszResult = szTemp;
+        if (iSamplerChannel < 16) {
+            sprintf(szTemp, "OK[%d]", iSamplerChannel++);         
+            pszResult = szTemp;
+        } else {
+            iSamplerChannel = 0;
+            ret = LSCP_FAILED;
+        }
     }
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:
@@ -350,14 +355,24 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
             // Creating an audio output device.
             // CREATE AUDIO_OUTPUT_DEVICE <audio-output-driver> [<params>]
-            sprintf(szTemp, "OK[%d]", iAudioDevice++);
-            pszResult = szTemp;
+            if (iAudioDevice < 8) {
+                sprintf(szTemp, "OK[%d]", iAudioDevice++);
+                pszResult = szTemp;
+            } else {
+                iAudioDevice = 0;
+                ret = LSCP_FAILED;
+            }
         }
         else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICE")) {
             // Creating an MIDI input device.
             // CREATE MIDI_INPUT_DEVICE <midi-input-driver> [<params>]
-            sprintf(szTemp, "OK[%d]", iMidiDevice++);
-            pszResult = szTemp;
+            if (iMidiDevice < 8) {
+                sprintf(szTemp, "OK[%d]", iMidiDevice++);
+                pszResult = szTemp;
+            } else {
+                iMidiDevice = 0;
+                ret = LSCP_FAILED;
+            }
         }
         else ret = LSCP_FAILED;
     }

@@ -358,6 +358,11 @@ int *lscp_isplit_create ( const char *pszCsv, const char *pszSeps )
     int iSize, i, j, cchSeps;
     int *piSplit, *piNewSplit;
 
+    // Get it clean first.
+    pchHead = lscp_ltrim((char *) pszCsv);
+    if (*pchHead == (char) 0)
+        return NULL;
+    
     // Initial size is one chunk away.
     iSize = LSCP_SPLIT_CHUNK1;
     // Allocate and split...
@@ -367,7 +372,6 @@ int *lscp_isplit_create ( const char *pszCsv, const char *pszSeps )
 
     // Make a copy of the original string.
     i = 0;
-    pchHead = (char *) pszCsv;
     if ((piSplit[i++] = atoi(pchHead)) < 0) {
         free(piSplit);
         return NULL;
@@ -798,11 +802,11 @@ int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams
 {
     int cchBuffer, cchParam, i;
 
-    if (pszBuffer == NULL || pParams == NULL)
+    if (pszBuffer == NULL)
         return 0;
 
     cchBuffer = strlen(pszBuffer);
-    for (i = 0; pParams[i].key && pParams[i].value; i++) {
+    for (i = 0; pParams && pParams[i].key && pParams[i].value; i++) {
         cchParam = strlen(pParams[i].key) + strlen(pParams[i].value) + 4;
         if (cchBuffer + cchParam + 2 < cchMaxBuffer) {
             sprintf(pszBuffer + cchBuffer, " %s='%s'", pParams[i].key, pParams[i].value);

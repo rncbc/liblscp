@@ -223,10 +223,6 @@ static lscp_status_t _lscp_connect_destroy ( lscp_connect_t *pConnect )
 
     lscp_socket_agent_free(&(pConnect->client));
 
-#ifdef DEBUG
-    fprintf(stderr, "<%p> Done.\n", pConnect);
-#endif
-
     free(pConnect);
 
     return ret;

@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 1
+%define release 4
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -57,6 +57,12 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Thu Jul  8 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.1 bugfix release.
+
+* Tue Jul  6 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Catch up on 0.2.0 release.
+
 * Mon Apr 26 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Server stuff moved out (stays on examples source package)
 
