@@ -641,6 +641,22 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t eve
 }
 
 
+/**
+ *  Getting current subscribed events.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current subscrived bit-wise OR'ed event flags.
+ */
+lscp_event_t lscp_client_get_events ( lscp_client_t *pClient )
+{
+    if (pClient == NULL)
+        return LSCP_EVENT_NONE;
+
+    return pClient->events;
+}
+
+
 //-------------------------------------------------------------------------
 // Client command protocol functions.
 

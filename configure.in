@@ -2,7 +2,7 @@
 AC_INIT(src/client.c)
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(liblscp, 0.2.1)
+AM_INIT_AUTOMAKE(liblscp, 0.2.1.90)
 
 # Checks for programs.
 AC_PROG_CC
@@ -29,5 +29,5 @@ AC_ENABLE_SHARED(yes)
 AC_CHECK_PROG(ac_doxygen, doxygen, [doc], [])
 AC_SUBST(ac_doxygen)
 
-AC_OUTPUT(Makefile src/Makefile lscp/Makefile examples/Makefile doc/Makefile doc/liblscp.doxygen liblscp.pc liblscp.spec lscp/version.h)
+AC_OUTPUT(Makefile src/Makefile lscp/Makefile examples/Makefile doc/Makefile doc/liblscp.doxygen lscp.pc liblscp.spec lscp/version.h)
 

@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 4
+%define release 8
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -53,10 +53,13 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %doc doc/html/*
 %{prefix}/lib/liblscp.a
 %{prefix}/lib/liblscp.la
-%{prefix}/lib/pkgconfig/liblscp.pc
+%{prefix}/lib/pkgconfig/lscp.pc
 %{prefix}/include/lscp
 
 %changelog
+* Tue Jul 13 2004 Christian Schoenebeck <cuse@users.sourceforge.net>
+- renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
+
 * Thu Jul  8 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Prepare 0.2.1 bugfix release.
 

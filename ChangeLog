@@ -3,6 +3,14 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.2.2  2004-07-19  Work in progress...
+
+                   New lscp_client_get_events() function.
+
+                   Added support for generating Debian packages;
+                   renamed pkg-config lib name 'liblscp' -> 'lscp' as
+                   it's common practice to omit the 'lib' prefix.
+
 0.2.1  2004-07-09  Potential cripling defects habve been fixed.
 
 0.2.0  2004-07-06  New LSCP extension draft (v.11) initial support.
