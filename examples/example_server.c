@@ -1,0 +1,274 @@
+// example_server.c
+//
+/****************************************************************************
+   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+*****************************************************************************/
+
+#include "server.h"
+#include "parser.h"
+
+#define SERVER_PORT 8888
+
+#if defined(WIN32)
+static WSADATA _wsaData;
+#endif
+
+////////////////////////////////////////////////////////////////////////
+
+lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer, int cchBuffer, void *pvData )
+{
+    lscp_status_t ret = LSCP_OK;
+    lscp_parser_t tok;
+    const char *pszResult = NULL;
+
+    if (pchBuffer == NULL) {
+        fprintf(stderr, "server_callback: addr=%s port=%d: ", 
+            inet_ntoa(pConnect->client.addr.sin_addr), 
+            htons(pConnect->client.addr.sin_port));
+        switch (cchBuffer) {
+          case LSCP_CONNECT_OPEN:
+            fprintf(stderr, "New client connection.\n");
+            break;
+          case LSCP_CONNECT_CLOSE:
+            fprintf(stderr, "Connection closed.\n");
+            break;
+        }    
+        return ret;
+    }
+
+    lscp_socket_trace("server_callback", &(pConnect->client.addr), pchBuffer, cchBuffer);
+    
+    lscp_parser_init(&tok, pchBuffer, cchBuffer);
+
+    if (lscp_parser_test(&tok, "GET")) {
+        if (lscp_parser_test(&tok, "CHANNEL")) {
+            if (lscp_parser_test(&tok, "INFO")) {
+                // Getting sampler channel informations:
+                // GET CHANNEL INFO <sampler-channel>
+            }
+            else if (lscp_parser_test(&tok, "VOICE_COUNT")) {
+                // Current number of active voices:
+                // GET CHANNEL VOICE_COUNT <sampler-channel>
+            }
+            else if (lscp_parser_test(&tok, "STREAM_COUNT")) {
+                // Current number of active disk streams:
+                // GET CHANNEL STREAM_COUNT <sampler-channel>
+            }
+            else if (lscp_parser_test(&tok, "BUFFER_FILL")) {
+                if (lscp_parser_test(&tok, "BYTES")) {
+                    // Current fill state of disk stream buffers:
+                    // GET CHANNEL BUFFER_FILL BYTES <sampler-channel>
+                }
+                else if (lscp_parser_test(&tok, "PERCENTAGE")) {
+                    // Current fill state of disk stream buffers:
+                    // GET CHANNEL BUFFER_FILL PERCENTAGE <sampler-channel>
+                }
+                else ret = LSCP_FAILED;
+            }
+            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_TYPE")) {
+                // Getting audio output type:
+                // GET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel> 
+                // (unspecified as of draft 04)
+            }
+            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
+                // Getting audio output channel:
+                // GET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> 
+                // (unspecified as of draft 04)
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test(&tok, "CHANNELS")) {
+            // Current number of sampler channels:
+            // GET CHANNELS
+        }
+        else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
+            // Getting all available engines:
+            // GET AVAILABLE_ENGINES
+            pszResult = "Engine1\r\nEngine2\r\nEngine3\r\n";
+        }
+        else if (lscp_parser_test2(&tok, "ENGINE", "INFO")) {
+            // Getting information about an engine.
+            // GET ENGINE INFO <engine-name>
+        }
+        else ret = LSCP_FAILED;
+    }
+    else if (lscp_parser_test(&tok, "SET")) {
+        if (lscp_parser_test(&tok, "CHANNEL")) {
+            if (lscp_parser_test(&tok, "VOLUME")) {
+                // Setting channel volume:
+                // SET CHANNEL VOLUME <sampler-channel> <volume>
+            }
+            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_TYPE")) {
+                // Setting audio output type:
+                // SET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel> <audio-output-type>
+                /* int iSamplerChannel = */ lscp_parser_nextint(&tok);
+                if (lscp_parser_test(&tok, "ALSA")) {
+                }
+                else if (lscp_parser_test(&tok, "JACK")) {
+                }
+                else ret = LSCP_FAILED;
+            }
+            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
+                // Setting audio output channel:
+                // SET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> <audio-channel>
+            }
+            else if (lscp_parser_test(&tok, "MIDI_INPUT_TYPE")) {
+                // Setting MIDI input type:
+                // SET CHANNEL MIDI_INPUT_TYPE <sampler-channel> <midi-input-type>
+            }
+            else if (lscp_parser_test(&tok, "MIDI_INPUT_PORT")) {
+                // Setting MIDI input port:
+                // SET CHANNEL MIDI_INPUT_PORT <sampler-channel> <midi-input-port>
+            }
+            else if (lscp_parser_test(&tok, "MIDI_INPUT_CHANNEL")) {
+                // Setting MIDI input channel:
+                // SET CHANNEL MIDI_INPUT_CHANNEL <sampler-channel> <midi-input-chan>
+            }
+            else ret = LSCP_FAILED;
+        }
+        else ret = LSCP_FAILED;
+    }
+    else if (lscp_parser_test(&tok, "LOAD")) {
+        if (lscp_parser_test(&tok, "ENGINE")) {
+            // Loading a sampler engine:
+            // LOAD ENGINE <engine-name> <sampler-channel>
+        }
+        else if (lscp_parser_test(&tok, "INSTRUMENT")) {
+            // Loading an instrument:
+            // LOAD INSTRUMENT <filename> <instr-index> <sampler-channel>
+        }
+        else ret = LSCP_FAILED;
+    }
+    else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
+        // Adding a new sampler channel:
+        // ADD CHANNEL
+    }
+    else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
+        // Removing a sampler channel:
+        // REMOVE CHANNEL <sampler-channel>
+    }
+    else if (lscp_parser_test2(&tok, "RESET", "CHANNEL")) {
+        // Resetting a sampler channel:
+        // RESET CHANNEL <sampler-channel>
+    }
+    else if (lscp_parser_test2(&tok, "SUBSCRIBE", "NOTIFICATION")) {
+        // Register frontend for receiving UDP event messages:
+        // SUBSCRIBE NOTIFICATION <udp-port>
+        ret = lscp_server_subscribe(pConnect, lscp_parser_nextint(&tok));
+    }
+    else if (lscp_parser_test2(&tok, "UNSUBSCRIBE", "NOTIFICATION")) {
+        // Deregister frontend for not receiving UDP event messages anymore:
+        // UNSUBSCRIBE NOTIFICATION <session-id>
+        ret = lscp_server_unsubscribe(pConnect, lscp_parser_next(&tok));
+    }
+    else if (lscp_parser_test(&tok, "QUIT")) {
+        // Close client connection:
+        // QUIT
+        lscp_parser_free(&tok);
+        return LSCP_FAILED; // Disconnect.
+    }
+    else ret = LSCP_FAILED;
+
+    lscp_parser_free(&tok);
+
+    if (pszResult == NULL)
+        pszResult = (ret == LSCP_OK ? "OK\r\n" : "ERR:1:Failed\r\n");
+
+    fprintf(stderr, "> %s", pszResult);
+
+    return lscp_server_result(pConnect, pszResult, strlen(pszResult));
+}
+
+////////////////////////////////////////////////////////////////////////
+
+void server_usage (void)
+{
+    printf("\n  %s %s (Build: %s)\n", lscp_server_package(), lscp_server_version(), lscp_server_build());
+
+    fputs("\n  Available server commands: help, exit, quit, list", stdout);
+    fputs("\n  (all else are broadcast verbatim to subscribers)\n\n", stdout);
+}
+
+void server_prompt (void)
+{
+    fputs("lscp_server> ", stdout);
+}
+
+int main (int argc, char *argv[] )
+{
+    lscp_server_t *pServer;
+    char szLine[200];
+    int cchLine;
+    lscp_connect_t *p;
+
+#if defined(WIN32)
+    if (WSAStartup(MAKEWORD(1, 1), &_wsaData) != 0) {
+        fprintf(stderr, "lscp_server: WSAStartup failed.\n");
+        return -1;
+    }
+#endif
+
+    pServer = lscp_server_create(SERVER_PORT, server_callback, NULL);
+    if (pServer == NULL)
+        return -1;
+
+    server_usage();
+    server_prompt();
+
+    while (fgets(szLine, sizeof(szLine), stdin)) {
+
+        cchLine = strlen(szLine);
+        while (cchLine > 0 && (szLine[cchLine - 1] == '\n' || szLine[cchLine - 1] == '\r'))
+            cchLine--;
+        szLine[cchLine] = '\0';
+
+        if (strcmp(szLine, "exit") == 0 || strcmp(szLine, "quit") == 0)
+            break;
+        else
+        if (strcmp(szLine, "list") == 0) {
+            for (p = pServer->connects.first; p; p = p->next) {
+                printf("client: sock=%d addr=%s tcp.port=%d udp.port=%d ping=%d sessid=%s.\n",
+                    p->client.sock,
+                    inet_ntoa(p->client.addr.sin_addr),
+                    ntohs(p->client.addr.sin_port),
+                    p->port,
+                    p->ping,
+                    p->sessid
+                );
+            }
+        }
+        else
+        if (cchLine > 0 && strcmp(szLine, "help") != 0)
+            lscp_server_broadcast(pServer, szLine, strlen(szLine));
+        else
+            server_usage();
+
+        server_prompt();
+    }
+
+    lscp_server_destroy(pServer);
+
+#if defined(WIN32)
+    WSACleanup();
+#endif
+
+    return 0;
+}
+
+// end of example_server.c
+
