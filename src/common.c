@@ -331,7 +331,7 @@ char **lscp_szsplit_create ( const char *pszCsv, const char *pszSeps )
         // Make it official.
         ppszSplit[i] = lscp_unquote(&pszHead, 0);
         // Do we need to grow?
-        if (++i >= iSize - 1) {
+        if (++i >= iSize) {
             // Yes, but only grow in chunks.
             iSize += LSCP_SPLIT_CHUNK1;
             // Allocate and copy to new split array.
@@ -419,7 +419,7 @@ int *lscp_isplit_create ( const char *pszCsv, const char *pszSeps )
         // Make it official.
         piSplit[i] = atoi(pchHead);
         // Do we need to grow?
-        if (++i >= iSize - 1) {
+        if (++i >= iSize) {
             // Yes, but only grow in chunks.
             iSize += LSCP_SPLIT_CHUNK1;
             // Allocate and copy to new split array.
@@ -500,7 +500,7 @@ lscp_param_t *lscp_psplit_create ( const char *pszCsv, const char *pszSeps1, con
             pszHead = pch + cchSeps2;
             *pch = (char) 0;
         }
-        if (++i >= iSize - 1) {
+        if (++i >= iSize) {
             iSize += LSCP_SPLIT_CHUNK1;
             ppNewSplit = (lscp_param_t *) malloc(iSize * sizeof(lscp_param_t));
             if (ppNewSplit) {
@@ -618,7 +618,7 @@ void lscp_plist_append ( lscp_param_t **ppList, const char *pszKey, const char *
         iSize = LSCP_SPLIT_SIZE(i);
         pParams[i].key   = strdup(pszKey);
         pParams[i].value = strdup(pszValue);
-        if (++i >= iSize - 1) {
+        if (++i >= iSize) {
             iNewSize   = iSize + LSCP_SPLIT_CHUNK1;
             pNewParams = (lscp_param_t *) malloc(iNewSize * sizeof(lscp_param_t));
             for (i = 0; i < iSize; i++) {

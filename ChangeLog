@@ -3,6 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.2.6.1            Mini bitsy regression.
+
 0.2.6  2005-03-01  Fixed nasty off-by-one bug on internal helpers.
 
 0.2.5  2005-02-14  Added support for the new INSTRUMENT_NAME field

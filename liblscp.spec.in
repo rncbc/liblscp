@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 14
+%define release 15
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
