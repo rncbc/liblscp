@@ -47,11 +47,11 @@ static char *       _lscp_strtok                (char *pchBuffer, const char *ps
 static char *       _lscp_ltrim                 (char *psz);
 static char *       _lscp_unquote               (char **ppsz, int dup);
 
-static char **      _lscp_split_create          (const char *pszCsv, const char *pszSeps);
-static void         _lscp_split_destroy         (char **ppszSplit);
-#ifdef LSCP_SPLIT_COUNT
-static int          _lscp_split_count           (char **ppszSplit);
-static int          _lscp_split_size            (char **ppszSplit);
+static char **      _lscp_szsplit_create        (const char *pszCsv, const char *pszSeps);
+static void         _lscp_szsplit_destroy       (char **ppszSplit);
+#ifdef LSCP_SZSPLIT_COUNT
+static int          _lscp_szsplit_count         (char **ppszSplit);
+static int          _lscp_szsplit_size          (char **ppszSplit);
 #endif
 
 static void         _lscp_client_set_result     (lscp_client_t *pClient, char *pszResult, int iErrno);
@@ -143,7 +143,7 @@ static char *_lscp_unquote ( char **ppsz, int dup )
 
 
 // Split a comma separated string into a null terminated array of strings.
-static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps )
+static char **_lscp_szsplit_create ( const char *pszCsv, const char *pszSeps )
 {
     char *pszHead, *pch;
     int iSize, i, j, cchSeps;
@@ -167,6 +167,14 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps )
     // Go on for it...
     cchSeps = strlen(pszSeps);
     while ((pch = strpbrk(pszHead, pszSeps)) != NULL) {
+        // Pre-advance to next item.
+        pszHead = pch + cchSeps;
+        // Trim and null terminate current item.
+        while (isspace(*(pch - 1)) && pch > ppszSplit[0])
+            --pch;
+        *pch = (char) 0;
+        // Make it official.
+        ppszSplit[i++] = _lscp_unquote(&pszHead, 0);
         // Do we need to grow?
         if (i >= iSize) {
             // Yes, but only grow in chunks.
@@ -180,14 +188,6 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps )
                 ppszSplit = ppszNewSplit;
             }
         }
-        // Pre-advance to next item.
-        pszHead = pch + cchSeps;
-        // Trim and null terminate current item.
-        while (isspace(*(pch - 1)) && pch > ppszSplit[0])
-            --pch;
-        *pch = (char) 0;
-        // Make it official.
-        ppszSplit[i++] = _lscp_unquote(&pszHead, 0);
     }
 
     // NULL terminate split array.
@@ -199,7 +199,7 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps )
 
 
 // Free allocated memory of a legal null terminated array of strings.
-static void _lscp_split_destroy ( char **ppszSplit )
+static void _lscp_szsplit_destroy ( char **ppszSplit )
 {
     // Our split string is always the first item, if any.
     if (ppszSplit && ppszSplit[0])
@@ -210,10 +210,10 @@ static void _lscp_split_destroy ( char **ppszSplit )
 }
 
 
-#ifdef LSCP_SPLIT_COUNT
+#ifdef LSCP_SZSPLIT_COUNT
 
 // Return the number of items of a null terminated array of strings.
-static int _lscp_split_count ( char **ppszSplit )
+static int _lscp_szsplit_count ( char **ppszSplit )
 {
     int i = 0;
     while (ppszSplit && ppszSplit[i])
@@ -222,12 +222,12 @@ static int _lscp_split_count ( char **ppszSplit )
 }
 
 // Return the allocated number of items of a splitted string array.
-static int _lscp_split_size ( char **ppszSplit )
+static int _lscp_szsplit_size ( char **ppszSplit )
 {
-    return LSCP_SPLIT_SIZE(_lscp_split_count(ppszSplit));
+    return LSCP_SPLIT_SIZE(_lscp_szsplit_count(ppszSplit));
 }
 
-#endif // LSCP_SPLIT_COUNT
+#endif // LSCP_SZSPLIT_COUNT
 
 
 // Result buffer internal settler.
@@ -276,7 +276,7 @@ static void _lscp_driver_info_reset ( lscp_driver_info_t *pDriverInfo )
         free(pDriverInfo->description);
     if (pDriverInfo->version)
         free(pDriverInfo->version);
-    _lscp_split_destroy(pDriverInfo->parameters);
+    _lscp_szsplit_destroy(pDriverInfo->parameters);
 
     _lscp_driver_info_init(pDriverInfo);
 }
@@ -311,7 +311,7 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
         else if (strcasecmp(pszToken, "PARAMETERS") == 0) {
             pszToken = _lscp_strtok(NULL, pszCrlf, &(pch));
             if (pszToken)
-                pDriverInfo->parameters = _lscp_split_create(pszToken, ",");
+                pDriverInfo->parameters = _lscp_szsplit_create(pszToken, ",");
         }
         pszToken = _lscp_strtok(NULL, pszSeps, &(pch));
     }
@@ -340,7 +340,7 @@ static void _lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
     if (pChannelInfo->engine_name)
         free(pChannelInfo->engine_name);
     if (pChannelInfo->audio_routing)
-        _lscp_split_destroy(pChannelInfo->audio_routing);
+        _lscp_szsplit_destroy(pChannelInfo->audio_routing);
     if (pChannelInfo->instrument_file)
         free(pChannelInfo->instrument_file);
 
@@ -650,9 +650,9 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     _lscp_driver_info_reset(&(pClient->midi_info));
     _lscp_driver_info_reset(&(pClient->audio_info));
     // Free available engine table.
-    _lscp_split_destroy(pClient->audio_drivers);
-    _lscp_split_destroy(pClient->midi_drivers);
-    _lscp_split_destroy(pClient->engines);
+    _lscp_szsplit_destroy(pClient->audio_drivers);
+    _lscp_szsplit_destroy(pClient->midi_drivers);
+    _lscp_szsplit_destroy(pClient->engines);
     // Make them null.
     pClient->audio_drivers = NULL;
     pClient->midi_drivers = NULL;
@@ -996,8 +996,8 @@ const char ** lscp_get_available_audio_drivers ( lscp_client_t *pClient )
     const char *pszSeps = ",";
 
     if (lscp_client_query(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK) {
-        _lscp_split_destroy(pClient->audio_drivers);
-        pClient->audio_drivers = _lscp_split_create(lscp_client_get_result(pClient), pszSeps);
+        _lscp_szsplit_destroy(pClient->audio_drivers);
+        pClient->audio_drivers = _lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
     }
 
     return (const char **) pClient->audio_drivers;
@@ -1018,8 +1018,8 @@ const char** lscp_get_available_midi_drivers ( lscp_client_t *pClient )
     const char *pszSeps = ",";
 
     if (lscp_client_query(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK) {
-        _lscp_split_destroy(pClient->midi_drivers);
-        pClient->midi_drivers = _lscp_split_create(lscp_client_get_result(pClient), pszSeps);
+        _lscp_szsplit_destroy(pClient->midi_drivers);
+        pClient->midi_drivers = _lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
     }
 
     return (const char **) pClient->midi_drivers;
@@ -1186,8 +1186,8 @@ const char **lscp_get_available_engines ( lscp_client_t *pClient )
     const char *pszSeps = ",";
 
     if (lscp_client_query(pClient, "GET AVAILABLE_ENGINES\r\n") == LSCP_OK) {
-        _lscp_split_destroy(pClient->engines);
-        pClient->engines = _lscp_split_create(lscp_client_get_result(pClient), pszSeps);
+        _lscp_szsplit_destroy(pClient->engines);
+        pClient->engines = _lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
     }
 
     return (const char **) pClient->engines;
@@ -1290,7 +1290,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             else if (strcasecmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
                 pszToken = _lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->audio_routing = _lscp_split_create(pszToken, ",");
+                    pChannelInfo->audio_routing = _lscp_szsplit_create(pszToken, ",");
             }
             else if (strcasecmp(pszToken, "INSTRUMENT_FILE") == 0) {
                 pszToken = _lscp_strtok(NULL, pszCrlf, &(pch));
