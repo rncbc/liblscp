@@ -153,6 +153,8 @@ static void _lscp_connect_list_free ( lscp_connect_list_t *pList )
     }
 
     lscp_mutex_unlock(pList->mutex);
+    
+    lscp_mutex_destroy(pList->mutex);
 }
 
 

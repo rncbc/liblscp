@@ -37,6 +37,10 @@
 // Chunk size legal calculator.
 #define LSCP_SPLIT_SIZE(n) ((((n) >> LSCP_SPLIT_CHUNK2) + 1) << LSCP_SPLIT_CHUNK2)
 
+// Default timeout value.
+#define LSCP_TIMEOUT_MSECS  200
+
+
 // Local prototypes.
 
 static char *       _lscp_strtok                (char *pchBuffer, const char *pszSeps, char **ppch);
@@ -578,6 +582,10 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     // Stream usage stuff.
     pClient->buffer_fill = NULL;
     pClient->iStreamCount = 0;
+    // Default timeout value.
+    pClient->iTimeout = LSCP_TIMEOUT_MSECS;
+    // Initialize the transaction mutex.
+    lscp_mutex_init(pClient->mutex);
 
     // Now's finally time to startup threads...
 
@@ -585,6 +593,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     if (lscp_socket_agent_start(&(pClient->udp), _lscp_client_udp_proc, pClient, 0) != LSCP_OK) {
         lscp_socket_agent_free(&(pClient->tcp));
         lscp_socket_agent_free(&(pClient->udp));
+        lscp_mutex_destroy(pClient->mutex);
         free(pClient);
         return NULL;
     }
@@ -655,10 +664,14 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
         free(pClient->buffer_fill);
     pClient->buffer_fill = NULL;
     pClient->iStreamCount = 0;
+    pClient->iTimeout = 0;
 
     // Free socket agents.
     lscp_socket_agent_free(&(pClient->udp));
     lscp_socket_agent_free(&(pClient->tcp));
+
+    // Last but not least, free good ol'transaction mutex.
+    lscp_mutex_destroy(pClient->mutex);
 
     free(pClient);
 
@@ -679,6 +692,10 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
  */
 lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, int cchBuffer, char *pchResult, int *pcchResult )
 {
+    fd_set fds;                         // File descriptor list for select().
+    int    fd, fdmax;                   // Maximum file descriptor number.
+    struct timeval tv;                  // For specifying a timeout value.
+
     lscp_status_t ret = LSCP_FAILED;
 
     if (pClient == NULL)
@@ -690,17 +707,77 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, 
     if (*pcchResult < 1)
         return ret;
 
+    lscp_mutex_lock(pClient->mutex);
+
+    // Send data, and then, wait for the result...
     if (send(pClient->tcp.sock, pchBuffer, cchBuffer, 0) < cchBuffer) {
         lscp_socket_perror("lscp_client_call: send");
+        return ret;
+    }
+
+    // Prepare for waiting on select...
+    fd = (int) pClient->tcp.sock;
+    FD_ZERO(&fds);
+    FD_SET((unsigned int) fd, &fds);
+    fdmax = fd;
+
+    // Use the timeout select feature...
+    if (pClient->iTimeout > 1000) {
+        tv.tv_sec  = pClient->iTimeout / 1000;
+        tv.tv_usec = 0;
     } else {
+        tv.tv_sec  = 0;
+        tv.tv_usec = pClient->iTimeout * 1000;
+    }
+
+    // Wait for event...
+    if (select(fdmax + 1, &fds, NULL, NULL, &tv) > 0 && FD_ISSET(fd, &fds)) {
+        // May recv now...
         *pcchResult = recv(pClient->tcp.sock, pchResult, *pcchResult, 0);
         if (*pcchResult < 1)
             lscp_socket_perror("lscp_client_call: recv");
         else
             ret = LSCP_OK;
     }
+    else lscp_socket_perror("lscp_client_call: select");
 
     return ret;
+}
+
+
+/**
+ *  Set the client transaction timeout interval.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *  @param iTimeout Transaction timeout in miliseconds.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_client_set_timeout ( lscp_client_t *pClient, int iTimeout )
+{
+    if (pClient == NULL)
+        return LSCP_FAILED;
+    if (iTimeout < 0)
+        return LSCP_FAILED;
+
+    pClient->iTimeout = iTimeout;
+    return LSCP_OK;
+}
+
+
+/**
+ *  Get the client transaction timeout interval.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current timeout value miliseconds, -1 in case of failure.
+ */
+int lscp_client_get_timeout ( lscp_client_t *pClient )
+{
+    if (pClient == NULL)
+        return -1;
+
+    return pClient->iTimeout;
 }
 
 
@@ -734,6 +811,9 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
 
     if (pClient == NULL)
         return ret;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
 
     pszResult = NULL;
     iErrno = -1;
@@ -782,6 +862,9 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
 
     // Make the result official...
     _lscp_client_set_result(pClient, pszResult, iErrno);
+
+    // Can go on with it...
+    lscp_mutex_lock(pClient->mutex);
 
     return ret;
 }

@@ -124,6 +124,9 @@ typedef struct _lscp_client_t {
     // Stream buffers status.
     lscp_buffer_fill_t *buffer_fill;
     int                 iStreamCount;
+    // Transaction call timeout (msecs).
+    int                 iTimeout;
+    lscp_mutex_t        mutex;
 
 } lscp_client_t;
 
@@ -144,6 +147,9 @@ lscp_status_t           lscp_client_join                (lscp_client_t *pClient)
 lscp_status_t           lscp_client_destroy             (lscp_client_t *pClient);
 
 lscp_status_t           lscp_client_call                (lscp_client_t *pClient, const char *pchBuffer, int cchBuffer, char *pchResult, int *pcchResult);
+
+lscp_status_t           lscp_client_set_timeout         (lscp_client_t *pClient, int iTimeout);
+int                     lscp_client_get_timeout         (lscp_client_t *pClient);
 
 lscp_status_t           lscp_client_subscribe           (lscp_client_t *pClient);
 lscp_status_t           lscp_client_unsubscribe         (lscp_client_t *pClient);
