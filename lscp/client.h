@@ -30,6 +30,11 @@
 extern "C" {
 #endif
 
+//-------------------------------------------------------------------------
+// MIDI channel omni mode.
+
+#define LSCP_MIDI_CHANNEL_ALL   (-1)
+
 
 //-------------------------------------------------------------------------
 // Client data structures.
@@ -161,7 +166,6 @@ lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient,
 lscp_status_t           lscp_reset_channel              (lscp_client_t *pClient, int iSamplerChannel);
 
 lscp_status_t           lscp_reset_sampler              (lscp_client_t *pClient);
-
 
 #if defined(__cplusplus)
 }

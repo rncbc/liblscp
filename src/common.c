@@ -49,14 +49,66 @@ void lscp_client_set_result ( lscp_client_t *pClient, char *pszResult, int iErrn
         pClient->pszResult = strdup(lscp_ltrim(pszResult));
 }
 
-// The main client requester call executive.
-lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
+
+// The common client receiver executive.
+lscp_status_t lscp_client_recv ( lscp_client_t *pClient, char *pchBuffer, int *pcchBuffer, int iTimeout )
 {
     fd_set fds;                         // File descriptor list for select().
     int    fd, fdmax;                   // Maximum file descriptor number.
     struct timeval tv;                  // For specifying a timeout value.
     int    iSelect;                     // Holds select return status.
-    int    iTimeout;
+
+    lscp_status_t ret = LSCP_FAILED;
+
+    if (pClient == NULL)
+        return ret;
+
+    // Prepare for waiting on select...
+    fd = (int) pClient->cmd.sock;
+    FD_ZERO(&fds);
+    FD_SET((unsigned int) fd, &fds);
+    fdmax = fd;
+
+    // Use the timeout select feature...
+    if (iTimeout < 1)
+        iTimeout = pClient->iTimeout;
+    if (iTimeout > 1000) {
+        tv.tv_sec = iTimeout / 1000;
+        iTimeout -= tv.tv_sec * 1000;
+    }
+    else tv.tv_sec = 0;
+    tv.tv_usec = iTimeout * 1000;
+
+    // Wait for event...
+    iSelect = select(fdmax + 1, &fds, NULL, NULL, &tv);
+    if (iSelect > 0 && FD_ISSET(fd, &fds)) {
+        // May recv now...
+        *pcchBuffer = recv(pClient->cmd.sock, pchBuffer, *pcchBuffer, 0);
+        if (*pcchBuffer > 0)
+            ret = LSCP_OK;
+        else if (*pcchBuffer < 0)
+            lscp_socket_perror("lscp_client_recv: recv");
+        else if (*pcchBuffer == 0) {
+            // Damn, server probably disconnected,
+            // we better free everything down here.
+            lscp_socket_agent_free(&(pClient->evt));
+            lscp_socket_agent_free(&(pClient->cmd));
+            // Fake a result message.
+            ret = LSCP_QUIT;
+        }
+    }   // Check if select has timed out.
+    else if (iSelect == 0)
+        ret = LSCP_TIMEOUT;
+    else
+        lscp_socket_perror("lscp_client_recv: select");
+
+    return ret;
+}
+
+
+// The main client requester call executive.
+lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
+{
     int    cchQuery;
     char   achResult[LSCP_BUFSIZ];
     int    cchResult;
@@ -84,93 +136,75 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
     // Send data, and then, wait for the result...
     cchQuery = strlen(pszQuery);
     if (send(pClient->cmd.sock, pszQuery, cchQuery, 0) < cchQuery) {
-        lscp_socket_perror("_lscp_client_call: send");
+        lscp_socket_perror("lscp_client_call: send");
         pszResult = "Failure during send operation";
         lscp_client_set_result(pClient, pszResult, iErrno);
         return ret;
     }
 
-    // Prepare for waiting on select...
-    fd = (int) pClient->cmd.sock;
-    FD_ZERO(&fds);
-    FD_SET((unsigned int) fd, &fds);
-    fdmax = fd;
+    // Wait for receive event...
+    cchResult = sizeof(achResult);
+    ret = lscp_client_recv(pClient, achResult, &cchResult, pClient->iTimeout);
 
-    // Use the timeout select feature...
-    iTimeout = pClient->iTimeout;
-    if (iTimeout > 1000) {
-        tv.tv_sec = iTimeout / 1000;
-        iTimeout -= tv.tv_sec * 1000;
-    }
-    else tv.tv_sec = 0;
-    tv.tv_usec = iTimeout * 1000;
+    switch (ret) {
 
-    // Wait for event...
-    iSelect = select(fdmax + 1, &fds, NULL, NULL, &tv);
-    if (iSelect > 0 && FD_ISSET(fd, &fds)) {
-        // May recv now...
-        cchResult = recv(pClient->cmd.sock, achResult, sizeof(achResult), 0);
-        if (cchResult > 0) {
-            // Assume early success.
-            ret = LSCP_OK;
-            // Always force the result to be null terminated (and trim trailing CRLFs)!
-            while (cchResult > 0 && (achResult[cchResult - 1] == '\n' || achResult[cchResult- 1] == '\r'))
-                cchResult--;
-            achResult[cchResult] = (char) 0;
-            // Check if the response it's an error or warning message.
-            if (strncasecmp(achResult, "WRN:", 4) == 0)
-                ret = LSCP_WARNING;
-            else if (strncasecmp(achResult, "ERR:", 4) == 0)
-                ret = LSCP_ERROR;
-            // So we got a result...
-            if (ret == LSCP_OK) {
-                // Reset errno in case of success.
-                iErrno = 0;
-                // Is it a special successful response?
-                if (strncasecmp(achResult, "OK[", 3) == 0) {
-                    // Parse the OK message, get the return string under brackets...
-                    pszToken = lscp_strtok(achResult, pszSeps, &(pch));
-                    if (pszToken)
-                        pszResult = lscp_strtok(NULL, pszSeps, &(pch));
-                }
-                else pszResult = achResult;
-                // The result string is now set to the command response, if any.
-            } else {
-                // Parse the error/warning message, skip first colon...
+      case LSCP_OK:
+        // Always force the result to be null terminated (and trim trailing CRLFs)!
+        while (cchResult > 0 && (achResult[cchResult - 1] == '\n' || achResult[cchResult- 1] == '\r'))
+            cchResult--;
+        achResult[cchResult] = (char) 0;
+        // Check if the response it's an error or warning message.
+        if (strncasecmp(achResult, "WRN:", 4) == 0)
+            ret = LSCP_WARNING;
+        else if (strncasecmp(achResult, "ERR:", 4) == 0)
+            ret = LSCP_ERROR;
+        // So we got a result...
+        if (ret == LSCP_OK) {
+            // Reset errno in case of success.
+            iErrno = 0;
+            // Is it a special successful response?
+            if (strncasecmp(achResult, "OK[", 3) == 0) {
+                // Parse the OK message, get the return string under brackets...
                 pszToken = lscp_strtok(achResult, pszSeps, &(pch));
-                if (pszToken) {
-                    // Get the error number...
-                    pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-                    if (pszToken) {
-                        iErrno = atoi(pszToken);
-                        // And make the message text our final result.
-                        pszResult = lscp_strtok(NULL, pszSeps, &(pch));
-                    }
-                }
-                // The result string is set to the error/warning message text.
+                if (pszToken)
+                    pszResult = lscp_strtok(NULL, pszSeps, &(pch));
             }
-        }
-        else if (cchResult == 0) {
-            // Damn, server disconnected, we better free everything down here.
-            lscp_socket_agent_free(&(pClient->evt));
-            lscp_socket_agent_free(&(pClient->cmd));
-            // Fake a result message.
-            ret = LSCP_QUIT;
-            pszResult = "Server terminated the connection";
-            iErrno = (int) ret;
+            else pszResult = achResult;
+            // The result string is now set to the command response, if any.
         } else {
-            // What's down?
-            lscp_socket_perror("_lscp_client_call: recv");
-            pszResult = "Failure during receive operation";
+            // Parse the error/warning message, skip first colon...
+            pszToken = lscp_strtok(achResult, pszSeps, &(pch));
+            if (pszToken) {
+                // Get the error number...
+                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                if (pszToken) {
+                    iErrno = atoi(pszToken);
+                    // And make the message text our final result.
+                    pszResult = lscp_strtok(NULL, pszSeps, &(pch));
+                }
+            }
+            // The result string is set to the error/warning message text.
         }
-    }   // Check if select has timed out.
-    else if (iSelect == 0) {
+        break;
+
+      case LSCP_TIMEOUT:
         // Fake a result message.
-        ret = LSCP_TIMEOUT;
         pszResult = "Timeout during receive operation";
         iErrno = (int) ret;
-   }
-    else lscp_socket_perror("_lscp_client_call: select");
+        break;
+
+      case LSCP_QUIT:
+        // Fake a result message.
+        pszResult = "Server terminated the connection";
+        iErrno = (int) ret;
+        break;
+
+      case LSCP_FAILED:
+      default:
+        // What's down?
+        pszResult = "Failure during receive operation";
+        break;
+    }
 
     // Make the result official...
     lscp_client_set_result(pClient, pszResult, iErrno);

@@ -1352,8 +1352,8 @@ lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerC
  *
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
- *  @param iMidiChannel     MIDI channel number to listen (1-16) or
- *                          zero (0) to listen on all channels.
+ *  @param iMidiChannel     MIDI channel number to listen (0-15) or
+ *                          LSCP_MIDI_CHANNEL_ALL (-1) to listen on all channels.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
@@ -1361,10 +1361,10 @@ lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSampl
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (iSamplerChannel < 0 || iMidiChannel < 0 || iMidiChannel > 16)
+    if (iSamplerChannel < 0 || iMidiChannel < LSCP_MIDI_CHANNEL_ALL || iMidiChannel > 15)
         return LSCP_FAILED;
 
-    if (iMidiChannel > 0)
+    if (iMidiChannel >= 0)
         sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n", iSamplerChannel, iMidiChannel);
     else
         sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d ALL\r\n", iSamplerChannel);

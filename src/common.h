@@ -81,6 +81,7 @@ struct _lscp_client_t
 //-------------------------------------------------------------------------
 // Local client request executive.
 
+lscp_status_t   lscp_client_recv            (lscp_client_t *pClient, char *pchBuffer, int *pcchBuffer, int iTimeout);
 lscp_status_t   lscp_client_call            (lscp_client_t *pClient, const char *pszQuery);
 void            lscp_client_set_result      (lscp_client_t *pClient, char *pszResult, int iErrno);
 
