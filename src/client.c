@@ -373,7 +373,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     pClient->engines = NULL;
     // Free result error stuff.
     lscp_client_set_result(pClient, NULL, 0);
-    // Frre stream usage stuff.
+    // Free stream usage stuff.
     if (pClient->buffer_fill)
         free(pClient->buffer_fill);
     pClient->buffer_fill = NULL;
@@ -991,6 +991,9 @@ int lscp_get_channel_voice_count ( lscp_client_t *pClient, int iSamplerChannel )
  *  Current number of active disk streams:
  *  GET CHANNEL STREAM_COUNT <sampler-channel>
  *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
  *  @returns The number of active disk streams on success, -1 otherwise.
  */
 int lscp_get_channel_stream_count ( lscp_client_t *pClient, int iSamplerChannel )
@@ -1012,6 +1015,60 @@ int lscp_get_channel_stream_count ( lscp_client_t *pClient, int iSamplerChannel 
     lscp_mutex_unlock(pClient->mutex);
 
     return iStreamCount;
+}
+
+
+/**
+ *  Current least usage of active disk streams.
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns The usage percentage of the least filled active disk stream
+ *  on success, -1 otherwise.
+ */
+int lscp_get_channel_stream_usage ( lscp_client_t *pClient, int iSamplerChannel )
+{
+    char szQuery[LSCP_BUFSIZ];
+    int  iStreamUsage = -1;
+    const char *pszResult;
+    const char *pszSeps = "[]%,";
+    char *pszToken;
+    char *pch;
+    int   iStream;
+    int   iPercent;
+
+    if (iSamplerChannel < 0)
+        return iStreamUsage;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    iStream = 0;
+    sprintf(szQuery, "GET CHANNEL BUFFER_FILL PERCENTAGE %d\r\n", iSamplerChannel);
+    if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (*pszToken) {
+                // Skip stream id.
+                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                if (pszToken == NULL)
+                    break;
+                // Get least buffer fill percentage.
+                iPercent = atol(pszToken);
+                if (iStreamUsage > iPercent || iStream == 0)
+                    iStreamUsage = iPercent;
+                iStream++;
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+        }
+    }
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iStreamUsage;
 }
 
 

@@ -144,6 +144,7 @@ lscp_channel_info_t *   lscp_get_channel_info           (lscp_client_t *pClient,
 
 int                     lscp_get_channel_voice_count    (lscp_client_t *pClient, int iSamplerChannel);
 int                     lscp_get_channel_stream_count   (lscp_client_t *pClient, int iSamplerChannel);
+int                     lscp_get_channel_stream_usage   (lscp_client_t *pClient, int iSamplerChannel);
 
 lscp_buffer_fill_t *    lscp_get_channel_buffer_fill    (lscp_client_t *pClient, lscp_usage_t iUsageType, int iSamplerChannel);
 

@@ -114,6 +114,7 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_load_instrument(pClient, "DefaultInstrument.gig", 0, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_voice_count(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_stream_count(pClient, iSamplerChannel));
+        CLIENT_TEST(pClient, lscp_get_channel_stream_usage(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, pszAudioDriver));
