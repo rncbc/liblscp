@@ -55,17 +55,20 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
             if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pDriverInfo->description = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pDriverInfo->description), &pszToken);
             }
             else if (strcasecmp(pszToken, "VERSION") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pDriverInfo->version = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pDriverInfo->version), &pszToken);
             }
             else if (strcasecmp(pszToken, "PARAMETERS") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-                if (pszToken)
+                if (pszToken) {
+                    if (pDriverInfo->parameters)
+                        lscp_szsplit_destroy(pDriverInfo->parameters);
                     pDriverInfo->parameters = lscp_szsplit_create(pszToken, ",");
+                }
             }
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
@@ -99,7 +102,7 @@ static lscp_device_info_t *_lscp_device_info_query ( lscp_client_t *pClient, lsc
             if (strcasecmp(pszToken, "DRIVER") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pDeviceInfo->driver = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pDeviceInfo->driver), &pszToken);
             }
             else {
                 pszKey = pszToken;
@@ -139,7 +142,7 @@ static lscp_device_port_info_t *_lscp_device_port_info_query ( lscp_client_t *pC
             if (strcasecmp(pszToken, "NAME") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pDevicePortInfo->name = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pDevicePortInfo->name), &pszToken);
             }
             else {
                 pszKey = pszToken;
@@ -193,7 +196,7 @@ static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_
             else if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pParamInfo->description = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pParamInfo->description), &pszToken);
             }
             else if (strcasecmp(pszToken, "MANDATORY") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
@@ -212,28 +215,34 @@ static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_
             }
             else if (strcasecmp(pszToken, "DEPENDS") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-                if (pszToken)
+                if (pszToken) {
+                    if (pParamInfo->depends)
+                        lscp_szsplit_destroy(pParamInfo->depends);
                     pParamInfo->depends = lscp_szsplit_create(pszToken, ",");
+                }
             }
             else if (strcasecmp(pszToken, "DEFAULT") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pParamInfo->defaultv = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pParamInfo->defaultv), &pszToken);
             }
             else if (strcasecmp(pszToken, "RANGE_MIN") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pParamInfo->range_min = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pParamInfo->range_min), &pszToken);
             }
             else if (strcasecmp(pszToken, "RANGE_MAX") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pParamInfo->range_max = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pParamInfo->range_max), &pszToken);
             }
             else if (strcasecmp(pszToken, "POSSIBILITIES") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-                if (pszToken)
+                if (pszToken) {
+                    if (pParamInfo->possibilities)
+                        lscp_szsplit_destroy(pParamInfo->possibilities);
                     pParamInfo->possibilities = lscp_szsplit_create(pszToken, ",");
+                }
             }
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }

@@ -223,6 +223,18 @@ char *lscp_unquote ( char **ppsz, int dup )
     return psz;
 }
 
+// Unquote and make a duplicate of an in-split string.
+void lscp_unquote_dup ( char **ppszDst, char **ppszSrc )
+{
+     // Free desteny string, if already there.
+     if (*ppszDst)
+         free(*ppszDst);
+     *ppszDst = NULL;
+     // Unquote and duplicate.
+     if (*ppszSrc)
+         *ppszDst = lscp_unquote(ppszSrc, 1);
+}
+
 
 // Custom tokenizer.
 char *lscp_strtok ( char *pchBuffer, const char *pszSeps, char **ppch )
@@ -556,8 +568,15 @@ void lscp_plist_append ( lscp_param_t **ppList, const char *pszKey, const char *
     
     if (ppList && *ppList) {
         pParams = *ppList;
-        while (pParams[i].key)
+        while (pParams[i].key) {
+            if (strcasecmp(pParams[i].key, pszKey) == 0) {
+                if (pParams[i].value)
+                    free(pParams[i].value);
+                pParams[i].value = strdup(pszValue);
+                return;
+            }
             i++;
+        }
         iSize = LSCP_SPLIT_SIZE(i);
         pParams[i].key   = strdup(pszKey);
         pParams[i].value = strdup(pszValue);
@@ -578,6 +597,7 @@ void lscp_plist_append ( lscp_param_t **ppList, const char *pszKey, const char *
     }
 }
 
+#ifdef LSCP_PLIST_COUNT
 
 // Compute a parameter list valid item count.
 int lscp_plist_count ( lscp_param_t **ppList )
@@ -592,13 +612,13 @@ int lscp_plist_count ( lscp_param_t **ppList )
     return i;
 }
 
-
 // Compute the legal parameter list size.
 int lscp_plist_size ( lscp_param_t **ppList )
 {
     return LSCP_SPLIT_SIZE(lscp_plist_count(ppList));
 }
 
+#endif // LSCP_PLIST_COUNT
 
 
 //-------------------------------------------------------------------------

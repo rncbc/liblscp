@@ -887,12 +887,12 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
             if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pEngineInfo->description = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pEngineInfo->description), &pszToken);
             }
             else if (strcasecmp(pszToken, "VERSION") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pEngineInfo->version = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pEngineInfo->version), &pszToken);
             }
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
@@ -943,7 +943,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             if (strcasecmp(pszToken, "ENGINE_NAME") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->engine_name = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pChannelInfo->engine_name), &pszToken);
             }
             else if (strcasecmp(pszToken, "AUDIO_OUTPUT_DEVICE") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
@@ -957,13 +957,16 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             }
             else if (strcasecmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-                if (pszToken)
+                if (pszToken) {
+                    if (pChannelInfo->audio_routing)
+                        lscp_szsplit_destroy(pChannelInfo->audio_routing);
                     pChannelInfo->audio_routing = lscp_szsplit_create(pszToken, ",");
+                }
             }
             else if (strcasecmp(pszToken, "INSTRUMENT_FILE") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->instrument_file = lscp_unquote(&pszToken, 1);
+                    lscp_unquote_dup(&(pChannelInfo->instrument_file), &pszToken);
             }
             else if (strcasecmp(pszToken, "INSTRUMENT_NR") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));

@@ -90,6 +90,7 @@ void            lscp_client_set_result      (lscp_client_t *pClient, char *pszRe
 char *          lscp_strtok                 (char *pchBuffer, const char *pszSeps, char **ppch);
 char *          lscp_ltrim                  (char *psz);
 char *          lscp_unquote                (char **ppsz, int dup);
+void            lscp_unquote_dup            (char **ppszDst, char **ppszSrc);
 
 char **         lscp_szsplit_create         (const char *pszCsv, const char *pszSeps);
 void            lscp_szsplit_destroy        (char **ppszSplit);

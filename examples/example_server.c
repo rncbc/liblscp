@@ -160,7 +160,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                             "DEPENDS: channels,samplerate,card\r\n"
                             "DEFAULT: TRUE\r\n"
                             "RANGE_MIN: FALSE\r\n"
-                            "RANGE_MIN: TRUE\r\n"
+                            "RANGE_MAX: TRUE\r\n"
                             "POSSIBILITIES: FALSE,TRUE\r\n";
             }
             else if (lscp_parser_test2(&tok, "Jack", "active")) {
@@ -172,7 +172,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                             "DEPENDS: channels,samplerate\r\n"
                             "DEFAULT: TRUE\r\n"
                             "RANGE_MIN: FALSE\r\n"
-                            "RANGE_MIN: TRUE\r\n"
+                            "RANGE_MAX: TRUE\r\n"
                             "POSSIBILITIES: FALSE,TRUE\r\n";
             }
             else ret = LSCP_FAILED;
@@ -189,7 +189,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                             "DEPENDS: channels,ports\r\n"
                             "DEFAULT: TRUE\r\n"
                             "RANGE_MIN: FALSE\r\n"
-                            "RANGE_MIN: TRUE\r\n"
+                            "RANGE_MAX: TRUE\r\n"
                             "POSSIBILITIES: FALSE,TRUE\r\n";
             }
             else ret = LSCP_FAILED;
