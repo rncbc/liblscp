@@ -1,0 +1,12 @@
+liblscp (0.2.1-2) unstable; urgency=low
+
+  * renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
+
+ -- Christian <cuse@trinity>  Tue, 13 Jul 2004 20:19:13 +0200
+
+liblscp (0.2.1-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Mon, 12 Jul 2004 19:44:04 +0200
+

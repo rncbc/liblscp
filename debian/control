@@ -1,0 +1,33 @@
+Source: liblscp
+Section: devel
+Priority: optional
+Maintainer: Christian Schoenebeck <cuse@users.sourceforge.net>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: liblscp-dev
+Section: libdevel
+Architecture: any
+Depends: liblscp (= ${Source-Version})
+Description: LinuxSampler Control Protocol wrapper library
+ Wraps the LinuxSampler network protocol and offers a
+ convenient API in form of a C library.
+ .
+ For further informations visit
+ http://www.linuxsampler.org
+ .
+ This package contains the header files needed for
+ development with liblscp. You will need this only if you
+ intend to compile programs that use this library.
+
+Package: liblscp
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: LinuxSampler Control Protocol wrapper library
+ Wraps the LinuxSampler network protocol and offers a
+ convenient API in form of a C library.
+ .
+ For further informations visit
+ http://www.linuxsampler.org
+
