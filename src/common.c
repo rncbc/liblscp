@@ -445,7 +445,7 @@ lscp_param_t *lscp_psplit_create ( const char *pszCsv, const char *pszSeps1, con
         ppSplit[i].key = pszHead;
         pszHead = pch + cchSeps1;
         *pch = (char) 0;
-        ppSplit[i].value.psz = lscp_unquote(&pszHead, 0);
+        ppSplit[i].value = lscp_unquote(&pszHead, 0);
         if ((pch = strpbrk(pszHead, pszSeps2)) != NULL) {
             pszHead = pch + cchSeps2;
             *pch = (char) 0;
@@ -455,8 +455,8 @@ lscp_param_t *lscp_psplit_create ( const char *pszCsv, const char *pszSeps1, con
             ppNewSplit = (lscp_param_t *) malloc(iSize * sizeof(lscp_param_t));
             if (ppNewSplit) {
                 for (j = 0; j < i; j++) {
-                    ppNewSplit[j].key = ppSplit[j].key;
-                    ppNewSplit[j].value.psz = ppSplit[j].value.psz;
+                    ppNewSplit[j].key   = ppSplit[j].key;
+                    ppNewSplit[j].value = ppSplit[j].value;
                 }
                 free(ppSplit);
                 ppSplit = ppNewSplit;
@@ -468,8 +468,8 @@ lscp_param_t *lscp_psplit_create ( const char *pszCsv, const char *pszSeps1, con
         free(pszHead);
 
     for ( ; i < iSize; i++) {
-        ppSplit[i].key = NULL;
-        ppSplit[i].value.psz = NULL;
+        ppSplit[i].key   = NULL;
+        ppSplit[i].value = NULL;
     }
 
     return ppSplit;
@@ -576,6 +576,62 @@ void lscp_driver_info_reset ( lscp_driver_info_t *pDriverInfo )
     lscp_szsplit_destroy(pDriverInfo->parameters);
 
     lscp_driver_info_init(pDriverInfo);
+}
+
+
+//-------------------------------------------------------------------------
+// Parameter struct helper functions.
+
+void lscp_param_info_init ( lscp_param_info_t *pParamInfo )
+{
+    pParamInfo->type          = LSCP_TYPE_NONE;
+    pParamInfo->description   = NULL;
+    pParamInfo->mandatory     = 0;
+    pParamInfo->fix           = 0;
+    pParamInfo->multiplicity  = 0;
+    pParamInfo->depends       = NULL;
+    pParamInfo->defaultv      = NULL;
+    pParamInfo->range_min     = NULL;
+    pParamInfo->range_max     = NULL;
+    pParamInfo->possibilities = NULL;
+}
+
+void lscp_param_info_reset ( lscp_param_info_t *pParamInfo )
+{
+    if (pParamInfo->description)
+        free(pParamInfo->description);
+    lscp_szsplit_destroy(pParamInfo->depends);
+    if (pParamInfo->defaultv)
+        free(pParamInfo->defaultv);
+    if (pParamInfo->range_min)
+        free(pParamInfo->range_min);
+    if (pParamInfo->range_max)
+        free(pParamInfo->range_max);
+    lscp_szsplit_destroy(pParamInfo->possibilities);
+    
+    lscp_param_info_init(pParamInfo);
+}
+
+
+//-------------------------------------------------------------------------
+// Concatenate a parameter list (key='value'...) into a string.
+
+int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams )
+{
+    int cchBuffer, cchParam, i;
+
+    if (pszBuffer == NULL || pParams == NULL)
+        return 0;
+
+    cchBuffer = strlen(pszBuffer);
+    for (i = 0; pParams[i].key && pParams[i].value; i++) {
+        cchParam = strlen(pParams[i].key) + strlen(pParams[i].value) + 4;
+        if (cchBuffer + cchParam < cchMaxBuffer) {
+            sprintf(pszBuffer + cchBuffer, " %s='%s'", pParams[i].key, pParams[i].value);
+            cchBuffer += cchParam;
+        }
+    }
+    return cchBuffer;
 }
 
 

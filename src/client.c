@@ -292,6 +292,8 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     pClient->channels = NULL;
     lscp_driver_info_init(&(pClient->audio_info));
     lscp_driver_info_init(&(pClient->midi_info));
+    lscp_param_info_init(&(pClient->audio_param_info));
+    lscp_param_info_init(&(pClient->midi_param_info));
     lscp_engine_info_init(&(pClient->engine_info));
     lscp_channel_info_init(&(pClient->channel_info));
     // Initialize error stuff.
@@ -354,6 +356,8 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     // Free up all cached members.
     lscp_channel_info_reset(&(pClient->channel_info));
     lscp_engine_info_reset(&(pClient->engine_info));
+    lscp_param_info_reset(&(pClient->midi_param_info));
+    lscp_param_info_reset(&(pClient->audio_param_info));
     lscp_driver_info_reset(&(pClient->midi_info));
     lscp_driver_info_reset(&(pClient->audio_info));
     // Free available engine table.

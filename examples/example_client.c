@@ -95,10 +95,12 @@ void client_test ( lscp_client_t *pClient )
      pszAudioDriver = ppszAudioDrivers[iAudioDriver];
      printf("\n--- pszAudioDriver=\"%s\" ---\n", pszAudioDriver);
      CLIENT_TEST(pClient, lscp_get_audio_driver_info(pClient, pszAudioDriver));
+     CLIENT_TEST(pClient, lscp_get_audio_driver_param_info(pClient, pszAudioDriver, "active", NULL));
      for (iMidiDriver = 0; ppszMidiDrivers[iMidiDriver]; iMidiDriver++) {
       pszMidiDriver = ppszMidiDrivers[iMidiDriver];
       printf("\n--- pszMidiDriver=\"%s\" ---\n", pszMidiDriver);
       CLIENT_TEST(pClient, lscp_get_midi_driver_info(pClient, pszMidiDriver));
+      CLIENT_TEST(pClient, lscp_get_midi_driver_param_info(pClient, pszMidiDriver, "active", NULL));
       for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
         pszEngine = ppszEngines[iEngine];
         printf("\n--- pszEngine=\"%s\" ---\n", pszEngine);

@@ -25,14 +25,15 @@
 
 // Local prototypes.
 
-static lscp_driver_info_t *_lscp_driver_info_query (lscp_client_t *pClient, lscp_driver_info_t *pDriverInfo, const char *pszQuery);
+static lscp_driver_info_t *_lscp_driver_info_query (lscp_client_t *pClient, lscp_driver_info_t *pDriverInfo, char *pszQuery);
+static lscp_param_info_t  *_lscp_param_info_query  (lscp_client_t *pClient, lscp_param_info_t *pParamInfo, char *pszQuery, lscp_param_t *pDepList);
 
 
 //-------------------------------------------------------------------------
 // Local funtions.
 
 // Common driver type query command.
-static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lscp_driver_info_t *pDriverInfo, const char *pszQuery )
+static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lscp_driver_info_t *pDriverInfo, char *pszQuery )
 {
     const char *pszResult;
     const char *pszSeps = ":";
@@ -71,6 +72,94 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
     lscp_mutex_unlock(pClient->mutex);
 
     return pDriverInfo;
+}
+
+
+// Common parameter info query command.
+static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_param_info_t *pParamInfo, char *pszQuery, lscp_param_t *pDepList )
+{
+    const char *pszResult;
+    const char *pszSeps = ":";
+    const char *pszCrlf = "\r\n";
+    char *pszToken;
+    char *pch;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    lscp_param_info_reset(pParamInfo);
+    lscp_param_concat(pszQuery, LSCP_BUFSIZ, pDepList);
+    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (strcasecmp(pszToken, "TYPE") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken) {
+                    pszToken = lscp_unquote(&pszToken, 0);
+                    if (strcasecmp(pszToken, "BOOL") == 0)
+                        pParamInfo->type = LSCP_TYPE_BOOL;
+                    else if (strcasecmp(pszToken, "INT") == 0)
+                        pParamInfo->type = LSCP_TYPE_INT;
+                    else if (strcasecmp(pszToken, "FLOAT") == 0)
+                        pParamInfo->type = LSCP_TYPE_FLOAT;
+                    else if (strcasecmp(pszToken, "STRING") == 0)
+                        pParamInfo->type = LSCP_TYPE_STRING;
+                }
+            }
+            else if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->description = lscp_unquote(&pszToken, 1);
+            }
+            else if (strcasecmp(pszToken, "MANDATORY") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->mandatory = (strcasecmp(lscp_unquote(&pszToken, 0), "TRUE") == 0);
+            }
+            else if (strcasecmp(pszToken, "FIX") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->fix = (strcasecmp(lscp_unquote(&pszToken, 0), "TRUE") == 0);
+            }
+            else if (strcasecmp(pszToken, "MULTIPLICITY") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->multiplicity = (strcasecmp(lscp_unquote(&pszToken, 0), "TRUE") == 0);
+            }
+            else if (strcasecmp(pszToken, "DEPENDS") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->depends = lscp_szsplit_create(pszToken, ",");
+            }
+            else if (strcasecmp(pszToken, "DEFAULT") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->defaultv = lscp_unquote(&pszToken, 1);
+            }
+            else if (strcasecmp(pszToken, "RANGE_MIN") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->range_min = lscp_unquote(&pszToken, 1);
+            }
+            else if (strcasecmp(pszToken, "RANGE_MAX") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->range_max = lscp_unquote(&pszToken, 1);
+            }
+            else if (strcasecmp(pszToken, "POSSIBILITIES") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pParamInfo->possibilities = lscp_szsplit_create(pszToken, ",");
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+        }
+    }
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return pParamInfo;
 }
 
 
@@ -144,7 +233,7 @@ lscp_driver_info_t* lscp_get_audio_driver_info ( lscp_client_t *pClient, const c
  */
 lscp_param_info_t *lscp_get_audio_driver_param_info ( lscp_client_t *pClient, const char *pszAudioDriver, const char *pszParam, lscp_param_t *pDepList )
 {
-    lscp_param_info_t *pParamInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
@@ -152,10 +241,9 @@ lscp_param_info_t *lscp_get_audio_driver_param_info ( lscp_client_t *pClient, co
         return NULL;
     if (pszParam == NULL)
         return NULL;
-    if (pDepList == NULL)
-        return NULL;
 
-    return pParamInfo;
+    sprintf(szQuery, "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO %s %s\r\n", pszAudioDriver, pszParam);
+    return _lscp_param_info_query(pClient, &(pClient->audio_param_info), szQuery, pDepList);
 }
 
 
@@ -473,7 +561,7 @@ lscp_driver_info_t* lscp_get_midi_driver_info ( lscp_client_t *pClient, const ch
  */
 lscp_param_info_t *lscp_get_midi_driver_param_info ( lscp_client_t *pClient, const char *pszMidiDriver, const char *pszParam, lscp_param_t *pDepList )
 {
-    lscp_param_info_t *pParamInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
@@ -481,10 +569,9 @@ lscp_param_info_t *lscp_get_midi_driver_param_info ( lscp_client_t *pClient, con
         return NULL;
     if (pszParam == NULL)
         return NULL;
-    if (pDepList == NULL)
-        return NULL;
 
-    return pParamInfo;
+    sprintf(szQuery, "GET MIDI_INPUT_DRIVER_PARAMETER INFO %s %s\r\n", pszMidiDriver, pszParam);
+    return _lscp_param_info_query(pClient, &(pClient->midi_param_info), szQuery, pDepList);
 }
 
 

@@ -124,38 +124,95 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER", "INFO")) {
             // Getting informations about a specific audio output driver.
             // GET AUDIO_OUTPUT_DRIVER INFO <audio-output-type>
-            if (lscp_parser_test(&tok, "ALSA")) {
+            if (lscp_parser_test(&tok, "Alsa")) {
                 pszResult = "DESCRIPTION: 'ALSA PCM'\r\n"
                             "VERSION: '1.0'\r\n"
-                            "PARAMETERS: CHANNELS,SAMPLERATE,ACTIVE,CARD\r\n";
+                            "PARAMETERS: channels,samplerate,active,card\r\n";
             }
-            else if (lscp_parser_test(&tok, "JACK")) {
-                pszResult = "DESCRIPTION: Jack Audio Connection Kit\r\n"
+            else if (lscp_parser_test(&tok, "Jack")) {
+                pszResult = "DESCRIPTION: JACK Audio Connection Kit\r\n"
                             "VERSION: 0.98.1\r\n"
-                            "PARAMETERS: CHANNELS,SAMPLERATE,ACTIVE\r\n";
+                            "PARAMETERS: channels,samplerate,active\r\n";
             }
             else ret = LSCP_FAILED;
         }
         else if (lscp_parser_test2(&tok, "MIDI_INPUT_DRIVER", "INFO")) {
             // Getting informations about a specific MIDI input driver.
             // GET MIDI_INPUT_DRIVER INFO <midi-input-type>
-            if (lscp_parser_test(&tok, "ALSA")) {
+            if (lscp_parser_test(&tok, "Alsa")) {
                 pszResult = "DESCRIPTION: ALSA Sequencer\r\n"
                             "VERSION: 1.0\r\n"
-                            "PARAMETERS: PORTS,ACTIVE\r\n";
+                            "PARAMETERS: ports,active\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER_PARAMETER", "INFO")) {
+            // Getting informations about a specific audio output driver parameter.
+            // GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO <audio-output-type> <param>
+            if (lscp_parser_test2(&tok, "Alsa", "active")) {
+                pszResult = "DESCRIPTION: 'ALSA PCM device active state'\r\n"
+                            "TYPE: BOOL\r\n"
+                            "MANDATORY: TRUE\r\n"
+                            "FIX: TRUE\r\n"
+                            "MULTIPLICITY: FALSE\r\n"
+                            "DEPENDS: channels,samplerate,card\r\n"
+                            "DEFAULT: TRUE\r\n"
+                            "RANGE_MIN: FALSE\r\n"
+                            "RANGE_MIN: TRUE\r\n"
+                            "POSSIBILITIES: FALSE,TRUE\r\n";
+            }
+            else if (lscp_parser_test2(&tok, "Jack", "active")) {
+                pszResult = "DESCRIPTION: 'JACK device active state'\r\n"
+                            "TYPE: BOOL\r\n"
+                            "MANDATORY: TRUE\r\n"
+                            "FIX: TRUE\r\n"
+                            "MULTIPLICITY: FALSE\r\n"
+                            "DEPENDS: channels,samplerate\r\n"
+                            "DEFAULT: TRUE\r\n"
+                            "RANGE_MIN: FALSE\r\n"
+                            "RANGE_MIN: TRUE\r\n"
+                            "POSSIBILITIES: FALSE,TRUE\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "MIDI_INPUT_DRIVER_PARAMETER", "INFO")) {
+            // Getting informations about a specific MIDI input driver parameter.
+            // GET MIDI_INPUT_DRIVER_PARAMETER INFO <midi-input-type> <param>
+            if (lscp_parser_test2(&tok, "Alsa", "active")) {
+                pszResult = "DESCRIPTION: 'ALSA Sequencer device active state'\r\n"
+                            "TYPE: BOOL\r\n"
+                            "MANDATORY: TRUE\r\n"
+                            "FIX: TRUE\r\n"
+                            "MULTIPLICITY: FALSE\r\n"
+                            "DEPENDS: channels,ports\r\n"
+                            "DEFAULT: TRUE\r\n"
+                            "RANGE_MIN: FALSE\r\n"
+                            "RANGE_MIN: TRUE\r\n"
+                            "POSSIBILITIES: FALSE,TRUE\r\n";
             }
             else ret = LSCP_FAILED;
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
             // Getting all available engines:
             // GET AVAILABLE_ENGINES
-            pszResult = "Engine1,Engine2,Engine3\r\n";
+            pszResult = "GigEngine,DLSEngine,AkaiEngine\r\n";
         }
         else if (lscp_parser_test2(&tok, "ENGINE", "INFO")) {
             // Getting information about an engine.
             // GET ENGINE INFO <engine-name>
-            pszResult = "DESCRIPTION: DummyEngine\r\n"
-                        "VERSION: 1.0\r\n";
+            if (lscp_parser_test(&tok, "GigEngine")) {
+                pszResult = "DESCRIPTION: GigaSampler Engine\r\n"
+                            "VERSION: 0.3\r\n";
+            }
+            else if (lscp_parser_test(&tok, "DLSEngine")) {
+                pszResult = "DESCRIPTION: 'DLS Generic Engine'\r\n"
+                            "VERSION: 0.2\r\n";
+            }
+            else if (lscp_parser_test(&tok, "AkaiEngine")) {
+                pszResult = "DESCRIPTION: Akai Sampler Engine\r\n"
+                            "VERSION: 0.1\r\n";
+            }
+            else ret = LSCP_FAILED;
         }
         else ret = LSCP_FAILED;
     }

@@ -36,7 +36,8 @@ extern "C" {
 /** Parameter value type. */
 typedef enum _lscp_type_t
 {
-    LSCP_TYPE_BOOL = 0,
+    LSCP_TYPE_NONE = 0,
+    LSCP_TYPE_BOOL,
     LSCP_TYPE_INT,
     LSCP_TYPE_FLOAT,
     LSCP_TYPE_STRING
@@ -44,21 +45,11 @@ typedef enum _lscp_type_t
 } lscp_type_t;
 
 
-/** Parameter value union type. */
-typedef union _lscp_value_t
-{
-    int   i;
-    float f;
-    char *psz;
-
-} lscp_value_t;
-
-
 /** Common and simple key/value pair parameter tuple. */
 typedef struct _lscp_param_t
 {
     char *        key;
-    lscp_value_t  value;
+    char *        value;
 
 } lscp_param_t;
 
@@ -72,9 +63,9 @@ typedef struct _lscp_param_info_t
     int           fix;
     int           multiplicity;
     char **       depends;
-    lscp_value_t  defaultv;
-    lscp_value_t  range_min;
-    lscp_value_t  range_max;
+    char *        defaultv;
+    char *        range_min;
+    char *        range_max;
     char **       possibilities;
 
 } lscp_param_info_t;

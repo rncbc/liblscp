@@ -55,6 +55,8 @@ struct _lscp_client_t
     // Client struct volatile caches.
     lscp_driver_info_t  audio_info;
     lscp_driver_info_t  midi_info;
+    lscp_param_info_t   audio_param_info;
+    lscp_param_info_t   midi_param_info;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
     // Result and error status.
@@ -120,6 +122,17 @@ void            lscp_channel_info_reset     (lscp_channel_info_t *pChannelInfo);
 
 void            lscp_driver_info_init       (lscp_driver_info_t *pDriverInfo);
 void            lscp_driver_info_reset      (lscp_driver_info_t *pDriverInfo);
+
+//-------------------------------------------------------------------------
+// Parameter struct helper functions.
+
+void            lscp_param_info_init        (lscp_param_info_t *pParamInfo);
+void            lscp_param_info_reset       (lscp_param_info_t *pParamInfo);
+
+//-------------------------------------------------------------------------
+// Concatenate a parameter list (key='value'...) into a string.
+
+int             lscp_param_concat           (char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams);
 
 
 #endif // __LSCP_COMMON_H
