@@ -83,11 +83,11 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_get_channel_stream_count(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, LSCP_AUDIO_ALSA));
-        CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, LSCP_MIDI_ALSA));
+        CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, "ALSA"));
+        CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0, 1));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, "ALSA"));
         CLIENT_TEST(pClient, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, "130:0"));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));

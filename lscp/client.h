@@ -32,29 +32,6 @@ extern "C" {
 //-------------------------------------------------------------------------
 // Client data structures.
 
-/** Invalid channel index. */
-#define LSCP_CHANNEL_INVALID    (-1)
-
-
-/** Audio output types. */
-typedef enum _lscp_audio_t
-{
-    LSCP_AUDIO_NONE = 0,
-    LSCP_AUDIO_ALSA,
-    LSCP_AUDIO_JACK
-
-} lscp_audio_t;
-
-
-/** MIDI input types. */
-typedef enum _lscp_midi_t
-{
-    LSCP_MIDI_NONE = 0,
-    LSCP_MIDI_ALSA
-
-} lscp_midi_t;
-
-
 /** Buffer fill stream usage types. */
 typedef enum _lscp_usage_t
 {
@@ -77,11 +54,13 @@ typedef struct _lscp_engine_info_t
 typedef struct _lscp_channel_info_t
 {
     char *        engine_name;
-    lscp_audio_t  audio_type;
-    int           audio_channel;
-    char *        instrument;
-    lscp_midi_t   midi_type;
-    char *        midi_port;
+    char *        audio_type;
+    int           audio_channels;
+    char *        audio_routing;
+    char *        instrument_file;
+    int           instrument_nr;
+    char *        midi_type;
+    int           midi_port;
     int           midi_channel;
     float         volume;
 
@@ -183,11 +162,11 @@ int                     lscp_get_channel_stream_count   (lscp_client_t *pClient,
 
 lscp_buffer_fill_t *    lscp_get_channel_buffer_fill    (lscp_client_t *pClient, lscp_usage_t iUsageType, int iSamplerChannel);
 
-lscp_status_t           lscp_set_channel_audio_type     (lscp_client_t *pClient, int iSamplerChannel, lscp_audio_t iAudioType);
-lscp_status_t           lscp_set_channel_audio_channel  (lscp_client_t *pClient, int iSamplerChannel, int iAudioChannel);
+lscp_status_t           lscp_set_channel_audio_type     (lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioType);
+lscp_status_t           lscp_set_channel_audio_channel  (lscp_client_t *pClient, int iSamplerChannel, int iAudioOut, int iAudioIn);
 
-lscp_status_t           lscp_set_channel_midi_type      (lscp_client_t *pClient, int iSamplerChannel, lscp_midi_t iMidiType);
-lscp_status_t           lscp_set_channel_midi_port      (lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiPort);
+lscp_status_t           lscp_set_channel_midi_type      (lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiType);
+lscp_status_t           lscp_set_channel_midi_port      (lscp_client_t *pClient, int iSamplerChannel, int iMidiPort);
 lscp_status_t           lscp_set_channel_midi_channel   (lscp_client_t *pClient, int iSamplerChannel, int iMidiChannel);
 lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient, int iSamplerChannel, float fVolume);
 

@@ -624,6 +624,14 @@ const char* lscp_server_build   (void) { return __DATE__ " " __TIME__; }
  *  Create a server instance, listening on the given port for client
  *  connections. A server callback function must be suplied that will 
  *  handle every and each client request.
+ *
+ *  @param iPort        Port number where the server will bind for listening.
+ *  @param pfnCallback  Callback function to receive and handle client requests.
+ *  @param pvData       Server context opaque data, that will be passed
+ *                      to the callback function without change.
+ *
+ *  @returns The new server instance pointer @ref lscp_server_t if successfull,
+ *  which shall be used on all subsequent server calls, NULL otherwise.
  */
 lscp_server_t* lscp_server_create ( int iPort, lscp_server_proc_t pfnCallback, void *pvData )
 {
@@ -637,6 +645,18 @@ lscp_server_t* lscp_server_create ( int iPort, lscp_server_proc_t pfnCallback, v
  *  handle every and each client request. A server threading model
  *  maybe specified either as multi-threaded (one thread per client)
  *  or single thread multiplex mode (one thread serves all clients).
+ *
+ *  @param iPort        Port number where the server will bind for listening.
+ *  @param pfnCallback  Callback function to receive and handle client requests.
+ *  @param pvData       Server context opaque data, that will be passed
+ *                      to the callback function without change.
+ *  @param mode         Server mode of operation, regarding the internal
+ *                      threading model, either @ref LSCP_SERVER_THREAD for
+ *                      a multi-threaded server, or @ref LSCP_SERVER_SELECT
+ *                      for a single-threaded multiplexed server.
+ *
+ *  @returns The new server instance pointer if successfull, which shall be
+ *  used on all subsequent server calls, NULL otherwise.
  */
 lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback, void *pvData, lscp_server_mode_t mode )
 {
@@ -804,6 +824,8 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 
 /**
  *  Wait for a server instance to terminate graciously.
+ *
+ *  @param pServer  Pointer to server instance structure.
  */
 lscp_status_t lscp_server_join ( lscp_server_t *pServer )
 {
@@ -826,6 +848,8 @@ lscp_status_t lscp_server_join ( lscp_server_t *pServer )
 
 /**
  *  Terminate and destroy a server instance.
+ *
+ *  @param pServer  Pointer to server instance structure.
  */
 lscp_status_t lscp_server_destroy ( lscp_server_t *pServer )
 {
@@ -852,6 +876,12 @@ lscp_status_t lscp_server_destroy ( lscp_server_t *pServer )
 
 /**
  *  Send an event message to all subscribed clients.
+ *
+ *  @param pServer      Pointer to server instance structure.
+ *  @param pchBuffer    Pointer to data to be sent to all clients.
+ *  @param cchBuffer    Length of the data to be sent in bytes.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_server_broadcast ( lscp_server_t *pServer, const char *pchBuffer, int cchBuffer )
 {
@@ -877,6 +907,12 @@ lscp_status_t lscp_server_broadcast ( lscp_server_t *pServer, const char *pchBuf
 
 /**
  *  Send response for the current client callback request.
+ *
+ *  @param pServer      Pointer to server instance structure.
+ *  @param pchBuffer    Pointer to data to be sent to the client as response.
+ *  @param cchBuffer    Length of the response data to be sent in bytes.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_server_result ( lscp_connect_t *pConnect, const char *pchBuffer, int cchBuffer )
 {
@@ -898,6 +934,11 @@ lscp_status_t lscp_server_result ( lscp_connect_t *pConnect, const char *pchBuff
 
 /**
  *  Register client as a subscriber of event broadcast messages.
+ *
+ *  @param pServer  Pointer to server instance structure.
+ *  @param iPort    UDP port number of the requesting client connection.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_server_subscribe ( lscp_connect_t *pConnect, int iPort )
 {
@@ -921,8 +962,13 @@ lscp_status_t lscp_server_subscribe ( lscp_connect_t *pConnect, int iPort )
 
 /**
  *  Deregister client as subscriber of event broadcast messages.
- */
-lscp_status_t lscp_server_unsubscribe ( lscp_connect_t *pConnect, const char *pszSessID)
+ *
+ *  @param pServer      Pointer to server instance structure.
+ *  @param pszSessID    Session identifier of the requesting client connection.
+  *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+*/
+lscp_status_t lscp_server_unsubscribe ( lscp_connect_t *pConnect, const char *pszSessID )
 {
     if (pConnect == NULL)
         return LSCP_FAILED;

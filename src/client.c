@@ -118,24 +118,30 @@ static void _lscp_engine_info_reset ( lscp_engine_info_t *pEngineInfo )
 // Channel info struct cache member.
 static void _lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
 {
-    pChannelInfo->engine_name   = NULL;
-    pChannelInfo->audio_type    = LSCP_AUDIO_NONE;
-    pChannelInfo->audio_channel = LSCP_CHANNEL_INVALID;
-    pChannelInfo->instrument    = NULL;
-    pChannelInfo->midi_type     = LSCP_MIDI_NONE;
-    pChannelInfo->midi_port     = NULL;
-    pChannelInfo->midi_channel  = LSCP_CHANNEL_INVALID;
-    pChannelInfo->volume        = 0.0;
+    pChannelInfo->engine_name     = NULL;
+    pChannelInfo->audio_type      = NULL;
+    pChannelInfo->audio_channels  = 0;
+    pChannelInfo->audio_routing   = NULL;
+    pChannelInfo->instrument_file = NULL;
+    pChannelInfo->instrument_nr   = 0;
+    pChannelInfo->midi_type       = NULL;
+    pChannelInfo->midi_port       = NULL;
+    pChannelInfo->midi_channel    = 0;
+    pChannelInfo->volume          = 0.0;
 }
 
 static void _lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
 {
     if (pChannelInfo->engine_name)
         free(pChannelInfo->engine_name);
-    if (pChannelInfo->instrument)
-        free(pChannelInfo->instrument);
-    if (pChannelInfo->midi_port)
-        free(pChannelInfo->midi_port);
+    if (pChannelInfo->audio_type)
+        free(pChannelInfo->audio_type);
+    if (pChannelInfo->audio_routing)
+        free(pChannelInfo->audio_routing);
+    if (pChannelInfo->instrument_file)
+        free(pChannelInfo->instrument_file);
+    if (pChannelInfo->midi_type)
+        free(pChannelInfo->midi_type);
 
     _lscp_channel_info_init(pChannelInfo);
 }
@@ -231,6 +237,15 @@ const char* lscp_client_build   (void) { return __DATE__ " " __TIME__; }
  *  Create a client instance, estabilishing a connection to a server hostname,
  *  which must be listening on the given port. A client callback function is
  *  also supplied for server notification event handling.
+ *
+ *  @param pszHost      Hostname of the linuxsampler listening server.
+ *  @param iPort        Port number of the linuxsampler listening server.
+ *  @param pfnCallback  Callback function to receive event notifications.
+ *  @param pvData       User context opaque data, that will be passed
+ *                      to the callback function.
+ *
+ *  @returns The new client instance pointer if successfull, which shall be
+ *  used on all subsequent client calls, NULL otherwise.
  */
 lscp_client_t* lscp_client_create ( char *pszHost, int iPort, lscp_client_proc_t pfnCallback, void *pvData )
 {
@@ -381,6 +396,8 @@ lscp_client_t* lscp_client_create ( char *pszHost, int iPort, lscp_client_proc_t
 
 /**
  *  Wait for a client instance to terminate graciously.
+ *
+ *  @param pClient  Pointer to client instance structure.
  */
 lscp_status_t lscp_client_join ( lscp_client_t *pClient )
 {
@@ -400,6 +417,10 @@ lscp_status_t lscp_client_join ( lscp_client_t *pClient )
 
 /**
  *  Terminate and destroy a client instance.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 {
@@ -448,6 +469,14 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 
 /**
  *  Submit a raw request to the connected server and store it's response.
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param pchBuffer    Request data to be sent to server.
+ *  @param cchBuffer    Length of the request data to be sent in bytes.
+ *  @param pchResult    Receive buffer where server response will be stored.
+ *  @param cchBuffer    Maximum size of the receive buffer.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, int cchBuffer, char *pchResult, int *pcchResult )
 {
@@ -483,6 +512,11 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, 
 /**
  *  Submit a command query string to the server. The query string must be
  *  cr/lf and null terminated.
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param pszQuery     Command request line to be sent to server.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
 {
@@ -543,6 +577,11 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
 /**
  *  Get the last received result string. In case of error or warning,
  *  this is the text of the error or warning message issued.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns A pointer to the literal null-terminated result string as
+ *  of the last command request.
  */
 const char *lscp_client_get_result ( lscp_client_t *pClient )
 {
@@ -555,6 +594,11 @@ const char *lscp_client_get_result ( lscp_client_t *pClient )
 
 /**
  *  Get the last error/warning number received.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The numerical value of the last error or warning
+ *  response code received.
  */
 int lscp_client_get_errno ( lscp_client_t *pClient )
 {
@@ -571,6 +615,10 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
 /**
  *  Register frontend for receiving UDP event messages:
  *  SUBSCRIBE NOTIFICATION <udp-port>
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
 {
@@ -607,6 +655,10 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
 /**
  *  Deregister frontend for not receiving UDP event messages anymore:
  *  UNSUBSCRIBE NOTIFICATION <session-id>
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient )
 {
@@ -639,6 +691,13 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient )
 /**
  *  Loading an instrument:
  *  LOAD INSTRUMENT <filename> <instr-index> <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pszFileName      Instrument file name.
+ *  @param iInstrIndex      Instrument index number.
+ *  @param iSamplerChannel  Sampler Channel.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel )
 {
@@ -655,6 +714,12 @@ lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFile
 /**
  *  Loading a sampler engine:
  *  LOAD ENGINE <engine-name> <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pszEngineName    Engine name.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_load_engine ( lscp_client_t *pClient, const char *pszEngineName, int iSamplerChannel )
 {
@@ -671,6 +736,11 @@ lscp_status_t lscp_load_engine ( lscp_client_t *pClient, const char *pszEngineNa
 /**
  *  Current number of sampler channels:
  *  GET CHANNELS
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of sampler channels on success,
+ *  -1 otherwise.
  */
 int lscp_get_channels ( lscp_client_t *pClient )
 {
@@ -684,6 +754,10 @@ int lscp_get_channels ( lscp_client_t *pClient )
 /**
  *  Adding a new sampler channel:
  *  ADD CHANNEL
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_add_channel ( lscp_client_t *pClient )
 {
@@ -694,6 +768,11 @@ lscp_status_t lscp_add_channel ( lscp_client_t *pClient )
 /**
  *  Removing a sampler channel:
  *  REMOVE CHANNEL <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_remove_channel ( lscp_client_t *pClient, int iSamplerChannel )
 {
@@ -710,6 +789,11 @@ lscp_status_t lscp_remove_channel ( lscp_client_t *pClient, int iSamplerChannel 
 /**
  *  Getting all available engines:
  *  GET AVAILABLE_ENGINES
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns A NULL terminated array of engine name strings,
+ *  or NULL in case of failure.
  */
 const char **lscp_get_available_engines ( lscp_client_t *pClient )
 {
@@ -769,6 +853,12 @@ const char **lscp_get_available_engines ( lscp_client_t *pClient )
 /**
  *  Getting information about an engine.
  *  GET ENGINE INFO <engine-name>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pszEngineName    Engine name.
+ *
+ *  @returns A pointer to a @ref lscp_engine_info_t structure, with all the
+ *  information of the given sampler engine, or NULL in case of failure.
  */
 lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *pszEngineName )
 {
@@ -811,6 +901,12 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
 /**
  *  Getting sampler channel informations:
  *  GET CHANNEL INFO <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns A pointer to a @ref lscp_channel_info_t structure, with all the
+ *  information of the given sampler channel, or NULL in case of failure.
  */
 lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSamplerChannel )
 {
@@ -839,36 +935,38 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             }
             else if (strcmp(pszToken, "AUDIO_OUTPUT_TYPE") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
-                if (pszToken) {
-                    pszToken = (char *) _lscp_ltrim(pszToken);
-                    if (strcmp(pszToken, "ALSA") == 0)
-                        pChannelInfo->audio_type = LSCP_AUDIO_ALSA;
-                    else if (strcmp(pszToken, "JACK") == 0)
-                        pChannelInfo->audio_type = LSCP_AUDIO_JACK;
-                }
+                if (pszToken)
+                    pChannelInfo->audio_type = strdup(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "AUDIO_OUTPUT_CHANNEL") == 0) {
+            else if (strcmp(pszToken, "AUDIO_OUTPUT_CHANNELS") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->audio_channel = atoi(_lscp_ltrim(pszToken));
+                    pChannelInfo->audio_channels = atoi(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "INSTRUMENT") == 0) {
+            else if (strcmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->instrument = strdup(_lscp_ltrim(pszToken));
+                    pChannelInfo->audio_routing = strdup(_lscp_ltrim(pszToken));
+            }
+            else if (strcmp(pszToken, "INSTRUMENT_FILE") == 0) {
+                pszToken = strtok_r(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pChannelInfo->instrument_file = strdup(_lscp_ltrim(pszToken));
+            }
+            else if (strcmp(pszToken, "INSTRUMENT_NR") == 0) {
+                pszToken = strtok_r(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pChannelInfo->instrument_nr = atoi(_lscp_ltrim(pszToken));
             }
             else if (strcmp(pszToken, "MIDI_INPUT_TYPE") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
-                if (pszToken) {
-                    pszToken = (char *) _lscp_ltrim(pszToken);
-                    if (strcmp(pszToken, "ALSA") == 0)
-                        pChannelInfo->midi_type = LSCP_MIDI_ALSA;
-                }
+                if (pszToken)
+                    pChannelInfo->midi_type = strdup(_lscp_ltrim(pszToken));
             }
             else if (strcmp(pszToken, "MIDI_INPUT_PORT") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->midi_port = strdup(_lscp_ltrim(pszToken));
+                    pChannelInfo->midi_port = atoi(_lscp_ltrim(pszToken));
             }
             else if (strcmp(pszToken, "MIDI_INPUT_CHANNEL") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
@@ -891,6 +989,11 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 /**
  *  Current number of active voices:
  *  GET CHANNEL VOICE_COUNT <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns The number of voices currently active, -1 in case of failure.
  */
 int lscp_get_channel_voice_count ( lscp_client_t *pClient, int iSamplerChannel )
 {
@@ -911,6 +1014,8 @@ int lscp_get_channel_voice_count ( lscp_client_t *pClient, int iSamplerChannel )
 /**
  *  Current number of active disk streams:
  *  GET CHANNEL STREAM_COUNT <sampler-channel>
+ *
+ *  @returns The number of active disk streams on success, -1 otherwise.
  */
 int lscp_get_channel_stream_count ( lscp_client_t *pClient, int iSamplerChannel )
 {
@@ -931,6 +1036,16 @@ int lscp_get_channel_stream_count ( lscp_client_t *pClient, int iSamplerChannel 
 /**
  *  Current fill state of disk stream buffers:
  *  GET CHANNEL BUFFER_FILL {BYTES|PERCENTAGE} <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param usage_type       Usage type to be returned, either
+ *                          @ref LSCP_USAGE_BYTES, or
+ *                          @ref LSCP_USAGE_PERCENTAGE.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns A pointer to a @ref lscp_buffer_fill_t structure, with the
+ *  information of the current disk stream buffer fill usage, for the given
+ *  sampler channel, or NULL in case of failure.
  */
 lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_usage_t usage_type, int iSamplerChannel )
 {
@@ -985,25 +1100,17 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
 /**
  *  Setting audio output type:
  *  SET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel> <audio-output-type>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param pszAudioType     Audio output driver type (e.g. "ALSA" or "JACK").
  */
-lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSamplerChannel, lscp_audio_t iAudioType )
+lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioType )
 {
     char szQuery[LSCP_BUFSIZ];
-    const char *pszAudioType;
 
-    if (iSamplerChannel < 0)
+    if (iSamplerChannel < 0 || pszAudioType == NULL)
         return LSCP_FAILED;
-
-    switch (iAudioType) {
-    case LSCP_AUDIO_ALSA:
-        pszAudioType = "ALSA";
-        break;
-    case LSCP_AUDIO_JACK:
-        pszAudioType = "JACK";
-        break;
-    default:
-        return LSCP_FAILED;
-    }
 
     sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n", iSamplerChannel, pszAudioType);
     return lscp_client_query(pClient, szQuery);
@@ -1012,16 +1119,23 @@ lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSampler
 
 /**
  *  Setting audio output channel:
- *  SET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> <audio-channel>
+ *  SET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> <audio-output-chan> <audio-input-chan>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iAudioOut        Audio output device channel to be routed from.
+ *  @param iAudioIn         Audio output device channel to be routed into.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamplerChannel, int iAudioChannel )
+lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamplerChannel, int iAudioOut, int iAudioIn )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (iSamplerChannel < 0 || iAudioChannel < 0)
+    if (iSamplerChannel < 0 || iAudioOut < 0 || iAudioIn < 0)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNEL %d %d\r\n", iSamplerChannel, iAudioChannel);
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNELS %d %d\ %dr\n", iSamplerChannel, iAudioOut, iAudioIn);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1029,22 +1143,20 @@ lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamp
 /**
  *  Setting MIDI input type:
  *  SET CHANNEL MIDI_INPUT_TYPE <sampler-channel> <midi-input-type>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param pszMidiType      MIDI input driver type (e.g. "ALSA").
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerChannel, lscp_midi_t iMidiType )
+lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiType )
 {
     char szQuery[LSCP_BUFSIZ];
-    const char *pszMidiType;
 
-    if (iSamplerChannel < 0)
+    if (iSamplerChannel < 0 || pszMidiType == NULL)
         return LSCP_FAILED;
 
-    switch (iMidiType) {
-    case LSCP_MIDI_ALSA:
-        pszMidiType = "ALSA";
-        break;
-    default:
-        return LSCP_FAILED;
-    }
     sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiType);
     return lscp_client_query(pClient, szQuery);
 }
@@ -1053,15 +1165,21 @@ lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerC
 /**
  *  Setting MIDI input port:
  *  SET CHANNEL MIDI_INPUT_PORT <sampler-channel> <midi-input-port>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iMidiPort        MIDI input driver virtual port number.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiPort )
+lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerChannel, int iMidiPort )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (iSamplerChannel < 0 || pszMidiPort == NULL)
+    if (iSamplerChannel < 0 || iMidiPort < 0)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_PORT %d %s\r\n", iSamplerChannel, pszMidiPort);
+    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_PORT %d %d\r\n", iSamplerChannel, iMidiPort);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1069,15 +1187,25 @@ lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerC
 /**
  *  Setting MIDI input channel:
  *  SET CHANNEL MIDI_INPUT_CHANNEL <sampler-channel> <midi-input-chan>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iMidiChannel     MIDI channel number to listen (1-16) or
+ *                          zero (0) to listen on all channels.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSamplerChannel, int iMidiChannel )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (iSamplerChannel < 0 || iMidiChannel < 1 || iMidiChannel > 16)
+    if (iSamplerChannel < 0 || iMidiChannel < 0 || iMidiChannel > 16)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n", iSamplerChannel, iMidiChannel);
+    if (iMidiChannel > 0)
+        sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n", iSamplerChannel, iMidiChannel);
+    else
+        sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d ALL\r\n", iSamplerChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1085,6 +1213,14 @@ lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSampl
 /**
  *  Setting channel volume:
  *  SET CHANNEL VOLUME <sampler-channel> <volume>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param fVolume          Sampler channel volume as a positive floating point
+ *                          number, where a value less than 1.0 for attenuation,
+ *                          and greater than 1.0 for amplification.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChannel, float fVolume )
 {
@@ -1101,6 +1237,11 @@ lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChan
 /**
  *  Resetting a sampler channel:
  *  RESET CHANNEL <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
 {
