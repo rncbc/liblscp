@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.2.7  2005-03-09  Mini bitsy regression; a severe crash (segfault)
+0.2.7  2005-03-10  Mini bitsy regression; a severe crash (segfault)
                    was fixed on the device configuration functions:
                      lscp_set_audio_device_param();
                      lscp_set_midi_device_param();
