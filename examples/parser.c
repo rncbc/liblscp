@@ -31,6 +31,32 @@
 //-------------------------------------------------------------------------
 // Simple token parser.
 
+const char *lscp_parser_strtok ( char *pchBuffer, const char *pszDelim, char **ppch )
+{
+    const char *pszToken;
+
+    if (pchBuffer == NULL)
+        pchBuffer = *ppch;
+
+    pchBuffer += strspn(pchBuffer, pszDelim);
+    if (*pchBuffer == '\0')
+        return NULL;
+
+    pszToken  = pchBuffer;
+    pchBuffer = strpbrk(pszToken, pszDelim);
+    if (pchBuffer == NULL) {
+        *ppch = strchr(pszToken, '\0');
+    } else {
+        *pchBuffer = '\0';
+        *ppch = pchBuffer + 1;
+        while (strchr(pszDelim, **ppch))
+            (*ppch)++;
+    }
+
+    return pszToken;
+}
+
+
 void lscp_parser_init ( lscp_parser_t *pParser, const char *pchBuffer, int cchBuffer )
 {
     memset(pParser, 0, sizeof(lscp_parser_t));
@@ -39,17 +65,18 @@ void lscp_parser_init ( lscp_parser_t *pParser, const char *pchBuffer, int cchBu
     if (pParser->pchBuffer) {
         memcpy(pParser->pchBuffer, pchBuffer, cchBuffer);
         pParser->pchBuffer[cchBuffer] = (char) 0;
-        pParser->pszToken = strtok_r(pParser->pchBuffer, " \t\r\n", &(pParser->pch));
+        pParser->pszToken = lscp_parser_strtok(pParser->pchBuffer, " \t\r\n", &(pParser->pch));
     }
 
 }
+
 
 const char *lscp_parser_next ( lscp_parser_t *pParser )
 {
     const char *pszToken = pParser->pszToken;
 
     if (pParser->pszToken)
-        pParser->pszToken = strtok_r(NULL, " \t\r\n", &(pParser->pch));
+        pParser->pszToken = lscp_parser_strtok(NULL, " \t\r\n", &(pParser->pch));
 
     return pszToken;
 }

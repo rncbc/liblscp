@@ -35,6 +35,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     lscp_status_t ret = LSCP_OK;
     lscp_parser_t tok;
     const char *pszResult = NULL;
+    char szAddChannel[33];
+    static int iAddChannel = 0;
 
     if (pchBuffer == NULL) {
         fprintf(stderr, "server_callback: addr=%s port=%d: ",
@@ -61,8 +63,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 // Getting sampler channel informations:
                 // GET CHANNEL INFO <sampler-channel>
                 pszResult = "ENGINE_NAME: DummyEngine\r\n"
-                            "INTRUMENT_FILE: DummyInstrument.gig\r\n"
-                            "INTRUMENT_NR: 0\r\n"
+                            "INSTRUMENT_FILE: DummyInstrument.gig\r\n"
+                            "INSTRUMENT_NR: 0\r\n"
                             "AUDIO_OUTPUT_TYPE: ALSA\r\n"
                             "AUDIO_OUTPUT_CHANNELS: 2\r\n"
                             "AUDIO_OUTPUT_ROUTING: 0,1\r\n"
@@ -198,7 +200,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
         // Adding a new sampler channel:
         // ADD CHANNEL
-        pszResult = "OK[1]";
+        sprintf(szAddChannel, "OK[%d]", iAddChannel++);
+        pszResult = szAddChannel;
     }
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:

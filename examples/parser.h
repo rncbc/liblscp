@@ -37,22 +37,19 @@
 extern "C" {
 #endif
 
-// strtok_r - needed in win32 for parsing results.
-#if defined(WIN32)
-char *strtok_r (char *pchBuffer, const char *pszDelim, char **ppch);
-#endif
-
 //-------------------------------------------------------------------------
 // Simple token parser.
 
 typedef struct _lscp_parser_t
 {
-    char *pchBuffer;
-    int   cchBuffer;
-    char *pszToken;
-    char *pch;
+    char       *pchBuffer;
+    int         cchBuffer;
+    const char *pszToken;
+    char       *pch;
 
 } lscp_parser_t;
+
+const char *lscp_parser_strtok  (char *pchBuffer, const char *pszDelim, char **ppch);
 
 void        lscp_parser_init    (lscp_parser_t *pParser, const char *pchBuffer, int cchBuffer);
 const char *lscp_parser_next    (lscp_parser_t *pParser);
