@@ -86,18 +86,19 @@ void client_test ( lscp_client_t *pClient )
 
     for (iAudioType = 0; ppszAudioTypes[iAudioType]; iAudioType++) {
      pszAudioType = ppszAudioTypes[iAudioType];
-     printf("--- AudioType=\"%s\" ---\n", pszAudioType);
+     printf("\n--- pszAudioType=\"%s\" ---\n", pszAudioType);
      CLIENT_TEST(pClient, lscp_get_audio_type_info(pClient, pszAudioType));
      for (iMidiType = 0; ppszMidiTypes[iMidiType]; iMidiType++) {
       pszMidiType = ppszMidiTypes[iMidiType];
-      printf("--- MidiType=\"%s\" ---\n", pszMidiType);
+      printf("\n--- pszMidiType=\"%s\" ---\n", pszMidiType);
       CLIENT_TEST(pClient, lscp_get_midi_type_info(pClient, pszMidiType));
       for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
         pszEngine = ppszEngines[iEngine];
-        printf("--- Engine=\"%s\" ---\n", pszEngine);
+        printf("\n--- pszEngine=\"%s\" ---\n", pszEngine);
         CLIENT_TEST(pClient, lscp_get_engine_info(pClient, pszEngine));
-        CLIENT_TEST(pClient, iSamplerChannel = lscp_get_channels(pClient));
-        CLIENT_TEST(pClient, lscp_add_channel(pClient));
+        CLIENT_TEST(pClient, lscp_get_channels(pClient));
+        CLIENT_TEST(pClient, iSamplerChannel = lscp_add_channel(pClient));
+        printf(">>> iSamplerChannel=\"%d\"\n", iSamplerChannel);
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_load_engine(pClient, pszEngine, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_load_instrument(pClient, "DefaultInstrument.gig", 0, iSamplerChannel));
@@ -114,9 +115,11 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
+        printf("\n");
       }
      }
     }
+
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -680,7 +680,7 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
     lscp_status_t ret = LSCP_FAILED;
     char  achResult[LSCP_BUFSIZ];
     int   cchResult;
-    const char *pszSeps = ":";
+    const char *pszSeps = ":[]";
     const char *pszResult;
     char *pszToken;
     char *pch;
@@ -696,19 +696,28 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
     cchResult = sizeof(achResult);
     ret = lscp_client_call(pClient, pszQuery, strlen(pszQuery), achResult, &cchResult);
     if (ret == LSCP_OK) {
-        // Always force the result to be null terminated (and trim trailing CRLF)!
+        // Always force the result to be null terminated (and trim trailing CRLFs)!
         while (cchResult > 0 && (achResult[cchResult - 1] == '\n' || achResult[cchResult- 1] == '\r'))
             cchResult--;
         achResult[cchResult] = (char) 0;
-        // Check if the response is an error or warning message.
+        // Check if the response it's an error or warning message.
         if (strncasecmp(achResult, "ERR:", 4) == 0)
             ret = LSCP_ERROR;
         else if (strncasecmp(achResult, "WRN:", 4) == 0)
             ret = LSCP_WARNING;
         // So we got a result...
         if (ret == LSCP_OK) {
-            pszResult = achResult;
+            // Reset errno in case of success.
             iErrno = 0;
+            // Is it a special successful response?
+            if (strncasecmp(achResult, "OK[", 3) == 0) {
+                // Parse the OK message, get the return string under brackets...
+                pszToken = strtok_r(achResult, pszSeps, &(pch));
+                if (pszToken)
+                    pszResult = strtok_r(NULL, pszSeps, &(pch));
+            } 
+            else pszResult = achResult;
+            // The result string is now set to the command response, if any. 
         } else {
             // Parse the error/warning message, skip first colon...
             pszToken = strtok_r(achResult, pszSeps, &(pch));
@@ -721,6 +730,7 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
                     pszResult = strtok_r(NULL, pszSeps, &(pch));
                 }
             }
+            // The result string is set to the error/warning message text. 
         }
     }
 
@@ -1002,11 +1012,15 @@ int lscp_get_channels ( lscp_client_t *pClient )
  *
  *  @param pClient  Pointer to client instance structure.
  *
- *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ *  @returns The new sampler channel number identifier, 
+ *  or -1 in case of failure.
  */
-lscp_status_t lscp_add_channel ( lscp_client_t *pClient )
+int lscp_add_channel ( lscp_client_t *pClient )
 {
-    return lscp_client_query(pClient, "ADD CHANNEL\r\n");
+    int iSamplerChannel = -1;
+    if (lscp_client_query(pClient, "ADD CHANNEL\r\n") == LSCP_OK)
+        iSamplerChannel = atoi(lscp_client_get_result(pClient));
+    return iSamplerChannel;
 }
 
 

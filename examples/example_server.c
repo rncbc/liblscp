@@ -63,7 +63,6 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 pszResult = "ENGINE_NAME: DummyEngine\r\n"
                             "INTRUMENT_FILE: DummyInstrument.gig\r\n"
                             "INTRUMENT_NR: 0\r\n"
-                            "INTRUMENT_NR: 0\r\n"
                             "AUDIO_OUTPUT_TYPE: ALSA\r\n"
                             "AUDIO_OUTPUT_CHANNELS: 2\r\n"
                             "AUDIO_OUTPUT_ROUTING: 0,1\r\n"
@@ -199,6 +198,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
         // Adding a new sampler channel:
         // ADD CHANNEL
+        pszResult = "OK[1]";
     }
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:
