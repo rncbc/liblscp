@@ -41,6 +41,8 @@
 
 static const char * _lscp_ltrim                 (const char *psz);
 
+static char *       _lscp_split_unquote         (char **ppsz);
+
 static char **      _lscp_split_create          (const char *pszCsv, const char *pszSeps);
 static void         _lscp_split_destroy         (char **ppszSplit);
 #ifdef LSCP_SPLIT_COUNT
@@ -102,6 +104,32 @@ static const char *_lscp_ltrim ( const char *psz )
     return psz;
 }
 
+// Unquote an in-split string.
+static char *_lscp_split_unquote ( char **ppsz )
+{
+    char  chQuote;
+    char *psz = *ppsz;
+
+    while (isspace(*psz))
+        ++psz;
+    if (*psz == '\"' || *psz == '\'') {
+        chQuote = *psz++;
+        while (isspace(*psz))
+            ++psz;
+        *ppsz = psz;
+        while (**ppsz && **ppsz != chQuote)
+            ++(*ppsz);
+        if (**ppsz) {
+            while (isspace(*(*ppsz - 1)) && *ppsz > psz)
+                --(*ppsz);
+            *(*ppsz)++ = (char) 0;
+        }
+    }
+
+    return psz;
+}
+
+
 // Split a comma separated string into a null terminated array of strings.
 static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps)
 {
@@ -124,7 +152,7 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps)
     // Go for it...
     cchSeps = strlen(pszSeps);
     i = 0;
-    ppszSplit[i++] = pszHead;
+    ppszSplit[i++] = _lscp_split_unquote(&pszHead);
     while ((pch = strpbrk(pszHead, pszSeps)) != NULL) {
         // Do we need to grow?
         if (i >= iSize) {
@@ -146,7 +174,7 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps)
             --pch;
         *pch = (char) 0;
         // Make it official.
-        ppszSplit[i++] = (char *) _lscp_ltrim(pszHead);
+        ppszSplit[i++] = _lscp_split_unquote(&pszHead);
     }
 
     // NULL terminate split array.
@@ -155,6 +183,7 @@ static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps)
 
     return ppszSplit;
 }
+
 
 // Free allocated memory of a legal null terminated array of strings.
 static void _lscp_split_destroy ( char **ppszSplit )
