@@ -1,0 +1,15 @@
+liblscp - LinuxSampler Control Protocol API
+-------------------------------------------
+
+ChangeLog
+
+0.1.7  2004-05-10  Missing version.h now included on install; WIN32 is
+                   only now conditionally defined.
+
+0.1.6  2004-05-04  WIN32 build support; LPGL disclaimer consistency;
+                   versioning functions introduced.
+
+0.1.5  2004-04-26  Server stuff moved into examples.
+
+0.1.4  2004-04-24  Initial auto/libtool preparation.
+
