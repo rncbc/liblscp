@@ -25,8 +25,8 @@
 #include <ctype.h>
 
 
-// Chunk size magic:
-// LSCP_SPLIT_CHUNK1 = 2 ^ LSCP_SPLIT_CHUNK2
+// Split chunk size magic:
+// LSCP_SPLIT_CHUNK1 := 2 ^ LSCP_SPLIT_CHUNK2
 #define LSCP_SPLIT_CHUNK1   4
 #define LSCP_SPLIT_CHUNK2   2
 // Chunk size legal calculator.
@@ -417,6 +417,93 @@ int lscp_isplit_size ( int *piSplit )
 }
 
 #endif // LSCP_ISPLIT_COUNT
+
+
+// Split a string into a null terminated array of parameter items.
+lscp_param_t *lscp_psplit_create ( const char *pszCsv, const char *pszSeps1, const char *pszSeps2 )
+{
+    char *pszHead, *pch;
+    int iSize, i, j, cchSeps1, cchSeps2;
+    lscp_param_t *ppSplit, *ppNewSplit;
+
+    pszHead = strdup(pszCsv);
+    if (pszHead == NULL)
+        return NULL;
+
+    iSize = LSCP_SPLIT_CHUNK1;
+    ppSplit = (lscp_param_t *) malloc(iSize * sizeof(lscp_param_t));
+    if (ppSplit == NULL) {
+        free(pszHead);
+        return NULL;
+    }
+
+    cchSeps1 = strlen(pszSeps1);
+    cchSeps2 = strlen(pszSeps2);
+
+    i = 0;
+    while ((pch = strpbrk(pszHead, pszSeps1)) != NULL) {
+        ppSplit[i].key = pszHead;
+        pszHead = pch + cchSeps1;
+        *pch = (char) 0;
+        ppSplit[i].value.psz = lscp_unquote(&pszHead, 0);
+        if ((pch = strpbrk(pszHead, pszSeps2)) != NULL) {
+            pszHead = pch + cchSeps2;
+            *pch = (char) 0;
+        }
+        if (++i >= iSize) {
+            iSize += LSCP_SPLIT_CHUNK1;
+            ppNewSplit = (lscp_param_t *) malloc(iSize * sizeof(lscp_param_t));
+            if (ppNewSplit) {
+                for (j = 0; j < i; j++) {
+                    ppNewSplit[j].key = ppSplit[j].key;
+                    ppNewSplit[j].value.psz = ppSplit[j].value.psz;
+                }
+                free(ppSplit);
+                ppSplit = ppNewSplit;
+            }
+        }
+    }
+
+    if (i < 1)
+        free(pszHead);
+
+    for ( ; i < iSize; i++) {
+        ppSplit[i].key = NULL;
+        ppSplit[i].value.psz = NULL;
+    }
+
+    return ppSplit;
+}
+
+
+// Destroy a parameter list array.
+void lscp_psplit_destroy ( lscp_param_t *ppSplit )
+{
+    if (ppSplit && ppSplit[0].key)
+        free(ppSplit[0].key);
+    if (ppSplit)
+        free(ppSplit);
+}
+
+
+#ifdef LSCP_PSPLIT_COUNT
+
+// Compute a parameter list valid item count.
+int lscp_psplit_count ( lscp_param_t *ppSplit )
+{
+    int i = 0;
+    while (ppSplit && ppSplit[i].key)
+        i++;
+    return i;
+}
+
+// Compute a parameter list size.
+int lscp_psplit_size ( lscp_param_t *ppSplit )
+{
+    return LSCP_SPLIT_SIZE(lscp_psplit_count(ppSplit));
+}
+
+#endif // LSCP_PSPLIT_COUNT
 
 
 //-------------------------------------------------------------------------

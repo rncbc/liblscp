@@ -90,10 +90,17 @@ int             lscp_szsplit_size           (char **ppszSplit);
 #endif
 
 int *           lscp_isplit_create          (const char *pszCsv, const char *pszSeps);
-void            lscp_isplit_destroy         (int *ppiSplit);
+void            lscp_isplit_destroy         (int *piSplit);
 #ifdef LSCP_ISPLIT_COUNT
-int             lscp_isplit_count           (int *ppiSplit);
-int             lscp_isplit_size            (int *ppiSplit);
+int             lscp_isplit_count           (int *piSplit);
+int             lscp_isplit_size            (int *piSplit);
+#endif
+
+lscp_param_t *  lscp_psplit_create          (const char *pszCsv, const char *pszSep1, const char *pszSep2);
+void            lscp_psplit_destroy         (lscp_param_t *ppSplit);
+#ifdef LSCP_PSPLIT_COUNT
+int             lscp_psplit_count           (lscp_param_t *ppSplit);
+int             lscp_psplit_size            (lscp_param_t *ppSplit);
 #endif
 
 //-------------------------------------------------------------------------
