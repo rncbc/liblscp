@@ -27,10 +27,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__WIN32__)
+#if (defined(_WIN32) || defined(__WIN32__))
+#if (!defined(WIN32))
 #define WIN32
 #endif
-
+#endif
 
 #if defined(__cplusplus)
 extern "C" {

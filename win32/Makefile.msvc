@@ -16,6 +16,7 @@ SRCDIR = ..\src
 
 CCFLAGS = -O -W3 -nologo -I..
 LDFLAGS =
+LDLIBS  = $(LIBNAME).lib wsock32.lib
 
 all:	$(LIBNAME).lib examples
 
@@ -59,10 +60,10 @@ example_server.obj:	$(EXDIR)\example_server.c
 	$(CC) $(CCFLAGS) -I$(EXDIR) -c $(EXDIR)\example_server.c
 
 example_client.exe:	example_client.obj $(LIBNAME).lib
-	$(LD) $(LDFLAGS) example_client.obj $(LIBNAME).lib /OUT:example_client.exe /SUBSYSTEM:CONSOLE
+	$(LD) $(LDFLAGS) example_client.obj $(LDLIBS) /OUT:example_client.exe /SUBSYSTEM:CONSOLE
 
 example_server.exe:	example_server.obj server.obj parser.obj $(LIBNAME).lib
-	$(LD) $(LDFLAGS) example_server.obj server.obj parser.obj $(LIBNAME).lib /OUT:example_server.exe /SUBSYSTEM:CONSOLE
+	$(LD) $(LDFLAGS) example_server.obj server.obj parser.obj $(LDLIBS) /OUT:example_server.exe /SUBSYSTEM:CONSOLE
 
 
 #

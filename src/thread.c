@@ -41,7 +41,11 @@ static void *_lscp_thread_start ( void *pvThread )
         if (pThread->iDetach)
             free(pThread);
     }
+#if defined(WIN32)
+    return 0;
+#else
     return NULL;
+#endif
 }
 
 lscp_thread_t *lscp_thread_create ( lscp_thread_proc_t pfnProc, void *pvData, int iDetach )

@@ -177,7 +177,7 @@ static void _lscp_client_udp_proc ( void *pvClient )
                     if (pClient->sessid == NULL)
                         pClient->sessid = strdup(pszToken);
                     if (pClient->sessid && strcmp(pszToken, pClient->sessid) == 0) {
-                        snprintf(achBuffer, sizeof(achBuffer) - 1, "PONG %s\r\n", pClient->sessid);
+                        sprintf(achBuffer, "PONG %s\r\n", pClient->sessid);
                         cchBuffer = strlen(achBuffer);
                         if (sendto(pClient->udp.sock, achBuffer, cchBuffer, 0, (struct sockaddr *) &addr, cAddr) < cchBuffer)
                             lscp_socket_perror("_lscp_client_udp_proc: sendto");
@@ -584,7 +584,7 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
     if (pClient == NULL || pClient->sessid)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "SUBSCRIBE NOTIFICATION %d\r\n", ntohs(pClient->udp.addr.sin_port));
+    sprintf(szQuery, "SUBSCRIBE NOTIFICATION %d\r\n", ntohs(pClient->udp.addr.sin_port));
     ret = lscp_client_query(pClient, szQuery);
     if (ret == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
@@ -618,7 +618,7 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient )
     if (pClient->sessid == NULL)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "UNSUBSCRIBE NOTIFICATION %s\n\n", pClient->sessid);
+    sprintf(szQuery, "UNSUBSCRIBE NOTIFICATION %s\n\n", pClient->sessid);
     ret = lscp_client_query(pClient, szQuery);
     if (ret == LSCP_OK) {
 #ifdef DEBUG
@@ -647,7 +647,7 @@ lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFile
     if (pszFileName == NULL || iSamplerChannel < 0)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "LOAD INSTRUMENT %s %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
+    sprintf(szQuery, "LOAD INSTRUMENT %s %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -663,7 +663,7 @@ lscp_status_t lscp_load_engine ( lscp_client_t *pClient, const char *pszEngineNa
     if (pszEngineName == NULL || iSamplerChannel < 0)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "LOAD ENGINE %s %d\r\n", pszEngineName, iSamplerChannel);
+    sprintf(szQuery, "LOAD ENGINE %s %d\r\n", pszEngineName, iSamplerChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -702,7 +702,7 @@ lscp_status_t lscp_remove_channel ( lscp_client_t *pClient, int iSamplerChannel 
     if (iSamplerChannel < 0)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "REMOVE CHANNEL %d\r\n", iSamplerChannel);
+    sprintf(szQuery, "REMOVE CHANNEL %d\r\n", iSamplerChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -783,7 +783,7 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
     if (pszEngineName == NULL)
         return NULL;
 
-    snprintf(szQuery, sizeof(szQuery), "GET ENGINE INFO %s\r\n", pszEngineName);
+    sprintf(szQuery, "GET ENGINE INFO %s\r\n", pszEngineName);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pEngineInfo = &(pClient->engine_info);
@@ -825,7 +825,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
     if (iSamplerChannel < 0)
         return NULL;
         
-    snprintf(szQuery, sizeof(szQuery), "GET CHANNEL INFO %d\r\n", iSamplerChannel);
+    sprintf(szQuery, "GET CHANNEL INFO %d\r\n", iSamplerChannel);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pChannelInfo = &(pClient->channel_info);
@@ -878,7 +878,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             else if (strcmp(pszToken, "VOLUME") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->volume = atof(_lscp_ltrim(pszToken));
+                    pChannelInfo->volume = (float) atof(_lscp_ltrim(pszToken));
             }
             pszToken = strtok_r(NULL, pszSeps, &(pch));
         }
@@ -900,7 +900,7 @@ int lscp_get_channel_voice_count ( lscp_client_t *pClient, int iSamplerChannel )
     if (iSamplerChannel < 0)
         return iVoiceCount;
 
-    snprintf(szQuery, sizeof(szQuery), "GET CHANNEL VOICE_COUNT %d\r\n", iSamplerChannel);
+    sprintf(szQuery, "GET CHANNEL VOICE_COUNT %d\r\n", iSamplerChannel);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK)
         iVoiceCount = atoi(lscp_client_get_result(pClient));
 
@@ -920,7 +920,7 @@ int lscp_get_channel_stream_count ( lscp_client_t *pClient, int iSamplerChannel 
     if (iSamplerChannel < 0)
         return iStreamCount;
 
-    snprintf(szQuery, sizeof(szQuery), "GET CHANNEL STREAM_COUNT %d\r\n", iSamplerChannel);
+    sprintf(szQuery, "GET CHANNEL STREAM_COUNT %d\r\n", iSamplerChannel);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK)
         iStreamCount = atoi(lscp_client_get_result(pClient));
 
@@ -959,7 +959,7 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
         pClient->iStreamCount = iStreamCount;
     }
 
-    snprintf(szQuery, sizeof(szQuery), "GET CHANNEL BUFFER_FILL %s %d\r\n", pszUsageType, iSamplerChannel);
+    sprintf(szQuery, "GET CHANNEL BUFFER_FILL %s %d\r\n", pszUsageType, iSamplerChannel);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pBufferFill = pClient->buffer_fill;
@@ -1005,7 +1005,7 @@ lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSampler
         return LSCP_FAILED;
     }
 
-    snprintf(szQuery, sizeof(szQuery), "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n", iSamplerChannel, pszAudioType);
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n", iSamplerChannel, pszAudioType);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1021,7 +1021,7 @@ lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamp
     if (iSamplerChannel < 0 || iAudioChannel < 0)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "SET CHANNEL AUDIO_OUTPUT_CHANNEL %d %d\r\n", iSamplerChannel, iAudioChannel);
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNEL %d %d\r\n", iSamplerChannel, iAudioChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1045,7 +1045,7 @@ lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerC
     default:
         return LSCP_FAILED;
     }
-    snprintf(szQuery, sizeof(szQuery), "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiType);
+    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiType);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1061,7 +1061,7 @@ lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerC
     if (iSamplerChannel < 0 || pszMidiPort == NULL)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "SET CHANNEL MIDI_INPUT_PORT %d %s\r\n", iSamplerChannel, pszMidiPort);
+    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_PORT %d %s\r\n", iSamplerChannel, pszMidiPort);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1077,7 +1077,7 @@ lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSampl
     if (iSamplerChannel < 0 || iMidiChannel < 1 || iMidiChannel > 16)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n", iSamplerChannel, iMidiChannel);
+    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n", iSamplerChannel, iMidiChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1093,7 +1093,7 @@ lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChan
     if (iSamplerChannel < 0 || fVolume < 0.0)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "SET CHANNEL VOLUME %d %g\r\n", iSamplerChannel, fVolume);
+    sprintf(szQuery, "SET CHANNEL VOLUME %d %g\r\n", iSamplerChannel, fVolume);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1109,7 +1109,7 @@ lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
     if (iSamplerChannel < 0)
         return LSCP_FAILED;
 
-    snprintf(szQuery, sizeof(szQuery), "RESET CHANNEL %d\r\n", iSamplerChannel);
+    sprintf(szQuery, "RESET CHANNEL %d\r\n", iSamplerChannel);
     return lscp_client_query(pClient, szQuery);
 }
 

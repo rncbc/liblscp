@@ -327,7 +327,7 @@ static lscp_status_t _lscp_connect_ping ( lscp_connect_t *pConnect )
     fprintf(stderr, "_lscp_connect_ping: pConnect=%p: addr=%s port=%d sessid=%s.\n", pConnect, inet_ntoa(pConnect->client.addr.sin_addr), pConnect->port, pConnect->sessid);
 #endif
 
-    snprintf(szBuffer, sizeof(szBuffer) - 1, "PING %d %s\r\n", ntohs((pConnect->server)->udp.addr.sin_port), pConnect->sessid);
+    sprintf(szBuffer, "PING %d %s\r\n", ntohs((pConnect->server)->udp.addr.sin_port), pConnect->sessid);
 
     return _lscp_connect_send(pConnect, szBuffer, strlen(szBuffer));
 }
@@ -909,7 +909,7 @@ lscp_status_t lscp_server_subscribe ( lscp_connect_t *pConnect, int iPort )
         return LSCP_FAILED;
 
     // Generate a psudo-unique session-id.
-    snprintf(szSessID, sizeof(szSessID), "%08x", ((unsigned int) pConnect->server << 8) ^ (unsigned int) pConnect);
+    sprintf(szSessID, "%08x", ((unsigned int) pConnect->server << 8) ^ (unsigned int) pConnect);
     
     pConnect->port = iPort;
     pConnect->ping = 0;

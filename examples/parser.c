@@ -66,7 +66,7 @@ float lscp_parser_nextnum ( lscp_parser_t *pParser )
     float ret = 0;
 
     if (pParser->pszToken) {
-        ret = atof(pParser->pszToken);
+        ret = (float) atof(pParser->pszToken);
         lscp_parser_next(pParser);
     }
 

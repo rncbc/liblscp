@@ -120,7 +120,7 @@ static void _lscp_socket_getopt_bool ( lscp_socket_t sock, const char *pszOptNam
     int iSockLen = sizeof(int);
     char szPrefix[33];
 
-    snprintf(szPrefix, sizeof(szPrefix) - 1, "  %s\t", pszOptName);
+    sprintf(szPrefix, "  %s\t", pszOptName);
     if (getsockopt(sock, SOL_SOCKET, iOptName, (char *) &iSockOpt, &iSockLen) == SOCKET_ERROR)
         lscp_socket_perror(szPrefix);
     else
@@ -133,7 +133,7 @@ static void _lscp_socket_getopt_int  ( lscp_socket_t sock, const char *pszOptNam
     int iSockLen = sizeof(int);
     char szPrefix[33];
 
-    snprintf(szPrefix, sizeof(szPrefix) - 1, "  %s\t", pszOptName);
+    sprintf(szPrefix, "  %s\t", pszOptName);
     if (getsockopt(sock, SOL_SOCKET, iOptName, (char *) &iSockOpt, &iSockLen) == SOCKET_ERROR)
         lscp_socket_perror(szPrefix);
     else
