@@ -22,6 +22,8 @@
 #include "server.h"
 #include "parser.h"
 
+#include <time.h>
+
 #define SERVER_PORT 8888
 
 #if defined(WIN32)
@@ -35,7 +37,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     lscp_status_t ret = LSCP_OK;
     lscp_parser_t tok;
     const char *pszResult = NULL;
-    char szChannel[33];
+    char szTemp[256];
     static int iChannel = 0;
 
     if (pchBuffer == NULL) {
@@ -80,15 +82,20 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             else if (lscp_parser_test(&tok, "STREAM_COUNT")) {
                 // Current number of active disk streams:
                 // GET CHANNEL STREAM_COUNT <sampler-channel>
+                pszResult = "3\r\n";
             }
             else if (lscp_parser_test(&tok, "BUFFER_FILL")) {
                 if (lscp_parser_test(&tok, "BYTES")) {
                     // Current fill state of disk stream buffers:
                     // GET CHANNEL BUFFER_FILL BYTES <sampler-channel>
+                    sprintf(szTemp, "[1]%d,[2]%d,[3]%d\r\n", rand(), rand(), rand());
+                    pszResult = szTemp;
                 }
                 else if (lscp_parser_test(&tok, "PERCENTAGE")) {
                     // Current fill state of disk stream buffers:
                     // GET CHANNEL BUFFER_FILL PERCENTAGE <sampler-channel>
+                    sprintf(szTemp, "[1]%d%%,[2]%d%%,[3]%d%%\r\n", rand() % 100, rand() % 100, rand() % 100);
+                    pszResult = szTemp;
                 }
                 else ret = LSCP_FAILED;
             }
@@ -107,8 +114,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test(&tok, "CHANNELS")) {
             // Current number of sampler channels:
             // GET CHANNELS
-            sprintf(szChannel, "%d", iChannel);
-            pszResult = szChannel;
+            sprintf(szTemp, "%d", iChannel);
+            pszResult = szTemp;
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
             // Getting all available audio output drivers.
@@ -202,8 +209,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
         // Adding a new sampler channel:
         // ADD CHANNEL
-        sprintf(szChannel, "OK[%d]", iChannel++);
-        pszResult = szChannel;
+        sprintf(szTemp, "OK[%d]", iChannel++);
+        pszResult = szTemp;
     }
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:
@@ -269,6 +276,8 @@ int main (int argc, char *argv[] )
         return -1;
     }
 #endif
+
+    srand(time(NULL));
 
     pServer = lscp_server_create(SERVER_PORT, server_callback, NULL);
     if (pServer == NULL)

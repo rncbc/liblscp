@@ -20,6 +20,7 @@
 *****************************************************************************/
 
 #include "lscp/client.h"
+#include "lscp/device.h"
 
 #include <time.h>
 
@@ -144,8 +145,7 @@ int main (int argc, char *argv[] )
     char *pszHost = "localhost";
     char  szLine[1024];
     int  cchLine;
-    char  szResp[1024];
-    int  cchResp;
+    lscp_status_t ret;
 
 #if defined(WIN32)
     if (WSAStartup(MAKEWORD(1, 1), &_wsaData) != 0) {
@@ -187,15 +187,10 @@ int main (int argc, char *argv[] )
             szLine[cchLine++] = '\r';
             szLine[cchLine++] = '\n';
             szLine[cchLine]   = '\0';
-            cchResp = sizeof(szResp) - 1;
-            if (lscp_client_call(pClient, szLine, strlen(szLine), szResp, &cchResp) == LSCP_OK) {
-                szResp[cchResp] = (char) 0;
-                fputs(szResp, stdout);
-            }
-            if (cchResp < 1) {
-                fprintf(stderr, "lscp_client: server closed connection.\n");
+            ret = lscp_client_query(pClient, szLine);
+            printf("%s\n(errno = %d)\n", lscp_client_get_result(pClient), lscp_client_get_errno(pClient));
+            if (ret == LSCP_QUIT)
                 break;
-            }
         }
         else client_usage();
 

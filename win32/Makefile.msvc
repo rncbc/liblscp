@@ -33,10 +33,16 @@ socket.obj:	$(SRCDIR)\socket.c $(INCDIR)\socket.h
 client.obj:	$(SRCDIR)\client.c $(INCDIR)\client.h
 	$(CC) $(CCFLAGS) -c $(SRCDIR)\client.c
 
-$(LIBNAME).lib:	thread.obj socket.obj client.obj
+device.obj:	$(SRCDIR)\device.c $(INCDIR)\device.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\device.c
+
+common.obj:	$(SRCDIR)\common.c $(SRCDIR)\common.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\common.c
+
+$(LIBNAME).lib:	thread.obj socket.obj client.obj device.obj common.obj
 	echo dummy > $(LIBNAME).lib
 	$(RM) $(LIBNAME).lib
-	$(AR) /OUT:$(LIBNAME).lib thread.obj socket.obj client.obj
+	$(AR) /OUT:$(LIBNAME).lib thread.obj socket.obj client.obj device.obj common.obj
 
 
 #

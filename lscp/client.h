@@ -29,18 +29,9 @@
 extern "C" {
 #endif
 
+
 //-------------------------------------------------------------------------
 // Client data structures.
-
-/** Common driver type info cache struct. */
-typedef struct _lscp_driver_info_t
-{
-    char *        description;
-    char *        version;
-    char **       parameters;
-
-} lscp_driver_info_t;
-
 
 /** Engine info cache struct. */
 typedef struct _lscp_engine_info_t
@@ -76,6 +67,7 @@ typedef struct _lscp_buffer_fill_t
 
 } lscp_buffer_fill_t;
 
+
 /** Buffer fill stream usage types. */
 typedef enum _lscp_usage_t
 {
@@ -88,7 +80,7 @@ typedef enum _lscp_usage_t
 //-------------------------------------------------------------------------
 // Client socket main structure.
 
-struct _lscp_client_t;
+typedef struct _lscp_client_t lscp_client_t;
 
 /** Client callback procedure prototype. */
 typedef lscp_status_t (*lscp_client_proc_t)
@@ -99,17 +91,12 @@ typedef lscp_status_t (*lscp_client_proc_t)
     void *pvData
 );
 
-/** Client opaque descriptor struct. */
-typedef struct _lscp_client_t lscp_client_t;
-
-
 //-------------------------------------------------------------------------
 // Client versioning teller fuunction.
 
 const char *            lscp_client_package             (void);
 const char *            lscp_client_version             (void);
 const char *            lscp_client_build               (void);
-
 
 //-------------------------------------------------------------------------
 // Client socket functions.
@@ -118,14 +105,8 @@ lscp_client_t *         lscp_client_create              (const char *pszHost, in
 lscp_status_t           lscp_client_join                (lscp_client_t *pClient);
 lscp_status_t           lscp_client_destroy             (lscp_client_t *pClient);
 
-lscp_status_t           lscp_client_call                (lscp_client_t *pClient, const char *pchBuffer, int cchBuffer, char *pchResult, int *pcchResult);
-
 lscp_status_t           lscp_client_set_timeout         (lscp_client_t *pClient, int iTimeout);
 int                     lscp_client_get_timeout         (lscp_client_t *pClient);
-
-lscp_status_t           lscp_client_subscribe           (lscp_client_t *pClient);
-lscp_status_t           lscp_client_unsubscribe         (lscp_client_t *pClient);
-
 
 //-------------------------------------------------------------------------
 // Client common protocol functions.
@@ -134,15 +115,14 @@ lscp_status_t           lscp_client_query               (lscp_client_t *pClient,
 const char *            lscp_client_get_result          (lscp_client_t *pClient );
 int                     lscp_client_get_errno           (lscp_client_t *pClient );
 
+//-------------------------------------------------------------------------
+// Client registration protocol functions.
+
+lscp_status_t           lscp_client_subscribe           (lscp_client_t *pClient);
+lscp_status_t           lscp_client_unsubscribe         (lscp_client_t *pClient);
 
 //-------------------------------------------------------------------------
 // Client command protocol functions.
-
-const char **           lscp_get_available_audio_drivers(lscp_client_t *pClient);
-const char **           lscp_get_available_midi_drivers (lscp_client_t *pClient);
-
-lscp_driver_info_t *    lscp_get_audio_driver_info      (lscp_client_t *pClient, const char *pszAudioDriver);
-lscp_driver_info_t *    lscp_get_midi_driver_info       (lscp_client_t *pClient, const char *pszMidiDriver);
 
 lscp_status_t           lscp_load_instrument            (lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel);
 lscp_status_t           lscp_load_engine                (lscp_client_t *pClient, const char *pszEngineName, int iSamplerChannel);

@@ -28,13 +28,16 @@ all:	$(LIBNAME).lib examples
 # Static library build rules.
 #
 
-$(LIBNAME).lib:	thread.obj socket.obj client.obj
+$(LIBNAME).lib:	thread.obj socket.obj client.obj device.obj common.obj
 	- $(RM) $(LIBNAME).lib
-	$(AR) $(LIBNAME).lib +thread.obj +socket.obj +client.obj
+	$(AR) $(LIBNAME).lib +thread.obj +socket.obj +client.obj +device.obj +common.obj
 
 thread.obj:	$(SRCDIR)\thread.c $(INCDIR)\thread.h
 socket.obj:	$(SRCDIR)\socket.c $(INCDIR)\socket.h
 client.obj:	$(SRCDIR)\client.c $(INCDIR)\client.h
+device.obj:	$(SRCDIR)\device.c $(INCDIR)\device.h
+
+common.obj:	$(SRCDIR)\common.c $(SRCDIR)\common.h
 
 #
 # Examples build rules.
