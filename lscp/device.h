@@ -122,7 +122,8 @@ lscp_param_info_t *     lscp_get_audio_driver_param_info(lscp_client_t *pClient,
 int                     lscp_create_audio_device        (lscp_client_t *pClient, const char *pszAudioDriver, lscp_param_t *pParams);
 lscp_status_t           lscp_destroy_audio_device       (lscp_client_t *pClient, int iAudioDevice);
 
-int *                   lscp_get_audio_devices          (lscp_client_t *pClient);
+int                     lscp_get_audio_devices          (lscp_client_t *pClient);
+int *                   lscp_list_audio_devices         (lscp_client_t *pClient);
 lscp_device_info_t *    lscp_get_audio_device_info      (lscp_client_t *pClient, int iAudioDevice);
 lscp_status_t           lscp_set_audio_device_param     (lscp_client_t *pClient, int iAudioDevice, lscp_param_t *pParam);
 
@@ -146,7 +147,8 @@ lscp_param_info_t *     lscp_get_midi_driver_param_info (lscp_client_t *pClient,
 int                     lscp_create_midi_device         (lscp_client_t *pClient, const char *pszMidiDriver, lscp_param_t *pParams);
 lscp_status_t           lscp_destroy_midi_device        (lscp_client_t *pClient, int iMidiDevice);
 
-int *                   lscp_get_midi_devices           (lscp_client_t *pClient);
+int                     lscp_get_midi_devices           (lscp_client_t *pClient);
+int *                   lscp_list_midi_devices          (lscp_client_t *pClient);
 lscp_device_info_t *    lscp_get_midi_device_info       (lscp_client_t *pClient, int iMidiDevice);
 lscp_status_t           lscp_set_midi_device_param      (lscp_client_t *pClient, int iMidiDevice, lscp_param_t *pParam);
 

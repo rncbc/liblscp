@@ -85,6 +85,12 @@ void client_test ( lscp_client_t *pClient )
         return;
     }
 
+    CLIENT_TEST(pClient, lscp_get_audio_devices(pClient));
+    CLIENT_TEST(pClient, lscp_list_audio_devices(pClient));
+
+    CLIENT_TEST(pClient, lscp_get_midi_devices(pClient));
+    CLIENT_TEST(pClient, lscp_list_midi_devices(pClient));
+
     for (iAudioDriver = 0; ppszAudioDrivers[iAudioDriver]; iAudioDriver++) {
      pszAudioDriver = ppszAudioDrivers[iAudioDriver];
      printf("\n--- pszAudioDriver=\"%s\" ---\n", pszAudioDriver);
@@ -98,6 +104,7 @@ void client_test ( lscp_client_t *pClient )
         printf("\n--- pszEngine=\"%s\" ---\n", pszEngine);
         CLIENT_TEST(pClient, lscp_get_engine_info(pClient, pszEngine));
         CLIENT_TEST(pClient, lscp_get_channels(pClient));
+        CLIENT_TEST(pClient, lscp_list_channels(pClient));
         CLIENT_TEST(pClient, iSamplerChannel = lscp_add_channel(pClient));
         printf(">>> iSamplerChannel=\"%d\"\n", iSamplerChannel);
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));

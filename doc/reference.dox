@@ -10,7 +10,7 @@ Hi all,
 On the path to a GUI for linuxsampler, I've been taking some of my spare
 time by writing an early implementation for the LSCP (the LinuxSampler
 Control Protocol), as defined from the current available draft document
-(http://www.linuxsampler.org/api/draft-linuxsampler-protocol-07.pdf).
+(http://www.linuxsampler.org/api/draft-linuxsampler-protocol-08.pdf).
 
 My implementation, while still rather crude, is taking the form of a
 programming library for plain conventional C, codenamed liblscp.

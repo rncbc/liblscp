@@ -271,7 +271,10 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     // Initialize cached members.
     pClient->audio_drivers = NULL;
     pClient->midi_drivers = NULL;
+    pClient->audio_devices = NULL;
+    pClient->midi_devices = NULL;
     pClient->engines = NULL;
+    pClient->channels = NULL;
     lscp_driver_info_init(&(pClient->audio_info));
     lscp_driver_info_init(&(pClient->midi_info));
     lscp_engine_info_init(&(pClient->engine_info));
@@ -352,7 +355,10 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     // Free available engine table.
     lscp_szsplit_destroy(pClient->audio_drivers);
     lscp_szsplit_destroy(pClient->midi_drivers);
+    lscp_isplit_destroy(pClient->audio_devices);
+    lscp_isplit_destroy(pClient->midi_devices);
     lscp_szsplit_destroy(pClient->engines);
+    lscp_isplit_destroy(pClient->channels);
     // Make them null.
     pClient->audio_drivers = NULL;
     pClient->midi_drivers = NULL;
@@ -463,6 +469,8 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
     cchQuery = strlen(pszQuery);
     if (send(pClient->tcp.sock, pszQuery, cchQuery, 0) < cchQuery) {
         lscp_socket_perror("lscp_client_query: send");
+        pszResult = "Failure during send operation";
+        _lscp_client_set_result(pClient, pszResult, iErrno);
         lscp_mutex_unlock(pClient->mutex);
         return ret;
     }
@@ -529,16 +537,21 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
         }
         else if (cchResult == 0) {
             // Fake a result message.
-            pszResult = "Server terminated the connection";
             ret = LSCP_QUIT;
+            pszResult = "Server terminated the connection";
+            iErrno = (int) ret;
+        } else {
+            // What's down?
+            lscp_socket_perror("lscp_client_query: recv");
+            pszResult = "Failure during receive operation";
         }
-        else lscp_socket_perror("lscp_client_query: recv");
     }   // Check if select has timed out.
     else if (iSelect == 0) {
         // Fake a result message.
-        pszResult = "Timeout during receive operation";
         ret = LSCP_TIMEOUT;
-    }
+        pszResult = "Timeout during receive operation";
+        iErrno = (int) ret;
+   }
     else lscp_socket_perror("lscp_client_query: select");
 
     // Make the result official...
@@ -725,6 +738,34 @@ int lscp_get_channels ( lscp_client_t *pClient )
     if (lscp_client_query(pClient, "GET CHANNELS\r\n") == LSCP_OK)
         iChannels = atoi(lscp_client_get_result(pClient));
     return iChannels;
+}
+
+
+/**
+ *  List current sampler channels number identifiers:
+ *  LIST CHANNELS
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns An array of the sampler channels identifiers as positive integers,
+ *  terminated with -1 on success, NULL otherwise.
+ */
+int *lscp_list_channels ( lscp_client_t *pClient )
+{
+    const char *pszSeps = ",";
+
+    if (pClient == NULL)
+        return NULL;
+        
+    if (pClient->channels) {
+        lscp_isplit_destroy(pClient->channels);
+        pClient->channels = NULL;
+    }
+
+    if (lscp_client_query(pClient, "LIST CHANNELS\r\n") == LSCP_OK)
+        pClient->channels = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    return pClient->channels;
 }
 
 

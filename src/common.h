@@ -48,7 +48,10 @@ struct _lscp_client_t
     // Client struct persistent caches.
     char **             audio_drivers;
     char **             midi_drivers;
+    int  *              audio_devices;
+    int  *              midi_devices;
     char **             engines;
+    int  *              channels;
     // Client struct volatile caches.
     lscp_driver_info_t  audio_info;
     lscp_driver_info_t  midi_info;
@@ -78,6 +81,13 @@ void        lscp_szsplit_destroy    (char **ppszSplit);
 #ifdef LSCP_SZSPLIT_COUNT
 int         lscp_szsplit_count      (char **ppszSplit);
 int         lscp_szsplit_size       (char **ppszSplit);
+#endif
+
+int *       lscp_isplit_create      (const char *pszCsv, const char *pszSeps);
+void        lscp_isplit_destroy     (int *ppiSplit);
+#ifdef LSCP_ISPLIT_COUNT
+int         lscp_isplit_count       (int *ppiSplit);
+int         lscp_isplit_size        (int *ppiSplit);
 #endif
 
 

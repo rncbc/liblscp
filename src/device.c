@@ -201,22 +201,48 @@ lscp_status_t lscp_destroy_audio_device ( lscp_client_t *pClient, int iAudioDevi
 
 
 /**
- *  Getting all created audio output devices.
+ *  Getting all created audio output device count.
  *  GET AUDIO_OUTPUT_DEVICES
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of audio devices on success,
+ *  -1 otherwise.
+ */
+int lscp_get_audio_devices ( lscp_client_t *pClient )
+{
+    int iAudioDevices = -1;
+    if (lscp_client_query(pClient, "GET AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
+        iAudioDevices = atoi(lscp_client_get_result(pClient));
+    return iAudioDevices;
+}
+
+
+/**
+ *  Getting all created audio output device list.
+ *  LIST AUDIO_OUTPUT_DEVICES
  *
  *  @param pClient  Pointer to client instance structure.
  *
  *  @returns An array of audio device number identifiers,
  *  terminated with -1 on success, or NULL in case of failure.
  */
-int *lscp_get_audio_devices ( lscp_client_t *pClient )
+int *lscp_list_audio_devices ( lscp_client_t *pClient )
 {
-    int *piAudioDevices = NULL;
+    const char *pszSeps = ",";
 
     if (pClient == NULL)
         return NULL;
 
-    return piAudioDevices;
+    if (pClient->audio_devices) {
+        lscp_isplit_destroy(pClient->audio_devices);
+        pClient->audio_devices = NULL;
+    }
+
+    if (lscp_client_query(pClient, "LIST AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
+        pClient->audio_devices = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    return pClient->audio_devices;
 }
 
 
@@ -484,22 +510,48 @@ lscp_status_t lscp_destroy_midi_device ( lscp_client_t *pClient, int iMidiDevice
 
 
 /**
- *  Getting all created MIDI input devices.
+ *  Getting all created MIDI intput device count.
  *  GET MIDI_INPUT_DEVICES
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of MIDI devices on success,
+ *  -1 otherwise.
+ */
+int lscp_get_midi_devices ( lscp_client_t *pClient )
+{
+    int iMidiDevices = -1;
+    if (lscp_client_query(pClient, "GET MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
+        iMidiDevices = atoi(lscp_client_get_result(pClient));
+    return iMidiDevices;
+}
+
+
+/**
+ *  Getting all created MIDI intput device list.
+ *  LIST MIDI_INPUT_DEVICES
  *
  *  @param pClient  Pointer to client instance structure.
  *
  *  @returns An array of MIDI device number identifiers,
  *  terminated with -1 on success, or NULL in case of failure.
  */
-int *lscp_get_midi_devices ( lscp_client_t *pClient )
+int *lscp_list_midi_devices ( lscp_client_t *pClient )
 {
-    int *piMidiDevices = NULL;
+    const char *pszSeps = ",";
 
     if (pClient == NULL)
         return NULL;
 
-    return piMidiDevices;
+    if (pClient->midi_devices) {
+        lscp_isplit_destroy(pClient->midi_devices);
+        pClient->midi_devices = NULL;
+    }
+
+    if (lscp_client_query(pClient, "LIST MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
+        pClient->midi_devices = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
+
+    return pClient->midi_devices;
 }
 
 

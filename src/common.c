@@ -193,6 +193,86 @@ int lscp_szsplit_size ( char **ppszSplit )
 #endif // LSCP_SZSPLIT_COUNT
 
 
+// Split a comma separated string into a -1 terminated array of positive integers.
+int *lscp_isplit_create ( const char *pszCsv, const char *pszSeps )
+{
+    char *pchHead, *pch;
+    int iSize, i, j, cchSeps;
+    int *piSplit, *piNewSplit;
+
+    // Initial size is one chunk away.
+    iSize = LSCP_SPLIT_CHUNK1;
+    // Allocate and split...
+    piSplit = (int *) malloc(iSize * sizeof(int));
+    if (piSplit == NULL)
+        return NULL;
+
+    // Make a copy of the original string.
+    i = 0;
+    pchHead = (char *) pszCsv;
+    if ((piSplit[i++] = atoi(pchHead)) < 0) {
+        free(piSplit);
+        return NULL;
+    }
+
+    // Go on for it...
+    cchSeps = strlen(pszSeps);
+    while ((pch = strpbrk(pchHead, pszSeps)) != NULL) {
+        // Pre-advance to next item.
+        pchHead = pch + cchSeps;
+        // Make it official.
+        piSplit[i++] = atoi(pchHead);
+        // Do we need to grow?
+        if (i >= iSize) {
+            // Yes, but only grow in chunks.
+            iSize += LSCP_SPLIT_CHUNK1;
+            // Allocate and copy to new split array.
+            piNewSplit = (int *) malloc(iSize * sizeof(int));
+            if (piNewSplit) {
+                for (j = 0; j < i; j++)
+                    piNewSplit[j] = piSplit[j];
+                free(piSplit);
+                piSplit = piNewSplit;
+            }
+        }
+    }
+
+    // NULL terminate split array.
+    for ( ; i < iSize; i++)
+        piSplit[i] = -1;
+
+    return piSplit;
+}
+
+
+// Destroy a integer splitted array.
+void lscp_isplit_destroy ( int *piSplit )
+{
+    if (piSplit)
+        free(piSplit);
+}
+
+
+#ifdef LSCP_ISPLIT_COUNT
+
+// Compute a string list valid item count.
+int lscp_isplit_count ( int *piSplit )
+{
+    int i = 0;
+    while (piSplit && piSplit[i] >= 0)
+        i++;
+    return i;
+}
+
+// Compute a string list size.
+int lscp_isplit_size ( int *piSplit )
+{
+    return LSCP_SPLIT_SIZE(lscp_isplit_count(piSplit));
+}
+
+#endif // LSCP_ISPLIT_COUNT
+
+
 //-------------------------------------------------------------------------
 // Engine info struct helper functions.
 

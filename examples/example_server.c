@@ -38,6 +38,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     lscp_parser_t tok;
     const char *pszResult = NULL;
     char szTemp[256];
+    int i;
     static int iChannel = 0;
 
     if (pchBuffer == NULL) {
@@ -101,16 +102,6 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 }
                 else ret = LSCP_FAILED;
             }
-            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_TYPE")) {
-                // Getting audio output type:
-                // GET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel>
-                // (unspecified as of draft 04)
-            }
-            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
-                // Getting audio output channel:
-                // GET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel>
-                // (unspecified as of draft 04)
-            }
             else ret = LSCP_FAILED;
         }
         else if (lscp_parser_test(&tok, "CHANNELS")) {
@@ -167,6 +158,31 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         }
         else ret = LSCP_FAILED;
     }
+    else if (lscp_parser_test(&tok, "LIST")) {
+        if (lscp_parser_test(&tok, "CHANNELS")) {
+            // Getting all created sampler channel list.
+            // GET CHANNELS
+            if (iChannel > 0) {
+                strcpy(szTemp, "0");
+                for (i = 1; i < iChannel; i++)
+                    sprintf(szTemp + strlen(szTemp), ",%d", i);
+                strcat(szTemp, "\r\n");
+                pszResult = szTemp;
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICES")) {
+            // Getting all created audio output device list.
+            // GET AUDIO_OUTPUT_DEVICES
+            pszResult = "0,1\r\n";
+        }
+        else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICES")) {
+            // Getting all created MID input device list.
+            // GET MIDI_INPUT_DEVICES
+            pszResult = "0\r\n";
+        }
+        else ret = LSCP_FAILED;
+    }
     else if (lscp_parser_test(&tok, "SET")) {
         if (lscp_parser_test(&tok, "CHANNEL")) {
             if (lscp_parser_test(&tok, "VOLUME")) {
@@ -177,13 +193,21 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 // Setting audio output type:
                 // SET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel> <audio-output-type>
             }
+            else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
+                // Setting audio output device:
+                // SET CHANNEL AUDIO_OUTPUT_DEVICE <sampler-channel> <device-id>
+            }
             else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
                 // Setting audio output channel:
-                // SET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> <audio-channel>
+                // SET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> <audio-in> <audio-out>
             }
             else if (lscp_parser_test(&tok, "MIDI_INPUT_TYPE")) {
                 // Setting MIDI input type:
                 // SET CHANNEL MIDI_INPUT_TYPE <sampler-channel> <midi-input-type>
+            }
+            else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICE")) {
+                // Setting MIDI input device:
+                // SET CHANNEL MIDI_INPUT_DEVICE <sampler-channel> <device-id>
             }
             else if (lscp_parser_test(&tok, "MIDI_INPUT_PORT")) {
                 // Setting MIDI input port:
