@@ -60,6 +60,17 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             if (lscp_parser_test(&tok, "INFO")) {
                 // Getting sampler channel informations:
                 // GET CHANNEL INFO <sampler-channel>
+                pszResult = "ENGINE_NAME: DummyEngine\r\n"
+                            "INTRUMENT_FILE: DummyInstrument.gig\r\n"
+                            "INTRUMENT_NR: 0\r\n"
+                            "INTRUMENT_NR: 0\r\n"
+                            "AUDIO_OUTPUT_TYPE: ALSA\r\n"
+                            "AUDIO_OUTPUT_CHANNELS: 2\r\n"
+                            "AUDIO_OUTPUT_ROUTING: 0,1\r\n"
+                            "MIDI_INPUT_TYPE: ALSA\r\n"
+                            "MIDI_INPUT_PORT: 0\r\n"
+                            "MIDI_INPUT_CHANNEL: ALL\r\n"
+                            "VOLUME: 0.5\r\n";
             }
             else if (lscp_parser_test(&tok, "VOICE_COUNT")) {
                 // Current number of active voices:
@@ -106,6 +117,31 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             // GET AVAILABLE_MIDI_INPUT_TYPES
             pszResult = "ALSA\r\n";
         }
+        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_TYPE", "INFO")) {
+            // Getting informations about a specific audio output driver.
+            // GET AUDIO_OUTPUT_TYPE INFO <audio-output-type>
+            if (lscp_parser_test(&tok, "ALSA")) {
+                pszResult = "DESCRIPTION: ALSA PCM\r\n"
+                            "VERSION: 1.0\r\n"
+                            "PARAMETERS: CHANNELS,SAMPLERATE,ACTIVE,CARD\r\n";
+            }
+            else if (lscp_parser_test(&tok, "JACK")) {
+                pszResult = "DESCRIPTION: Jack Audio Connection Kit\r\n"
+                            "VERSION: 0.98.1\r\n"
+                            "PARAMETERS: CHANNELS,SAMPLERATE,ACTIVE\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "MIDI_INPUT_TYPE", "INFO")) {
+            // Getting informations about a specific MIDI input driver.
+            // GET MIDI_INPUT_TYPE INFO <midi-input-type>
+            if (lscp_parser_test(&tok, "ALSA")) {
+                pszResult = "DESCRIPTION: ALSA Sequencer\r\n"
+                            "VERSION: 1.0\r\n"
+                            "PARAMETERS: PORTS,ACTIVE\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
         else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
             // Getting all available engines:
             // GET AVAILABLE_ENGINES
@@ -114,6 +150,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test2(&tok, "ENGINE", "INFO")) {
             // Getting information about an engine.
             // GET ENGINE INFO <engine-name>
+            pszResult = "DESCRIPTION: DummyEngine\r\n"
+                        "VERSION: 1.0\r\n";
         }
         else ret = LSCP_FAILED;
     }

@@ -86,11 +86,15 @@ void client_test ( lscp_client_t *pClient )
 
     for (iAudioType = 0; ppszAudioTypes[iAudioType]; iAudioType++) {
      pszAudioType = ppszAudioTypes[iAudioType];
+     printf("--- AudioType=\"%s\" ---\n", pszAudioType);
+     CLIENT_TEST(pClient, lscp_get_audio_type_info(pClient, pszAudioType));
      for (iMidiType = 0; ppszMidiTypes[iMidiType]; iMidiType++) {
       pszMidiType = ppszMidiTypes[iMidiType];
+      printf("--- MidiType=\"%s\" ---\n", pszMidiType);
+      CLIENT_TEST(pClient, lscp_get_midi_type_info(pClient, pszMidiType));
       for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
         pszEngine = ppszEngines[iEngine];
-        printf("--- AudioType=\"%s\" MidiType=\"%s\" Engine=\"%s\" ---\n", pszAudioType, pszMidiType, pszEngine);
+        printf("--- Engine=\"%s\" ---\n", pszEngine);
         CLIENT_TEST(pClient, lscp_get_engine_info(pClient, pszEngine));
         CLIENT_TEST(pClient, iSamplerChannel = lscp_get_channels(pClient));
         CLIENT_TEST(pClient, lscp_add_channel(pClient));

@@ -44,6 +44,11 @@ static int          _lscp_split_size            (char **ppszSplit);
 
 static void         _lscp_client_set_result     (lscp_client_t *pClient, const char *pszResult, int iErrno);
 
+static void         _lscp_type_info_init        (lscp_type_info_t *pTypeInfo);
+static void         _lscp_type_info_reset       (lscp_type_info_t *pTypeInfo);
+
+static lscp_type_info_t *_lscp_type_info_query  (lscp_client_t *pClient, lscp_type_info_t *pTypeInfo, const char *pszTypeQuery);
+
 static void         _lscp_engine_info_init      (lscp_engine_info_t *pEngineInfo);
 static void         _lscp_engine_info_reset     (lscp_engine_info_t *pEngineInfo);
 
@@ -200,6 +205,64 @@ static void _lscp_engine_info_reset ( lscp_engine_info_t *pEngineInfo )
         free(pEngineInfo->version);
 
     _lscp_engine_info_init(pEngineInfo);
+}
+
+
+// Driver type info struct cache member.
+static void _lscp_type_info_init ( lscp_type_info_t *pTypeInfo )
+{
+    pTypeInfo->description = NULL;
+    pTypeInfo->version     = NULL;
+    pTypeInfo->parameters  = NULL;
+}
+
+static void _lscp_type_info_reset ( lscp_type_info_t *pTypeInfo )
+{
+    if (pTypeInfo->description)
+        free(pTypeInfo->description);
+    if (pTypeInfo->version)
+        free(pTypeInfo->version);
+    _lscp_split_destroy(pTypeInfo->parameters);
+
+    _lscp_type_info_init(pTypeInfo);
+}
+
+// common driver type query command.
+static lscp_type_info_t *_lscp_type_info_query ( lscp_client_t *pClient, lscp_type_info_t *pTypeInfo, const char *pszQuery )
+{
+    const char *pszResult;
+    const char *pszSeps = ":";
+    const char *pszCrlf = "\r\n";
+    char *pszToken;
+    char *pch;
+
+    if (lscp_client_query(pClient, pszQuery) != LSCP_OK)
+        return NULL;
+
+    _lscp_type_info_reset(pTypeInfo);
+
+    pszResult = lscp_client_get_result(pClient);
+    pszToken = strtok_r((char *) pszResult, pszSeps, &(pch));
+    while (pszToken) {
+        if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
+        pszToken = strtok_r(NULL, pszCrlf, &(pch));
+        if (pszToken)
+            pTypeInfo->description = strdup(_lscp_ltrim(pszToken));
+        }
+        else if (strcasecmp(pszToken, "VERSION") == 0) {
+            pszToken = strtok_r(NULL, pszCrlf, &(pch));
+            if (pszToken)
+                pTypeInfo->version = strdup(_lscp_ltrim(pszToken));
+        }
+        else if (strcasecmp(pszToken, "PARAMETERS") == 0) {
+            pszToken = strtok_r(NULL, pszCrlf, &(pch));
+            if (pszToken)
+                pTypeInfo->parameters = _lscp_split_create(pszToken, ",");
+        }
+        pszToken = strtok_r(NULL, pszSeps, &(pch));
+    }
+
+    return pTypeInfo;
 }
 
 
@@ -459,6 +522,8 @@ lscp_client_t* lscp_client_create ( char *pszHost, int iPort, lscp_client_proc_t
     pClient->audio_types = NULL;
     pClient->midi_types = NULL;
     pClient->engines = NULL;
+    _lscp_type_info_init(&(pClient->audio_info));
+    _lscp_type_info_init(&(pClient->midi_info));
     _lscp_engine_info_init(&(pClient->engine_info));
     _lscp_channel_info_init(&(pClient->channel_info));
     // Initialize error stuff.
@@ -527,6 +592,8 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     // Free up all cached members.
     _lscp_channel_info_reset(&(pClient->channel_info));
     _lscp_engine_info_reset(&(pClient->engine_info));
+    _lscp_type_info_reset(&(pClient->midi_info));
+    _lscp_type_info_reset(&(pClient->audio_info));
     // Free available engine table.
     _lscp_split_destroy(pClient->audio_types);
     _lscp_split_destroy(pClient->midi_types);
@@ -819,6 +886,50 @@ const char** lscp_get_available_midi_types ( lscp_client_t *pClient )
     }
 
     return (const char **) pClient->midi_types;
+}
+
+
+/**
+ *  Getting informations about a specific audio output driver.
+ *  GET AUDIO_OUTPUT_TYPE INFO <audio-output-type>
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param pszAudioType Audio driver type string (e.g. "ALSA").
+ *
+ *  @returns A pointer to a @ref lscp_type_info_t structure, with
+ *  the given audio driver information, or NULL in case of failure.
+ */
+lscp_type_info_t* lscp_get_audio_type_info ( lscp_client_t *pClient, const char *pszAudioType )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (pszAudioType == NULL)
+        return NULL;
+
+    sprintf(szQuery, "GET AUDIO_OUTPUT_TYPE INFO %s\r\n", pszAudioType);
+    return _lscp_type_info_query(pClient, &(pClient->audio_info), szQuery);
+}
+
+
+/**
+ *  Getting informations about a specific MIDI input driver.
+ *  GET MIDI_INPUT_TYPE INFO <midi-input-type>
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param pszMidiType  MIDI driver type string (e.g. "ALSA").
+ *
+ *  @returns A pointer to a @ref lscp_type_info_t structure, with
+ *  the given MIDI driver information, or NULL in case of failure.
+ */
+lscp_type_info_t* lscp_get_midi_type_info ( lscp_client_t *pClient, const char *pszMidiType )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (pszMidiType == NULL)
+        return NULL;
+
+    sprintf(szQuery, "GET MIDI_INPUT_TYPE INFO %s\r\n", pszMidiType);
+    return _lscp_type_info_query(pClient, &(pClient->midi_info), szQuery);
 }
 
 

@@ -38,13 +38,14 @@ extern "C" {
 //-------------------------------------------------------------------------
 // Client data structures.
 
-/** Buffer fill stream usage types. */
-typedef enum _lscp_usage_t
+/** Common driver type info cache struct. */
+typedef struct _lscp_type_info_t
 {
-    LSCP_USAGE_BYTES = 0,
-    LSCP_USAGE_PERCENTAGE
+    char *        description;
+    char *        version;
+    char **       parameters;
 
-} lscp_usage_t;
+} lscp_type_info_t;
 
 
 /** Engine info cache struct. */
@@ -81,6 +82,14 @@ typedef struct _lscp_buffer_fill_t
 
 } lscp_buffer_fill_t;
 
+/** Buffer fill stream usage types. */
+typedef enum _lscp_usage_t
+{
+    LSCP_USAGE_BYTES = 0,
+    LSCP_USAGE_PERCENTAGE
+
+} lscp_usage_t;
+
 
 //-------------------------------------------------------------------------
 // Client socket main structure.
@@ -106,10 +115,13 @@ typedef struct _lscp_client_t {
     lscp_socket_agent_t udp;
     // Session identifier.
     char *              sessid;
-    // Info struct caches.
+    // Client struct persistent caches.
     char **             audio_types;
     char **             midi_types;
     char **             engines;
+    // Client struct volatile caches.
+    lscp_type_info_t    audio_info;
+    lscp_type_info_t    midi_info;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
     // Result and error status.
@@ -156,6 +168,9 @@ int                     lscp_client_get_errno           (lscp_client_t *pClient 
 
 const char **           lscp_get_available_audio_types  (lscp_client_t *pClient);
 const char **           lscp_get_available_midi_types   (lscp_client_t *pClient);
+
+lscp_type_info_t *      lscp_get_audio_type_info        (lscp_client_t *pClient, const char *pszAudioType);
+lscp_type_info_t *      lscp_get_midi_type_info         (lscp_client_t *pClient, const char *pszMidiType);
 
 lscp_status_t           lscp_load_instrument            (lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel);
 lscp_status_t           lscp_load_engine                (lscp_client_t *pClient, const char *pszEngineName, int iSamplerChannel);
