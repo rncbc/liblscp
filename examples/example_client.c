@@ -50,15 +50,16 @@ lscp_status_t client_callback ( lscp_client_t *pClient, lscp_event_t event, cons
 
 ////////////////////////////////////////////////////////////////////////
 
-void client_test_int ( int i )
+int client_test_int ( int i )
 {
     printf("%d\n", i);
+    return (i >= 0 ? 0 : 1);
 }
 
-void client_test_status ( lscp_status_t s )
+int client_test_status ( lscp_status_t s )
 {
     const char *pszStatus;
-    
+
     switch (s) {
       case LSCP_OK:         pszStatus = "OK";       break;
       case LSCP_FAILED:     pszStatus = "FAILED";   break;
@@ -68,12 +69,12 @@ void client_test_status ( lscp_status_t s )
       case LSCP_QUIT:       pszStatus = "QUIT";     break;
       default:              pszStatus = "NONE";     break;
     }
-    
     printf("%s\n", pszStatus);
+    return (s == LSCP_OK ? 0 : 1);
 }
 
 
-void client_test_isplit ( int *piSplit )
+int client_test_isplit ( int *piSplit )
 {
     int i;
 
@@ -84,9 +85,10 @@ void client_test_isplit ( int *piSplit )
         printf(" %d", piSplit[i]);
     }
     printf(" }\n");
+    return 0;
 }
 
-void client_test_szsplit ( char **ppszSplit )
+int client_test_szsplit ( char **ppszSplit )
 {
     int i;
 
@@ -97,9 +99,10 @@ void client_test_szsplit ( char **ppszSplit )
         printf(" %s", ppszSplit[i]);
     }
     printf(" }\n");
+    return 0;
 }
 
-void client_test_params ( lscp_param_t *pParams )
+int client_test_params ( lscp_param_t *pParams )
 {
     int i;
 
@@ -110,15 +113,16 @@ void client_test_params ( lscp_param_t *pParams )
         printf(" %s='%s'", pParams[i].key, pParams[i].value);
     }
     printf(" }\n");
+    return 0;
 }
 
-void client_test_param_info ( lscp_param_info_t *pParamInfo )
+int client_test_param_info ( lscp_param_info_t *pParamInfo )
 {
     const char *pszType;
     
     if (pParamInfo == NULL) {
         printf("(nil)\n");
-        return;
+        return 1;
     }
     switch (pParamInfo->type) {
       case LSCP_TYPE_BOOL:      pszType = "BOOL";   break;
@@ -139,62 +143,67 @@ void client_test_param_info ( lscp_param_info_t *pParamInfo )
     printf("    param_info.range_max           = %s\n", pParamInfo->range_max);
     printf("    param_info.possibilities       = "); client_test_szsplit(pParamInfo->possibilities);
     printf("  }\n");
+    return 0;
 }
 
-void client_test_driver_info ( lscp_driver_info_t *pDriverInfo )
+int client_test_driver_info ( lscp_driver_info_t *pDriverInfo )
 {
     if (pDriverInfo == NULL) {
         printf("(nil)\n");
-        return;
+        return 1;
     }
     printf("{\n");
     printf("    driver_info.description        = %s\n", pDriverInfo->description);
     printf("    driver_info.version            = %s\n", pDriverInfo->version);
     printf("    driver_info.parameters         = "); client_test_szsplit(pDriverInfo->parameters);
     printf("  }\n");
+    return 0;
 }
 
-void client_test_device_info ( lscp_device_info_t *pDeviceInfo )
+int client_test_device_info ( lscp_device_info_t *pDeviceInfo )
 {
     if (pDeviceInfo == NULL) {
         printf("(nil)\n");
-        return;
+        return 1;
     }
     printf("{\n");
     printf("    device_info.driver             = %s\n", pDeviceInfo->driver);
     printf("    device_info.params             = "); client_test_params(pDeviceInfo->params);
     printf("  }\n");
+    return 0;
 }
 
-void client_test_device_port_info ( lscp_device_port_info_t *pDevicePortInfo )
+int client_test_device_port_info ( lscp_device_port_info_t *pDevicePortInfo )
 {
     if (pDevicePortInfo == NULL) {
         printf("(nil)\n");
-        return;
+        return 1;
     }
     printf("{\n");
     printf("    device_port_info.name          = %s\n", pDevicePortInfo->name);
     printf("    device_port_info.params        = "); client_test_params(pDevicePortInfo->params);
     printf("  }\n");
+    return 0;
 }
 
-void client_test_engine_info ( lscp_engine_info_t *pEngineInfo )
+int client_test_engine_info ( lscp_engine_info_t *pEngineInfo )
 {
     if (pEngineInfo == NULL) {
         printf("(nil)\n");
-        return;
+        return 1;
     }
     printf("{\n");
     printf("    engine_info.description        = %s\n", pEngineInfo->description);
     printf("    engine_info.version            = %s\n", pEngineInfo->version);
     printf("  }\n");
+    return 0;
 }
 
-void client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
+int client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
 {
     if (pChannelInfo == NULL) {
         printf("(nil)\n");
-        return;
+        return 1;
     }
     printf("{\n");
     printf("    channel_info.engine_name       = %s\n", pChannelInfo->engine_name);
@@ -209,16 +218,25 @@ void client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
     printf("    channel_info.midi_channel      = %d\n", pChannelInfo->midi_channel);
     printf("    channel_info.volume            = %g\n", pChannelInfo->volume);
     printf("  }\n");
+    return 0;
 }
 
-void client_test_buffer_fill ( lscp_buffer_fill_t *pBufferFill )
+int client_test_buffer_fill ( lscp_buffer_fill_t *pBufferFill )
 {
+    if (pBufferFill == NULL) {
+        printf("(nil)\n");
+        return 1;
+    }
     printf("{ <%p> }\n", pBufferFill);
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-static int g_teststep = 0;
+static int g_test_step  = 0;
+static int g_test_count = 0;
+static int g_test_fails = 0;
+
 
 void  client_test_start   ( clock_t *pclk ) { *pclk = clock(); }
 float client_test_elapsed ( clock_t *pclk ) { return (float) ((long) clock() - *pclk) / (float) CLOCKS_PER_SEC; }
@@ -234,14 +252,14 @@ typedef lscp_engine_info_t *        engine_info;
 typedef lscp_channel_info_t *       channel_info;
 typedef lscp_buffer_fill_t *        buffer_fill;
 
-#define CLIENT_TEST(p, t, x) { clock_t c; void *v; \
+#define CLIENT_TEST(p, t, x) { clock_t c; void *v; g_test_count++; \
     printf("\n" #x ":\n"); client_test_start(&c); v = (void *) (x); \
     printf("  elapsed=%gs  errno=%d  result='%s...' ret=", \
         client_test_elapsed(&c), \
         lscp_client_get_errno(p), \
         lscp_client_get_result(p)); \
-    client_test_##t((t)(v)); \
-    if (g_teststep) getchar(); }
+    if (client_test_##t((t)(v))) { g_test_fails++; getchar(); } \
+    else if (g_test_step) getchar(); }
 
 
 void client_test ( lscp_client_t *pClient )
@@ -251,6 +269,9 @@ void client_test ( lscp_client_t *pClient )
     int iAudioDriver, iMidiDriver, iEngine;
     int iAudioDevice, iMidiDevice;
     int iSamplerChannel;
+
+    g_test_count = 0;
+    g_test_fails = 0;
 
     CLIENT_TEST(pClient, szsplit, ppszAudioDrivers = lscp_get_available_audio_drivers(pClient));
     if (ppszAudioDrivers == NULL) {
@@ -321,7 +342,8 @@ void client_test ( lscp_client_t *pClient )
      }
      CLIENT_TEST(pClient, status, lscp_destroy_audio_device(pClient, iAudioDevice));
     }
-
+    printf("\n");
+    printf("  Total: %d tests, %d failed.\n\n", g_test_count, g_test_fails);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -330,7 +352,7 @@ void client_usage (void)
 {
     printf("\n  %s %s (Build: %s)\n", lscp_client_package(), lscp_client_version(), lscp_client_build());
 
-    fputs("\n  Available client commands: help, test, exit, quit, subscribe, unsubscribe", stdout);
+    fputs("\n  Available commands: help, test[step], exit, quit, subscribe, unsubscribe", stdout);
     fputs("\n  (all else are sent verbatim to server)\n\n", stdout);
 
 }
@@ -384,10 +406,10 @@ int main (int argc, char *argv[] )
         if (strcmp(szLine, "test") == 0)
             client_test(pClient);
         else
-        if (strcmp(szLine, "teststep") == 0) {
-            g_teststep = 1;
+        if (strcmp(szLine, "teststep") == 0 || strcmp(szLine, "test step") == 0) {
+            g_test_step = 1;
             client_test(pClient);
-            g_teststep = 0;
+            g_test_step = 0;
         }
         else
         if (cchLine > 0 && strcmp(szLine, "help") != 0) {

@@ -1261,7 +1261,7 @@ lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamp
     if (iSamplerChannel < 0 || iAudioOut < 0 || iAudioIn < 0)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNELS %d %d %d\r\n", iSamplerChannel, iAudioOut, iAudioIn);
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNEL %d %d %d\r\n", iSamplerChannel, iAudioOut, iAudioIn);
     return lscp_client_query(pClient, szQuery);
 }
 

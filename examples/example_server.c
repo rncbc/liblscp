@@ -216,6 +216,18 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             }
             else ret = LSCP_FAILED;
         }
+        else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICES")) {
+            // Getting all created audio output device count.
+            // GET AUDIO_OUTPUT_DEVICES
+            sprintf(szTemp, "%d\r\n", iAudioDevice);
+            pszResult = szTemp;
+        }
+        else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICES")) {
+            // Getting all created MID input device count.
+            // GET MIDI_INPUT_DEVICES
+            sprintf(szTemp, "%d\r\n", iMidiDevice);
+            pszResult = szTemp;
+        }
         else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
             // Getting all available engines:
             // GET AVAILABLE_ENGINES
@@ -243,7 +255,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test(&tok, "LIST")) {
         if (lscp_parser_test(&tok, "CHANNELS")) {
             // Getting all created sampler channel list.
-            // GET CHANNELS
+            // LIST CHANNELS
             if (iSamplerChannel > 0) {
                 strcpy(szTemp, "0");
                 for (i = 1; i < iSamplerChannel && strlen(szTemp) < sizeof(szTemp) - 8; i++)
@@ -255,7 +267,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         }
         else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICES")) {
             // Getting all created audio output device list.
-            // GET AUDIO_OUTPUT_DEVICES
+            // LIST AUDIO_OUTPUT_DEVICES
             if (iAudioDevice > 0) {
                 strcpy(szTemp, "0");
                 for (i = 1; i < iAudioDevice && strlen(szTemp) < sizeof(szTemp) - 8; i++)
@@ -267,7 +279,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         }
         else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICES")) {
             // Getting all created MID input device list.
-            // GET MIDI_INPUT_DEVICES
+            // LIST MIDI_INPUT_DEVICES
             if (iMidiDevice > 0) {
                 strcpy(szTemp, "0");
                 for (i = 1; i < iMidiDevice && strlen(szTemp) < sizeof(szTemp) - 8; i++)
@@ -342,7 +354,9 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:
         // REMOVE CHANNEL <sampler-channel>
-        if (lscp_parser_nextint(&tok) > iSamplerChannel)
+        if (lscp_parser_nextint(&tok) < iSamplerChannel)
+            iSamplerChannel--;
+        else
             ret = LSCP_FAILED;
     }
     else if (lscp_parser_test2(&tok, "RESET", "CHANNEL")) {
@@ -380,13 +394,17 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
             // Destroying an audio output device.
             // DESTROY AUDIO_OUTPUT_DEVICE <audio-device-id>
-            if (lscp_parser_nextint(&tok) > iAudioDevice)
+            if (lscp_parser_nextint(&tok) < iAudioDevice)
+                iAudioDevice--;
+            else
                 ret = LSCP_FAILED;
         }
         else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICE")) {
             // Destroying an MIDI intput device.
             // DESTROY MIDI_INPUT_DEVICE <midi-device-id>
-            if (lscp_parser_nextint(&tok) > iMidiDevice)
+            if (lscp_parser_nextint(&tok) < iMidiDevice)
+                iMidiDevice--;
+            else
                 ret = LSCP_FAILED;
         }
         else ret = LSCP_FAILED;
