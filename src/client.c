@@ -24,14 +24,12 @@
 
 #include <ctype.h>
 
-
-// Array list chunk size.
+// Chunk size magic: 
+// LSCP_SPLIT_CHUNK1 = 2 ^ LSCP_SPLIT_CHUNK2
 #define LSCP_SPLIT_CHUNK1   4
-// Chunk size exponent: LSCP_SPLIT_CHUNK1 = 2^LSCP_SPLIT_CHUNK2
 #define LSCP_SPLIT_CHUNK2   2
-/** Chunk size calculator. */
+// Chunk size legal calculator.
 #define LSCP_SPLIT_SIZE(n)    ((((n) >> LSCP_SPLIT_CHUNK2) + 1) << LSCP_SPLIT_CHUNK2)
-
 
 // Local prototypes.
 
@@ -39,7 +37,6 @@ static const char * _lscp_ltrim                 (const char *psz);
 
 static char **      _lscp_split_create          (const char *pszCsv, const char *pszSeps);
 static void         _lscp_split_destroy         (char **ppszSplit);
-
 #ifdef LSCP_SPLIT_COUNT
 static int          _lscp_split_count           (char **ppszSplit);
 static int          _lscp_split_size            (char **ppszSplit);
@@ -54,7 +51,6 @@ static void         _lscp_channel_info_init     (lscp_channel_info_t *pChannelIn
 static void         _lscp_channel_info_reset    (lscp_channel_info_t *pChannelInfo);
 
 static void         _lscp_client_udp_proc       (void *pvClient);
-
 
 //-------------------------------------------------------------------------
 // strtok_r - needed in win32 for parsing results.
@@ -264,7 +260,7 @@ static void _lscp_client_udp_proc ( void *pvClient )
 #ifdef DEBUG
             lscp_socket_trace("_lscp_client_udp_proc: recvfrom", &addr, achBuffer, cchBuffer);
 #endif
-            if (strncmp(achBuffer, "PING ", 5) == 0) {
+            if (strncasecmp(achBuffer, "PING ", 5) == 0) {
                 // Make sure received buffer it's null terminated.
                 achBuffer[cchBuffer] = (char) 0;
                 strtok_r(achBuffer, pszSeps, &(pch));       // Skip "PING"
@@ -638,9 +634,9 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
             cchResult--;
         achResult[cchResult] = (char) 0;
         // Check if the response is an error or warning message.
-        if (strncmp(achResult, "ERR:", 4) == 0)
+        if (strncasecmp(achResult, "ERR:", 4) == 0)
             ret = LSCP_ERROR;
-        else if (strncmp(achResult, "WRN:", 4) == 0)
+        else if (strncasecmp(achResult, "WRN:", 4) == 0)
             ret = LSCP_WARNING;
         // So we got a result...
         if (ret == LSCP_OK) {
@@ -735,7 +731,7 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
 #endif
         // Check for the session-id on "OK[sessid]" response.
         pszToken = strtok_r((char *) pszResult, pszSeps, &(pch));
-        if (pszToken && strcmp(pszToken, "OK") == 0) {
+        if (pszToken && strcasecmp(pszToken, "OK") == 0) {
             pszToken = strtok_r(NULL, pszSeps, &(pch));
             if (pszToken)
                 pClient->sessid = strdup(pszToken);
@@ -976,12 +972,12 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
         _lscp_engine_info_reset(pEngineInfo);
         pszToken = strtok_r((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
-            if (strcmp(pszToken, "DESCRIPTION") == 0) {
+            if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pEngineInfo->description = strdup(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "VERSION") == 0) {
+            else if (strcasecmp(pszToken, "VERSION") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pEngineInfo->version = strdup(_lscp_ltrim(pszToken));
@@ -1024,52 +1020,52 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
         _lscp_channel_info_reset(pChannelInfo);
         pszToken = strtok_r((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
-            if (strcmp(pszToken, "ENGINE_NAME") == 0) {
+            if (strcasecmp(pszToken, "ENGINE_NAME") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->engine_name = strdup(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "AUDIO_OUTPUT_TYPE") == 0) {
+            else if (strcasecmp(pszToken, "AUDIO_OUTPUT_TYPE") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->audio_type = strdup(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "AUDIO_OUTPUT_CHANNELS") == 0) {
+            else if (strcasecmp(pszToken, "AUDIO_OUTPUT_CHANNELS") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->audio_channels = atoi(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
+            else if (strcasecmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->audio_routing = _lscp_split_create(pszToken, ",");
             }
-            else if (strcmp(pszToken, "INSTRUMENT_FILE") == 0) {
+            else if (strcasecmp(pszToken, "INSTRUMENT_FILE") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->instrument_file = strdup(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "INSTRUMENT_NR") == 0) {
+            else if (strcasecmp(pszToken, "INSTRUMENT_NR") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->instrument_nr = atoi(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "MIDI_INPUT_TYPE") == 0) {
+            else if (strcasecmp(pszToken, "MIDI_INPUT_TYPE") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->midi_type = strdup(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "MIDI_INPUT_PORT") == 0) {
+            else if (strcasecmp(pszToken, "MIDI_INPUT_PORT") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->midi_port = atoi(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "MIDI_INPUT_CHANNEL") == 0) {
+            else if (strcasecmp(pszToken, "MIDI_INPUT_CHANNEL") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->midi_channel = atoi(_lscp_ltrim(pszToken));
             }
-            else if (strcmp(pszToken, "VOLUME") == 0) {
+            else if (strcasecmp(pszToken, "VOLUME") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
                     pChannelInfo->volume = (float) atof(_lscp_ltrim(pszToken));

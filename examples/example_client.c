@@ -164,19 +164,19 @@ int main (int argc, char *argv[] )
             cchLine--;
         szLine[cchLine] = '\0';
 
-        if (strcmp(szLine, "exit") == 0 || strcmp(szLine, "quit") == 0)
+        if (strcasecmp(szLine, "exit") == 0 || strcasecmp(szLine, "quit") == 0)
             break;
         else
-        if (strcmp(szLine, "subscribe") == 0)
+        if (strcasecmp(szLine, "subscribe") == 0)
             lscp_client_subscribe(pClient);
         else
-        if (strcmp(szLine, "unsubscribe") == 0)
+        if (strcasecmp(szLine, "unsubscribe") == 0)
             lscp_client_unsubscribe(pClient);
         else
-        if (strcmp(szLine, "test") == 0)
+        if (strcasecmp(szLine, "test") == 0)
             client_test(pClient);
         else
-        if (cchLine > 0 && strcmp(szLine, "help") != 0) {
+        if (cchLine > 0 && strcasecmp(szLine, "help") != 0) {
             szLine[cchLine++] = '\r';
             szLine[cchLine++] = '\n';
             szLine[cchLine]   = '\0';
@@ -205,4 +205,3 @@ int main (int argc, char *argv[] )
 }
 
 // end of example_client.c
-

@@ -77,7 +77,7 @@ int lscp_parser_test ( lscp_parser_t *pParser, const char *pszToken )
 {
     int ret = (pParser->pszToken != NULL);
     if (ret)
-        ret = (strcmp(pParser->pszToken, pszToken) == 0);
+        ret = (strcasecmp(pParser->pszToken, pszToken) == 0);
     if (ret)
         lscp_parser_next(pParser);
 
