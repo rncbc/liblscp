@@ -65,6 +65,7 @@ void client_test ( lscp_client_t *pClient )
     const char **ppszAudioDrivers, **ppszMidiDrivers, **ppszEngines;
     const char *pszAudioDriver, *pszMidiDriver, *pszEngine;
     int iAudioDriver, iMidiDriver, iEngine;
+    int iAudioDevice, iMidiDevice;
     int iSamplerChannel;
 
     CLIENT_TEST(pClient, ppszAudioDrivers = lscp_get_available_audio_drivers(pClient));
@@ -96,11 +97,15 @@ void client_test ( lscp_client_t *pClient )
      printf("\n--- pszAudioDriver=\"%s\" ---\n", pszAudioDriver);
      CLIENT_TEST(pClient, lscp_get_audio_driver_info(pClient, pszAudioDriver));
      CLIENT_TEST(pClient, lscp_get_audio_driver_param_info(pClient, pszAudioDriver, "active", NULL));
+     CLIENT_TEST(pClient, iAudioDevice = lscp_create_audio_device(pClient, pszAudioDriver, NULL));
+     CLIENT_TEST(pClient, lscp_get_audio_device_info(pClient, iAudioDevice));
      for (iMidiDriver = 0; ppszMidiDrivers[iMidiDriver]; iMidiDriver++) {
       pszMidiDriver = ppszMidiDrivers[iMidiDriver];
       printf("\n--- pszMidiDriver=\"%s\" ---\n", pszMidiDriver);
       CLIENT_TEST(pClient, lscp_get_midi_driver_info(pClient, pszMidiDriver));
       CLIENT_TEST(pClient, lscp_get_midi_driver_param_info(pClient, pszMidiDriver, "active", NULL));
+      CLIENT_TEST(pClient, iMidiDevice = lscp_create_midi_device(pClient, pszMidiDriver, NULL));
+      CLIENT_TEST(pClient, lscp_get_midi_device_info(pClient, iMidiDevice));
       for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
         pszEngine = ppszEngines[iEngine];
         printf("\n--- pszEngine=\"%s\" ---\n", pszEngine);
@@ -130,7 +135,9 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
         printf("\n");
       }
+      CLIENT_TEST(pClient, lscp_destroy_midi_device(pClient, iMidiDevice));
      }
+     CLIENT_TEST(pClient, lscp_destroy_audio_device(pClient, iAudioDevice));
     }
 
 }

@@ -85,18 +85,18 @@ typedef struct _lscp_driver_info_t
 typedef struct _lscp_device_info_t
 {
     char *        driver;
-    lscp_param_t *parameters;
+    lscp_param_t *params;
 
 } lscp_device_info_t;
 
 
-/** Common device channel info cache struct. */
-typedef struct _lscp_device_channel_info_t
+/** Common device channel/port info cache struct. */
+typedef struct _lscp_device_port_info_t
 {
     char *        name;
-    lscp_param_t *parameters;
+    lscp_param_t *params;
 
-} lscp_device_channel_info_t;
+} lscp_device_port_info_t;
 
 
 //-------------------------------------------------------------------------
@@ -118,7 +118,7 @@ int *                   lscp_list_audio_devices         (lscp_client_t *pClient)
 lscp_device_info_t *    lscp_get_audio_device_info      (lscp_client_t *pClient, int iAudioDevice);
 lscp_status_t           lscp_set_audio_device_param     (lscp_client_t *pClient, int iAudioDevice, lscp_param_t *pParam);
 
-lscp_device_channel_info_t *lscp_get_audio_channel_info (lscp_client_t *pClient, int iAudioDevice, int iAudioChannel );
+lscp_device_port_info_t *lscp_get_audio_channel_info    (lscp_client_t *pClient, int iAudioDevice, int iAudioChannel);
 
 lscp_param_info_t *     lscp_get_audio_channel_param_info   (lscp_client_t *pClient, int iAudioDevice, int iAudioChannel, const char *pszParam);
 lscp_status_t           lscp_set_audio_channel_param        (lscp_client_t *pClient, int iAudioDevice, int iAudioChannel, lscp_param_t *pParam);
@@ -143,7 +143,7 @@ int *                   lscp_list_midi_devices          (lscp_client_t *pClient)
 lscp_device_info_t *    lscp_get_midi_device_info       (lscp_client_t *pClient, int iMidiDevice);
 lscp_status_t           lscp_set_midi_device_param      (lscp_client_t *pClient, int iMidiDevice, lscp_param_t *pParam);
 
-lscp_device_channel_info_t *lscp_get_midi_port_info     (lscp_client_t *pClient, int iMidiDevice, int iMidiPort);
+lscp_device_port_info_t *lscp_get_midi_port_info        (lscp_client_t *pClient, int iMidiDevice, int iMidiPort);
 
 lscp_param_info_t *     lscp_get_midi_port_param_info   (lscp_client_t *pClient, int iMidiDevice, int iMidiPort, const char *pszParam);
 lscp_status_t           lscp_set_midi_port_param        (lscp_client_t *pClient, int iMidiDevice, int iMidiPort, lscp_param_t *pParam);

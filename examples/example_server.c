@@ -39,7 +39,9 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     const char *pszResult = NULL;
     char szTemp[256];
     int i;
-    static int iChannel = 0;
+    static int iSamplerChannel = 0;
+    static int iAudioDevice = 0;
+    static int iMidiDevice  = 0;
 
     if (pchBuffer == NULL) {
         fprintf(stderr, "server_callback: addr=%s port=%d: ",
@@ -108,7 +110,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test(&tok, "CHANNELS")) {
             // Current number of sampler channels:
             // GET CHANNELS
-            sprintf(szTemp, "%d", iChannel);
+            sprintf(szTemp, "%d", iSamplerChannel);
             pszResult = szTemp;
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
@@ -192,6 +194,28 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             }
             else ret = LSCP_FAILED;
         }
+        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DEVICE", "INFO")) {
+            // Getting informations about a specific audio output device.
+            // GET AUDIO_OUTPUT_DEVICE INFO <audio-device-id>
+            if (lscp_parser_nextint(&tok) < iAudioDevice) {
+                pszResult = "driver: Alsa\r\n"
+                            "active: TRUE\r\n"
+                            "channels: 2\r\n"
+                            "samplerate: 44100\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test2(&tok, "MIDI_INPUT_DEVICE", "INFO")) {
+            // Getting informations about a specific MIDI input device.
+            // GET MIDI_INPUT_DEVICE INFO <midi-device-id>
+            if (lscp_parser_nextint(&tok) < iMidiDevice) {
+                pszResult = "driver: Alsa\r\n"
+                            "active: TRUE\r\n"
+                            "channels: 16\r\n"
+                            "ports: 1\r\n";
+            }
+            else ret = LSCP_FAILED;
+        }
         else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
             // Getting all available engines:
             // GET AVAILABLE_ENGINES
@@ -220,9 +244,9 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         if (lscp_parser_test(&tok, "CHANNELS")) {
             // Getting all created sampler channel list.
             // GET CHANNELS
-            if (iChannel > 0) {
+            if (iSamplerChannel > 0) {
                 strcpy(szTemp, "0");
-                for (i = 1; i < iChannel; i++)
+                for (i = 1; i < iSamplerChannel; i++)
                     sprintf(szTemp + strlen(szTemp), ",%d", i);
                 strcat(szTemp, "\r\n");
                 pszResult = szTemp;
@@ -232,12 +256,26 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICES")) {
             // Getting all created audio output device list.
             // GET AUDIO_OUTPUT_DEVICES
-            pszResult = "0,1\r\n";
+            if (iAudioDevice > 0) {
+                strcpy(szTemp, "0");
+                for (i = 1; i < iAudioDevice; i++)
+                    sprintf(szTemp + strlen(szTemp), ",%d", i);
+                strcat(szTemp, "\r\n");
+                pszResult = szTemp;
+            }
+            else ret = LSCP_FAILED;
         }
         else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICES")) {
             // Getting all created MID input device list.
             // GET MIDI_INPUT_DEVICES
-            pszResult = "0\r\n";
+            if (iMidiDevice > 0) {
+                strcpy(szTemp, "0");
+                for (i = 1; i < iMidiDevice; i++)
+                    sprintf(szTemp + strlen(szTemp), ",%d", i);
+                strcat(szTemp, "\r\n");
+                pszResult = szTemp;
+            }
+            else ret = LSCP_FAILED;
         }
         else ret = LSCP_FAILED;
     }
@@ -293,16 +331,50 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
         // Adding a new sampler channel:
         // ADD CHANNEL
-        sprintf(szTemp, "OK[%d]", iChannel++);
+        sprintf(szTemp, "OK[%d]", iSamplerChannel++);
         pszResult = szTemp;
     }
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:
         // REMOVE CHANNEL <sampler-channel>
+        if (lscp_parser_nextint(&tok) > iSamplerChannel)
+            ret = LSCP_FAILED;
     }
     else if (lscp_parser_test2(&tok, "RESET", "CHANNEL")) {
         // Resetting a sampler channel:
         // RESET CHANNEL <sampler-channel>
+        if (lscp_parser_nextint(&tok) > iSamplerChannel)
+            ret = LSCP_FAILED;
+    }
+    else if (lscp_parser_test(&tok, "CREATE")) {
+        if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
+            // Creating an audio output device.
+            // CREATE AUDIO_OUTPUT_DEVICE <audio-output-driver> [<params>]
+            sprintf(szTemp, "OK[%d]", iAudioDevice++);
+            pszResult = szTemp;
+        }
+        else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICE")) {
+            // Creating an MIDI input device.
+            // CREATE MIDI_INPUT_DEVICE <midi-input-driver> [<params>]
+            sprintf(szTemp, "OK[%d]", iMidiDevice++);
+            pszResult = szTemp;
+        }
+        else ret = LSCP_FAILED;
+    }
+    else if (lscp_parser_test(&tok, "DESTROY")) {
+        if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
+            // Destroying an audio output device.
+            // DESTROY AUDIO_OUTPUT_DEVICE <audio-device-id>
+            if (lscp_parser_nextint(&tok) > iAudioDevice)
+                ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICE")) {
+            // Destroying an MIDI intput device.
+            // DESTROY MIDI_INPUT_DEVICE <midi-device-id>
+            if (lscp_parser_nextint(&tok) > iMidiDevice)
+                ret = LSCP_FAILED;
+        }
+        else ret = LSCP_FAILED;
     }
     else if (lscp_parser_test(&tok, "SUBSCRIBE")) {
         // Register frontend for receiving event notification messages:

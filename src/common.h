@@ -53,10 +53,16 @@ struct _lscp_client_t
     char **             engines;
     int  *              channels;
     // Client struct volatile caches.
-    lscp_driver_info_t  audio_info;
-    lscp_driver_info_t  midi_info;
+    lscp_driver_info_t  audio_driver_info;
+    lscp_driver_info_t  midi_driver_info;
+    lscp_device_info_t  audio_device_info;
+    lscp_device_info_t  midi_device_info;
     lscp_param_info_t   audio_param_info;
     lscp_param_info_t   midi_param_info;
+    lscp_device_port_info_t audio_channel_info;
+    lscp_device_port_info_t midi_port_info;
+    lscp_param_info_t   audio_channel_param_info;
+    lscp_param_info_t   midi_port_param_info;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
     // Result and error status.
@@ -105,6 +111,14 @@ int             lscp_psplit_count           (lscp_param_t *ppSplit);
 int             lscp_psplit_size            (lscp_param_t *ppSplit);
 #endif
 
+void            lscp_plist_alloc       (lscp_param_t **ppList);
+void            lscp_plist_free        (lscp_param_t **ppList);
+void            lscp_plist_append      (lscp_param_t **ppList, const char *pszKey, const char *pszValue);
+#ifdef LSCP_PLIST_COUNT
+int             lscp_plist_count       (lscp_param_t **ppList);
+int             lscp_plist_size        (lscp_param_t **ppList);
+#endif
+
 //-------------------------------------------------------------------------
 // Engine struct helper functions.
 
@@ -122,6 +136,18 @@ void            lscp_channel_info_reset     (lscp_channel_info_t *pChannelInfo);
 
 void            lscp_driver_info_init       (lscp_driver_info_t *pDriverInfo);
 void            lscp_driver_info_reset      (lscp_driver_info_t *pDriverInfo);
+
+//-------------------------------------------------------------------------
+// Device struct helper functions.
+
+void            lscp_device_info_init       (lscp_device_info_t *pDeviceInfo);
+void            lscp_device_info_reset      (lscp_device_info_t *pDeviceInfo);
+
+//-------------------------------------------------------------------------
+// Device channel/port struct helper functions.
+
+void            lscp_device_port_info_init  (lscp_device_port_info_t *pDevicePortInfo);
+void            lscp_device_port_info_reset (lscp_device_port_info_t *pDevicePortInfo);
 
 //-------------------------------------------------------------------------
 // Parameter struct helper functions.

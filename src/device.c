@@ -26,7 +26,10 @@
 // Local prototypes.
 
 static lscp_driver_info_t *_lscp_driver_info_query (lscp_client_t *pClient, lscp_driver_info_t *pDriverInfo, char *pszQuery);
-static lscp_param_info_t  *_lscp_param_info_query  (lscp_client_t *pClient, lscp_param_info_t *pParamInfo, char *pszQuery, lscp_param_t *pDepList);
+static lscp_device_info_t *_lscp_device_info_query (lscp_client_t *pClient, lscp_device_info_t *pDeviceInfo, char *pszQuery);
+static lscp_param_info_t  *_lscp_param_info_query  (lscp_client_t *pClient, lscp_param_info_t *pParamInfo, char *pszQuery, int cchMaxQuery, lscp_param_t *pDepList);
+
+static lscp_device_port_info_t *_lscp_device_port_info_query (lscp_client_t *pClient, lscp_device_port_info_t *pDevicePortInfo, char *pszQuery);
 
 
 //-------------------------------------------------------------------------
@@ -75,8 +78,88 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
 }
 
 
+// Common device info query command.
+static lscp_device_info_t *_lscp_device_info_query ( lscp_client_t *pClient, lscp_device_info_t *pDeviceInfo, char *pszQuery )
+{
+    const char *pszResult;
+    const char *pszSeps = ":";
+    const char *pszCrlf = "\r\n";
+    char *pszToken;
+    char *pch;
+    char *pszKey;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    lscp_device_info_reset(pDeviceInfo);
+    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (strcasecmp(pszToken, "DRIVER") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pDeviceInfo->driver = lscp_unquote(&pszToken, 1);
+            }
+            else {
+                pszKey = pszToken;
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_plist_append(&(pDeviceInfo->params), pszKey, lscp_unquote(&pszToken, 0));
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+        }
+    }
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return pDeviceInfo;
+}
+
+
+// Common device channel/port info query command.
+static lscp_device_port_info_t *_lscp_device_port_info_query ( lscp_client_t *pClient, lscp_device_port_info_t *pDevicePortInfo, char *pszQuery )
+{
+    const char *pszResult;
+    const char *pszSeps = ":";
+    const char *pszCrlf = "\r\n";
+    char *pszToken;
+    char *pch;
+    char *pszKey;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    lscp_device_port_info_reset(pDevicePortInfo);
+    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (strcasecmp(pszToken, "NAME") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pDevicePortInfo->name = lscp_unquote(&pszToken, 1);
+            }
+            else {
+                pszKey = pszToken;
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_plist_append(&(pDevicePortInfo->params), pszKey, lscp_unquote(&pszToken, 0));
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+        }
+    }
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return pDevicePortInfo;
+}
+
+
 // Common parameter info query command.
-static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_param_info_t *pParamInfo, char *pszQuery, lscp_param_t *pDepList )
+static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_param_info_t *pParamInfo, char *pszQuery, int cchMaxQuery, lscp_param_t *pDepList )
 {
     const char *pszResult;
     const char *pszSeps = ":";
@@ -88,7 +171,7 @@ static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_
     lscp_mutex_lock(pClient->mutex);
 
     lscp_param_info_reset(pParamInfo);
-    lscp_param_concat(pszQuery, LSCP_BUFSIZ, pDepList);
+    lscp_param_concat(pszQuery, cchMaxQuery, pDepList);
     if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
@@ -215,7 +298,7 @@ lscp_driver_info_t* lscp_get_audio_driver_info ( lscp_client_t *pClient, const c
         return NULL;
 
     sprintf(szQuery, "GET AUDIO_OUTPUT_DRIVER INFO %s\r\n", pszAudioDriver);
-    return _lscp_driver_info_query(pClient, &(pClient->audio_info), szQuery);
+    return _lscp_driver_info_query(pClient, &(pClient->audio_driver_info), szQuery);
 }
 
 
@@ -242,8 +325,8 @@ lscp_param_info_t *lscp_get_audio_driver_param_info ( lscp_client_t *pClient, co
     if (pszParam == NULL)
         return NULL;
 
-    sprintf(szQuery, "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO %s %s\r\n", pszAudioDriver, pszParam);
-    return _lscp_param_info_query(pClient, &(pClient->audio_param_info), szQuery, pDepList);
+    sprintf(szQuery, "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO %s %s", pszAudioDriver, pszParam);
+    return _lscp_param_info_query(pClient, &(pClient->audio_param_info), szQuery, sizeof(szQuery), pDepList);
 }
 
 
@@ -263,14 +346,24 @@ lscp_param_info_t *lscp_get_audio_driver_param_info ( lscp_client_t *pClient, co
  */
 int lscp_create_audio_device ( lscp_client_t *pClient, const char *pszAudioDriver, lscp_param_t *pParams )
 {
+    char szQuery[LSCP_BUFSIZ];
     int iAudioDevice = -1;
 
     if (pClient == NULL)
-        return -1;
+        return iAudioDevice;
     if (pszAudioDriver == NULL)
-        return -1;
-    if (pParams == NULL)
-        return -1;
+        return iAudioDevice;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    sprintf(szQuery, "CREATE AUDIO_OUTPUT_DEVICE %s", pszAudioDriver);
+    lscp_param_concat(szQuery, sizeof(szQuery), pParams);
+    if (lscp_client_call(pClient, szQuery) == LSCP_OK)
+        iAudioDevice = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
 
     return iAudioDevice;
 }
@@ -288,13 +381,15 @@ int lscp_create_audio_device ( lscp_client_t *pClient, const char *pszAudioDrive
 lscp_status_t lscp_destroy_audio_device ( lscp_client_t *pClient, int iAudioDevice )
 {
     lscp_status_t ret = LSCP_FAILED;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return ret;
     if (iAudioDevice < 0)
         return ret;
 
-    return ret;
+    sprintf(szQuery, "DESTROY AUDIO_OUTPUT_DEVICE %d\r\n", iAudioDevice);
+    return lscp_client_query(pClient, szQuery);
 }
 
 
@@ -370,20 +465,21 @@ int *lscp_list_audio_devices ( lscp_client_t *pClient )
  */
 lscp_device_info_t *lscp_get_audio_device_info ( lscp_client_t *pClient, int iAudioDevice )
 {
-    lscp_device_info_t *pDeviceInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
     if (iAudioDevice < 0)
         return NULL;
 
-    return pDeviceInfo;
+    sprintf(szQuery, "GET AUDIO_OUTPUT_DEVICE INFO %d\r\n", iAudioDevice);
+    return _lscp_device_info_query(pClient, &(pClient->audio_device_info), szQuery);
 }
 
 
 /**
  *  Changing settings of audio output devices.
- *  SET AUDIO_OUTPUT_DEVICE_PARAMETER <audio-device-id> <param> <value>
+ *  SET AUDIO_OUTPUT_DEVICE_PARAMETER <audio-device-id> <param>=<value>
  *
  *  @param pClient      Pointer to client instance structure.
  *  @param iAudioDevice Audio device number identifier.
@@ -393,16 +489,18 @@ lscp_device_info_t *lscp_get_audio_device_info ( lscp_client_t *pClient, int iAu
  */
 lscp_status_t lscp_set_audio_device_param ( lscp_client_t *pClient, int iAudioDevice, lscp_param_t *pParam )
 {
-    lscp_status_t ret = LSCP_FAILED;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
-        return ret;
+        return LSCP_FAILED;
     if (iAudioDevice < 0)
-        return ret;
+        return LSCP_FAILED;
     if (pParam == NULL)
-        return ret;
+        return LSCP_FAILED;
 
-    return ret;
+    sprintf(szQuery, "SET AUDIO_OUTPUT_DEVICE_PARAMETER %d", iAudioDevice);
+    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    return lscp_client_query(pClient, szQuery);
 }
 
 
@@ -414,12 +512,12 @@ lscp_status_t lscp_set_audio_device_param ( lscp_client_t *pClient, int iAudioDe
  *  @param iAudioDevice     Audio device number identifier.
  *  @param iAudioChannel    Audio channel number.
  *
- *  @returns A pointer to a @ref lscp_device_channel_info_t structure,
+ *  @returns A pointer to a @ref lscp_device_port_info_t structure,
  *  with the given audio channel information, or NULL in case of failure.
  */
-lscp_device_channel_info_t* lscp_get_audio_channel_info ( lscp_client_t *pClient, int iAudioDevice, int iAudioChannel )
+lscp_device_port_info_t* lscp_get_audio_channel_info ( lscp_client_t *pClient, int iAudioDevice, int iAudioChannel )
 {
-    lscp_device_channel_info_t *pDevChannelInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
@@ -428,7 +526,8 @@ lscp_device_channel_info_t* lscp_get_audio_channel_info ( lscp_client_t *pClient
     if (iAudioChannel < 0)
         return NULL;
 
-    return pDevChannelInfo;
+    sprintf(szQuery, "GET AUDIO_OUTPUT_CHANNEL INFO %d %d\r\n", iAudioDevice, iAudioChannel);
+    return _lscp_device_port_info_query(pClient, &(pClient->audio_channel_info), szQuery);
 }
 
 
@@ -446,7 +545,7 @@ lscp_device_channel_info_t* lscp_get_audio_channel_info ( lscp_client_t *pClient
  */
 lscp_param_info_t* lscp_get_audio_channel_param_info ( lscp_client_t *pClient, int iAudioDevice, int iAudioChannel, const char *pszParam )
 {
-    lscp_param_info_t *pParamInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
@@ -457,7 +556,8 @@ lscp_param_info_t* lscp_get_audio_channel_param_info ( lscp_client_t *pClient, i
     if (pszParam == NULL)
         return NULL;
 
-    return pParamInfo;
+    sprintf(szQuery, "GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO %d %d %s", iAudioDevice, iAudioChannel, pszParam);
+    return _lscp_param_info_query(pClient, &(pClient->audio_channel_param_info), szQuery, sizeof(szQuery), NULL);
 }
 
 
@@ -474,18 +574,20 @@ lscp_param_info_t* lscp_get_audio_channel_param_info ( lscp_client_t *pClient, i
  */
 lscp_status_t lscp_set_audio_channel_param ( lscp_client_t *pClient, int iAudioDevice, int iAudioChannel, lscp_param_t *pParam )
 {
-    lscp_status_t ret = LSCP_FAILED;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
-        return ret;
+        return LSCP_FAILED;
     if (iAudioDevice < 0)
-        return ret;
+        return LSCP_FAILED;
     if (iAudioChannel < 0)
-        return ret;
+        return LSCP_FAILED;
     if (pParam == NULL)
-        return ret;
+        return LSCP_FAILED;
 
-    return ret;
+    sprintf(szQuery, "SET AUDIO_OUTPUT_CHANNEL_PARAMETER %d %d", iAudioDevice, iAudioChannel);
+    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    return lscp_client_query(pClient, szQuery);
 }
 
 
@@ -541,7 +643,7 @@ lscp_driver_info_t* lscp_get_midi_driver_info ( lscp_client_t *pClient, const ch
         return NULL;
 
     sprintf(szQuery, "GET MIDI_INPUT_DRIVER INFO %s\r\n", pszMidiDriver);
-    return _lscp_driver_info_query(pClient, &(pClient->midi_info), szQuery);
+    return _lscp_driver_info_query(pClient, &(pClient->midi_driver_info), szQuery);
 }
 
 
@@ -570,8 +672,8 @@ lscp_param_info_t *lscp_get_midi_driver_param_info ( lscp_client_t *pClient, con
     if (pszParam == NULL)
         return NULL;
 
-    sprintf(szQuery, "GET MIDI_INPUT_DRIVER_PARAMETER INFO %s %s\r\n", pszMidiDriver, pszParam);
-    return _lscp_param_info_query(pClient, &(pClient->midi_param_info), szQuery, pDepList);
+    sprintf(szQuery, "GET MIDI_INPUT_DRIVER_PARAMETER INFO %s %s", pszMidiDriver, pszParam);
+    return _lscp_param_info_query(pClient, &(pClient->midi_param_info), szQuery, sizeof(szQuery), pDepList);
 }
 
 
@@ -591,14 +693,24 @@ lscp_param_info_t *lscp_get_midi_driver_param_info ( lscp_client_t *pClient, con
  */
 int lscp_create_midi_device ( lscp_client_t *pClient, const char *pszMidiDriver, lscp_param_t *pParams )
 {
+    char szQuery[LSCP_BUFSIZ];
     int iMidiDevice = -1;
 
     if (pClient == NULL)
-        return -1;
+        return iMidiDevice;
     if (pszMidiDriver == NULL)
-        return -1;
-    if (pParams == NULL)
-        return -1;
+        return iMidiDevice;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    sprintf(szQuery, "CREATE MIDI_INPUT_DEVICE %s", pszMidiDriver);
+    lscp_param_concat(szQuery, sizeof(szQuery), pParams);
+    if (lscp_client_call(pClient, szQuery) == LSCP_OK)
+        iMidiDevice = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
 
     return iMidiDevice;
 }
@@ -616,13 +728,15 @@ int lscp_create_midi_device ( lscp_client_t *pClient, const char *pszMidiDriver,
 lscp_status_t lscp_destroy_midi_device ( lscp_client_t *pClient, int iMidiDevice )
 {
     lscp_status_t ret = LSCP_FAILED;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return ret;
     if (iMidiDevice < 0)
         return ret;
 
-    return ret;
+    sprintf(szQuery, "DESTROY MIDI_INPUT_DEVICE %d\r\n", iMidiDevice);
+    return lscp_client_query(pClient, szQuery);
 }
 
 
@@ -698,20 +812,21 @@ int *lscp_list_midi_devices ( lscp_client_t *pClient )
  */
 lscp_device_info_t* lscp_get_midi_device_info ( lscp_client_t *pClient, int iMidiDevice )
 {
-    lscp_device_info_t *pDeviceInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
     if (iMidiDevice < 0)
         return NULL;
 
-    return pDeviceInfo;
+    sprintf(szQuery, "GET MIDI_INPUT_DEVICE INFO %d\r\n", iMidiDevice);
+    return _lscp_device_info_query(pClient, &(pClient->midi_device_info), szQuery);
 }
 
 
 /**
  *  Changing settings of MIDI input devices.
- *  SET MIDI_INPUT_DEVICE_PARAMETER <midi-device-id> <param> <value>
+ *  SET MIDI_INPUT_DEVICE_PARAMETER <midi-device-id> <param>=<value>
  *
  *  @param pClient      Pointer to client instance structure.
  *  @param iMidiDevice  MIDI device number identifier.
@@ -721,16 +836,18 @@ lscp_device_info_t* lscp_get_midi_device_info ( lscp_client_t *pClient, int iMid
  */
 lscp_status_t lscp_set_midi_device_param ( lscp_client_t *pClient, int iMidiDevice, lscp_param_t *pParam )
 {
-    lscp_status_t ret = LSCP_FAILED;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
-        return ret;
+        return LSCP_FAILED;
     if (iMidiDevice < 0)
-        return ret;
+        return LSCP_FAILED;
     if (pParam == NULL)
-        return ret;
+        return LSCP_FAILED;
 
-    return ret;
+    sprintf(szQuery, "SET MIDI_INPUT_DEVICE_PARAMETER %d", iMidiDevice);
+    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    return lscp_client_query(pClient, szQuery);
 }
 
 
@@ -742,12 +859,12 @@ lscp_status_t lscp_set_midi_device_param ( lscp_client_t *pClient, int iMidiDevi
  *  @param iMidiDevice  MIDI device number identifier.
  *  @param iMidiPort    MIDI port number.
  *
- *  @returns A pointer to a @ref lscp_device_channel_info_t structure,
+ *  @returns A pointer to a @ref lscp_device_port_info_t structure,
  *  with the given MIDI port information, or NULL in case of failure.
  */
-lscp_device_channel_info_t* lscp_get_midi_port_info ( lscp_client_t *pClient, int iMidiDevice, int iMidiPort )
+lscp_device_port_info_t* lscp_get_midi_port_info ( lscp_client_t *pClient, int iMidiDevice, int iMidiPort )
 {
-    lscp_device_channel_info_t *pDevChannelInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
@@ -756,7 +873,8 @@ lscp_device_channel_info_t* lscp_get_midi_port_info ( lscp_client_t *pClient, in
     if (iMidiPort < 0)
         return NULL;
 
-    return pDevChannelInfo;
+    sprintf(szQuery, "GET MIDI_INPUT_PORT INFO %d %d\r\n", iMidiDevice, iMidiPort);
+    return _lscp_device_port_info_query(pClient, &(pClient->midi_port_info), szQuery);
 }
 
 
@@ -774,7 +892,7 @@ lscp_device_channel_info_t* lscp_get_midi_port_info ( lscp_client_t *pClient, in
  */
 lscp_param_info_t* lscp_get_midi_port_param_info ( lscp_client_t *pClient, int iMidiDevice, int iMidiPort, const char *pszParam )
 {
-    lscp_param_info_t *pParamInfo = NULL;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
         return NULL;
@@ -785,7 +903,8 @@ lscp_param_info_t* lscp_get_midi_port_param_info ( lscp_client_t *pClient, int i
     if (pszParam == NULL)
         return NULL;
 
-    return pParamInfo;
+    sprintf(szQuery, "GET MIDI_INPUT_PORT_PARAMETER INFO %d %d %s", iMidiDevice, iMidiPort, pszParam);
+    return _lscp_param_info_query(pClient, &(pClient->midi_port_param_info), szQuery, sizeof(szQuery), NULL);
 }
 
 
@@ -802,18 +921,20 @@ lscp_param_info_t* lscp_get_midi_port_param_info ( lscp_client_t *pClient, int i
  */
 lscp_status_t lscp_set_midi_port_param ( lscp_client_t *pClient, int iMidiDevice, int iMidiPort, lscp_param_t *pParam )
 {
-    lscp_status_t ret = LSCP_FAILED;
+    char szQuery[LSCP_BUFSIZ];
 
     if (pClient == NULL)
-        return ret;
+        return LSCP_FAILED;
     if (iMidiDevice < 0)
-        return ret;
+        return LSCP_FAILED;
     if (iMidiPort < 0)
-        return ret;
+        return LSCP_FAILED;
     if (pParam == NULL)
-        return ret;
+        return LSCP_FAILED;
 
-    return ret;
+    sprintf(szQuery, "SET MIDI_INPUT_PORT_PARAMETER %d %d", iMidiDevice, iMidiPort);
+    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    return lscp_client_query(pClient, szQuery);
 }
 
 // end of device.c

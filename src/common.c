@@ -506,6 +506,101 @@ int lscp_psplit_size ( lscp_param_t *ppSplit )
 #endif // LSCP_PSPLIT_COUNT
 
 
+// Allocate a parameter list, optionally copying an existing one.
+void lscp_plist_alloc (lscp_param_t **ppList)
+{
+    lscp_param_t *pParams;
+    int iSize, i;
+
+    if (ppList) {
+        iSize = LSCP_SPLIT_CHUNK1;
+        pParams = (lscp_param_t *) malloc(iSize * sizeof(lscp_param_t));
+        if (pParams) {
+            for (i = 0 ; i < iSize; i++) {
+                pParams[i].key   = NULL;
+                pParams[i].value = NULL;
+            }
+        }
+        *ppList = pParams;
+    }
+}
+
+
+// Destroy a parameter list, including all it's contents.
+void lscp_plist_free ( lscp_param_t **ppList )
+{
+    lscp_param_t *pParams;
+    int i;
+    
+    if (ppList) {
+        if (*ppList) {
+            pParams = *ppList;
+            for (i = 0; pParams && pParams[i].key; i++) {
+                free(pParams[i].key);
+                free(pParams[i].value);
+            }
+            free(pParams);
+        }
+        *ppList = NULL;
+    }
+}
+
+
+// Add an item to a parameter list, growing it as fit.
+void lscp_plist_append ( lscp_param_t **ppList, const char *pszKey, const char *pszValue )
+{
+    lscp_param_t *pParams;
+    lscp_param_t *pNewParams;
+    int iSize, iNewSize;
+    int i = 0;
+    
+    if (ppList && *ppList) {
+        pParams = *ppList;
+        while (pParams[i].key)
+            i++;
+        iSize = LSCP_SPLIT_SIZE(i);
+        pParams[i].key   = strdup(pszKey);
+        pParams[i].value = strdup(pszValue);
+        if (++i >= iSize) {
+            iNewSize   = iSize + LSCP_SPLIT_CHUNK1;
+            pNewParams = (lscp_param_t *) malloc(iNewSize * sizeof(lscp_param_t));
+            for (i = 0; i < iSize; i++) {
+                pParams[i].key   = pParams[i].key;
+                pParams[i].value = pParams[i].value;
+            }
+            for ( ; i < iNewSize; i++) {
+                pNewParams[i].key   = NULL;
+                pNewParams[i].value = NULL;
+            }
+            free(pParams);
+            *ppList = pNewParams;
+        }
+    }
+}
+
+
+// Compute a parameter list valid item count.
+int lscp_plist_count ( lscp_param_t **ppList )
+{
+    lscp_param_t *pParams;
+    int i = 0;
+    if (ppList && *ppList) {
+        pParams = *ppList;
+        while (pParams[i].key)
+            i++;
+    }
+    return i;
+}
+
+
+// Compute the legal parameter list size.
+int lscp_plist_size ( lscp_param_t **ppList )
+{
+    return LSCP_SPLIT_SIZE(lscp_plist_count(ppList));
+}
+
+
+
 //-------------------------------------------------------------------------
 // Engine info struct helper functions.
 
@@ -580,6 +675,44 @@ void lscp_driver_info_reset ( lscp_driver_info_t *pDriverInfo )
 
 
 //-------------------------------------------------------------------------
+// Device info struct functions.
+
+void lscp_device_info_init ( lscp_device_info_t *pDeviceInfo )
+{
+    pDeviceInfo->driver = NULL;
+    lscp_plist_alloc(&(pDeviceInfo->params));
+}
+
+void lscp_device_info_reset ( lscp_device_info_t *pDeviceInfo )
+{
+    if (pDeviceInfo->driver)
+        free(pDeviceInfo->driver);
+    lscp_plist_free(&(pDeviceInfo->params));
+
+    lscp_device_info_init(pDeviceInfo);
+}
+
+
+//-------------------------------------------------------------------------
+// Device channel/port info struct functions.
+
+void lscp_device_port_info_init ( lscp_device_port_info_t *pDevicePortInfo )
+{
+    pDevicePortInfo->name = NULL;
+    lscp_plist_alloc(&(pDevicePortInfo->params));
+}
+
+void lscp_device_port_info_reset ( lscp_device_port_info_t *pDevicePortInfo )
+{
+    if (pDevicePortInfo->name)
+        free(pDevicePortInfo->name);
+    lscp_plist_free(&(pDevicePortInfo->params));
+
+    lscp_device_port_info_init(pDevicePortInfo);
+}
+
+
+//-------------------------------------------------------------------------
 // Parameter struct helper functions.
 
 void lscp_param_info_init ( lscp_param_info_t *pParamInfo )
@@ -614,7 +747,8 @@ void lscp_param_info_reset ( lscp_param_info_t *pParamInfo )
 
 
 //-------------------------------------------------------------------------
-// Concatenate a parameter list (key='value'...) into a string.
+// Concatenate a parameter list (key='value'...) into a string,
+// appending a crlf terminator.
 
 int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams )
 {
@@ -626,11 +760,17 @@ int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams
     cchBuffer = strlen(pszBuffer);
     for (i = 0; pParams[i].key && pParams[i].value; i++) {
         cchParam = strlen(pParams[i].key) + strlen(pParams[i].value) + 4;
-        if (cchBuffer + cchParam < cchMaxBuffer) {
+        if (cchBuffer + cchParam + 2 < cchMaxBuffer) {
             sprintf(pszBuffer + cchBuffer, " %s='%s'", pParams[i].key, pParams[i].value);
             cchBuffer += cchParam;
         }
     }
+    
+    if (cchBuffer + 2 < cchMaxBuffer) {
+        pszBuffer[cchBuffer++] = '\r';
+        pszBuffer[cchBuffer++] = '\n';
+    }
+    
     return cchBuffer;
 }
 
