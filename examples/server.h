@@ -24,6 +24,7 @@
 #define __LSCP_SERVER_H
 
 #include "lscp/socket.h"
+#include "lscp/event.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -60,9 +61,7 @@ typedef struct _lscp_connect_t
 {
     struct _lscp_server_t  *server;
     lscp_socket_agent_t     client;
-    int                     port;
-    int                     ping;
-    char *                  sessid;
+    lscp_event_t            events;
     struct _lscp_connect_t *prev;
     struct _lscp_connect_t *next;
 
@@ -94,11 +93,7 @@ typedef struct _lscp_server_t
     lscp_connect_list_t connects;
     lscp_server_proc_t  pfnCallback;
     void               *pvData;
-    lscp_socket_agent_t cmd;
-    lscp_socket_agent_t evt;
-    lscp_thread_t      *pWatchdog;
-    int                 iWatchdog;
-    int                 iSleep;
+    lscp_socket_agent_t agent;
 
 } lscp_server_t;
 
@@ -119,12 +114,12 @@ lscp_server_t * lscp_server_create_ex   (int iPort, lscp_server_proc_t pfnCallba
 lscp_status_t   lscp_server_join        (lscp_server_t *pServer);
 lscp_status_t   lscp_server_destroy     (lscp_server_t *pServer);
 
-lscp_status_t   lscp_server_broadcast   (lscp_server_t *pServer, const char *pchBuffer, int cchBuffer);
+lscp_status_t   lscp_server_broadcast   (lscp_server_t *pServer, lscp_event_t event, const char *pchData, int cchData);
 
 lscp_status_t   lscp_server_result      (lscp_connect_t *pConnect, const char *pchBuffer, int cchBuffer);
 
-lscp_status_t   lscp_server_subscribe   (lscp_connect_t *pConnect, int iPort);
-lscp_status_t   lscp_server_unsubscribe (lscp_connect_t *pConnect, const char *pszSessID);
+lscp_status_t   lscp_server_subscribe   (lscp_connect_t *pConnect, lscp_event_t event);
+lscp_status_t   lscp_server_unsubscribe (lscp_connect_t *pConnect, lscp_event_t event);
 
 
 #if defined(__cplusplus)

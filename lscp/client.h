@@ -24,6 +24,7 @@
 #define __LSCP_CLIENT_H
 
 #include "lscp/socket.h"
+#include "lscp/event.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -78,20 +79,6 @@ typedef enum _lscp_usage_t
 } lscp_usage_t;
 
 
-/** Subscribable event notification bit-wise flags. */
-typedef enum _lscp_event_t
-{
-    LSCP_EVENT_NONE             = 0x0000,
-    LSCP_EVENT_CHANNELS         = 0x0001,
-    LSCP_EVENT_VOICE_COUNT      = 0x0002,
-    LSCP_EVENT_STREAM_COUNT     = 0x0004,
-    LSCP_EVENT_BUFFER_FILL      = 0x0008,
-    LSCP_EVENT_CHANNEL_INFO     = 0x0010,
-    LSCP_EVENT_MISCELLANEOUS    = 0x1000
-
-} lscp_event_t;
-
-
 //-------------------------------------------------------------------------
 // Client socket main structure.
 
@@ -103,8 +90,8 @@ typedef lscp_status_t (*lscp_client_proc_t)
 (
     struct _lscp_client_t *pClient,
     lscp_event_t event,
-    const char *pchBuffer,
-    int cchBuffer,
+    const char *pchData,
+    int cchData,
     void *pvData
 );
 

@@ -247,15 +247,15 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         // Resetting a sampler channel:
         // RESET CHANNEL <sampler-channel>
     }
-    else if (lscp_parser_test2(&tok, "SUBSCRIBE", "NOTIFICATION")) {
-        // Register frontend for receiving UDP event messages:
-        // SUBSCRIBE NOTIFICATION <udp-port>
-        ret = lscp_server_subscribe(pConnect, lscp_parser_nextint(&tok));
+    else if (lscp_parser_test(&tok, "SUBSCRIBE")) {
+        // Register frontend for receiving event notification messages:
+        // SUBSCRIBE <event>
+        ret = lscp_server_subscribe(pConnect, lscp_event_from_text(lscp_parser_next(&tok)));
     }
-    else if (lscp_parser_test2(&tok, "UNSUBSCRIBE", "NOTIFICATION")) {
-        // Deregister frontend for not receiving UDP event messages anymore:
-        // UNSUBSCRIBE NOTIFICATION <session-id>
-        ret = lscp_server_unsubscribe(pConnect, lscp_parser_next(&tok));
+    else if (lscp_parser_test(&tok, "UNSUBSCRIBE")) {
+        // Deregister frontend for not receiving event notification messages anymore:
+        // UNSUBSCRIBE <event>
+        ret = lscp_server_unsubscribe(pConnect, lscp_event_from_text(lscp_parser_next(&tok)));
     }
     else if (lscp_parser_test(&tok, "QUIT")) {
         // Close client connection:
@@ -325,19 +325,17 @@ int main (int argc, char *argv[] )
         else
         if (strcmp(szLine, "list") == 0) {
             for (p = pServer->connects.first; p; p = p->next) {
-                printf("client: sock=%d addr=%s tcp.port=%d udp.port=%d ping=%d sessid=%s.\n",
+                printf("client: sock=%d addr=%s port=%d events=0x%04x.\n",
                     p->client.sock,
                     inet_ntoa(p->client.addr.sin_addr),
                     ntohs(p->client.addr.sin_port),
-                    p->port,
-                    p->ping,
-                    p->sessid
+                    (int) p->events
                 );
             }
         }
         else
         if (cchLine > 0 && strcmp(szLine, "help") != 0)
-            lscp_server_broadcast(pServer, szLine, strlen(szLine));
+            lscp_server_broadcast(pServer, LSCP_EVENT_MISCELLANEOUS, szLine, strlen(szLine));
         else
             server_usage();
 

@@ -184,10 +184,10 @@ int main (int argc, char *argv[] )
             break;
         else
         if (strcmp(szLine, "subscribe") == 0)
-            lscp_client_subscribe(pClient, LSCP_EVENT_CHANNELS | LSCP_EVENT_CHANNEL_INFO);
+            lscp_client_subscribe(pClient, LSCP_EVENT_MISCELLANEOUS);
         else
         if (strcmp(szLine, "unsubscribe") == 0)
-            lscp_client_unsubscribe(pClient, LSCP_EVENT_CHANNELS | LSCP_EVENT_CHANNEL_INFO);
+            lscp_client_unsubscribe(pClient, LSCP_EVENT_MISCELLANEOUS);
         else
         if (strcmp(szLine, "test") == 0)
             client_test(pClient);

@@ -46,7 +46,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
     char *pszToken;
     char *pch;
     int   cchToken;
-    lscp_event_t event = LSCP_EVENT_NONE;
+    lscp_event_t event;
 
 #ifdef DEBUG
     fprintf(stderr, "_lscp_client_evt_proc: Client waiting for events.\n");
@@ -62,18 +62,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
             pszToken = lscp_strtok(achBuffer, pszSeps, &(pch)); // Have "NOTIFY".
             if (strcasecmp(pszToken, "NOTIFY") == 0) {
                 pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-                if (strcasecmp(pszToken, "CHANNELS") == 0)
-                    event = LSCP_EVENT_CHANNELS;
-                else if (strcasecmp(pszToken, "VOICE_COUNT") == 0)
-                    event = LSCP_EVENT_VOICE_COUNT;
-                else if (strcasecmp(pszToken, "STREAM_COUNT") == 0)
-                    event = LSCP_EVENT_STREAM_COUNT;
-                else if (strcasecmp(pszToken, "BUFFER_FILL") == 0)
-                    event = LSCP_EVENT_BUFFER_FILL;
-                else if (strcasecmp(pszToken, "CHANNEL_INFO") == 0)
-                    event = LSCP_EVENT_CHANNEL_INFO;
-                else if (strcasecmp(pszToken, "MISCELLANEOUS") == 0)
-                    event = LSCP_EVENT_MISCELLANEOUS;
+                event    = lscp_event_from_text(pszToken);
                 // And pick the rest of data...
                 pszToken = lscp_strtok(NULL, pszSeps, &(pch));
                 cchToken = (pszToken == NULL ? 0 : strlen(pszToken));
@@ -153,7 +142,7 @@ static lscp_status_t _lscp_client_evt_connect ( lscp_client_t *pClient )
 // Subscribe to a single event.
 static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSubscribe, lscp_event_t event )
 {
-    char *pszEvent;
+    const char *pszEvent;
     char  szQuery[LSCP_BUFSIZ];
     int   cchQuery;
 
@@ -161,29 +150,10 @@ static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSub
         return LSCP_FAILED;
 
     // Which (single) event?
-    switch (event) {
-      case LSCP_EVENT_CHANNELS:
-        pszEvent = "CHANNELS";
-        break;
-      case LSCP_EVENT_VOICE_COUNT:
-        pszEvent = "VOICE_COUNT";
-        break;
-      case LSCP_EVENT_STREAM_COUNT:
-        pszEvent = "STREAM_COUNT";
-        break;
-      case LSCP_EVENT_BUFFER_FILL:
-        pszEvent = "BUFFER_FILL";
-        break;
-      case LSCP_EVENT_CHANNEL_INFO:
-        pszEvent = "CHANNEL_INFO";
-        break;
-      case LSCP_EVENT_MISCELLANEOUS:
-        pszEvent = "CHANNEL_INFO";
-        break;
-      default:
+    pszEvent = lscp_event_to_text(event);
+    if (pszEvent == NULL)
         return LSCP_FAILED;
-    }
-    
+
     // Build the query string...
     cchQuery = sprintf(szQuery, "%sSUBSCRIBE %s\n\n", (iSubscribe == 0 ? "UN" : ""), pszEvent);
     // Just send data, forget result...
