@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2005, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -111,7 +111,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
             }
         }   // Check if select has in error.
         else if (iSelect < 0) {
-            lscp_socket_perror("_lscp_client_call: select");
+            lscp_socket_perror("_lscp_client_evt_proc: select");
             pClient->evt.iState = 0;
         }
         
