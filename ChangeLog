@@ -3,13 +3,15 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.2.6  2005-03-01  Fixed nasty off-by-one bug on internal helpers.
+
 0.2.5  2005-02-14  Added support for the new INSTRUMENT_NAME field
                    of GET CHANNEL INFO command.
 
 0.2.4  2004-10-11  Fixed lscp_set_channel_midi_channel() again, MIDI
                    channels should be given in the range 0-15, and omni
                    mode with the LSCP_MIDI_CHANNEL_ALL symbol (16).
-                   
+
                    Fixed lscp_get_channel_info() to parse MIDI omni
                    (ALL) channels mode.
 
@@ -17,7 +19,7 @@ ChangeLog
                    channels should be given in the range 1-16, and
                    omni mode with the new LSCP_MIDI_CHANNEL_ALL
                    symbol (0).
-                   
+
                    Rearrangement on main command requester executive.
 
 0.2.2  2004-07-29  In sync with LSCP document draf (v.12).
@@ -48,4 +50,3 @@ ChangeLog
 0.1.5  2004-04-26  Server stuff moved into examples.
 
 0.1.4  2004-04-24  Initial auto/libtool preparation.
-
