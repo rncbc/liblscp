@@ -3,6 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 TODO
 
+0.2.3  Fix MIDI input channel selection.
 0.2.2  Sync with latest LSCP draft (v.12)
 0.2.1  Bugfixes, all over.
 0.2.0  Plenty :)

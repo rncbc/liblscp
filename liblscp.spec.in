@@ -57,6 +57,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Tue Sep 28 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed 0.2.3 release.
+
 * Tue Jul 29 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Prepare 0.2.2 release.
 
