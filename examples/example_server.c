@@ -78,6 +78,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             else if (lscp_parser_test(&tok, "VOICE_COUNT")) {
                 // Current number of active voices:
                 // GET CHANNEL VOICE_COUNT <sampler-channel>
+                sprintf(szTemp, "%d", rand() % 100);
+                pszResult = szTemp;
             }
             else if (lscp_parser_test(&tok, "STREAM_COUNT")) {
                 // Current number of active disk streams:
