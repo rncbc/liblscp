@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2005, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -57,6 +57,7 @@ typedef struct _lscp_channel_info_t
     char **       audio_routing;
     char *        instrument_file;
     int           instrument_nr;
+    char *        instrument_name;
     int           instrument_status;
     int           midi_device;
     int           midi_port;

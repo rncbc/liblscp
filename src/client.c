@@ -989,6 +989,11 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
                 if (pszToken)
                     pChannelInfo->instrument_nr = atoi(lscp_ltrim(pszToken));
             }
+            else if (strcasecmp(pszToken, "INSTRUMENT_NAME") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pChannelInfo->instrument_name), &pszToken);
+            }
             else if (strcasecmp(pszToken, "INSTRUMENT_STATUS") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
                 if (pszToken)

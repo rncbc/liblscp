@@ -3,6 +3,9 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.2.5  2005-02-13  Added support for the new INSTRUMENT_NAME field
+                   of GET CHANNEL INFO command.
+
 0.2.4  2004-10-11  Fixed lscp_set_channel_midi_channel() again, MIDI
                    channels should be given in the range 0-15, and omni
                    mode with the LSCP_MIDI_CHANNEL_ALL symbol (16).

@@ -694,6 +694,7 @@ void lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
     pChannelInfo->audio_routing     = NULL;
     pChannelInfo->instrument_file   = NULL;
     pChannelInfo->instrument_nr     = 0;
+    pChannelInfo->instrument_name   = NULL;
     pChannelInfo->instrument_status = 0;
     pChannelInfo->midi_device       = 0;
     pChannelInfo->midi_port         = 0;
@@ -709,6 +710,8 @@ void lscp_channel_info_free ( lscp_channel_info_t *pChannelInfo )
         lscp_szsplit_destroy(pChannelInfo->audio_routing);
     if (pChannelInfo->instrument_file)
         free(pChannelInfo->instrument_file);
+    if (pChannelInfo->instrument_name)
+        free(pChannelInfo->instrument_name);
 }
 
 void lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
