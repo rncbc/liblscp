@@ -584,11 +584,11 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     pClient->iStreamCount = 0;
     // Default timeout value.
     pClient->iTimeout = LSCP_TIMEOUT_MSECS;
+    
     // Initialize the transaction mutex.
     lscp_mutex_init(pClient->mutex);
 
     // Now's finally time to startup threads...
-
     // UDP service thread...
     if (lscp_socket_agent_start(&(pClient->udp), _lscp_client_udp_proc, pClient, 0) != LSCP_OK) {
         lscp_socket_agent_free(&(pClient->tcp));
@@ -706,8 +706,6 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, 
         return ret;
     if (*pcchResult < 1)
         return ret;
-
-    lscp_mutex_lock(pClient->mutex);
 
     // Send data, and then, wait for the result...
     if (send(pClient->tcp.sock, pchBuffer, cchBuffer, 0) < cchBuffer) {
@@ -864,7 +862,7 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
     _lscp_client_set_result(pClient, pszResult, iErrno);
 
     // Can go on with it...
-    lscp_mutex_lock(pClient->mutex);
+    lscp_mutex_unlock(pClient->mutex);
 
     return ret;
 }
