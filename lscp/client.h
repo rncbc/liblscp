@@ -33,13 +33,13 @@ extern "C" {
 // Client data structures.
 
 /** Common driver type info cache struct. */
-typedef struct _lscp_type_info_t
+typedef struct _lscp_driver_info_t
 {
     char *        description;
     char *        version;
     char **       parameters;
 
-} lscp_type_info_t;
+} lscp_driver_info_t;
 
 
 /** Engine info cache struct. */
@@ -55,12 +55,12 @@ typedef struct _lscp_engine_info_t
 typedef struct _lscp_channel_info_t
 {
     char *        engine_name;
-    char *        audio_type;
+    int           audio_device;
     int           audio_channels;
     char **       audio_routing;
     char *        instrument_file;
     int           instrument_nr;
-    char *        midi_type;
+    int           midi_device;
     int           midi_port;
     int           midi_channel;
     float         volume;
@@ -110,12 +110,12 @@ typedef struct _lscp_client_t {
     // Session identifier.
     char *              sessid;
     // Client struct persistent caches.
-    char **             audio_types;
-    char **             midi_types;
+    char **             audio_drivers;
+    char **             midi_drivers;
     char **             engines;
     // Client struct volatile caches.
-    lscp_type_info_t    audio_info;
-    lscp_type_info_t    midi_info;
+    lscp_driver_info_t  audio_info;
+    lscp_driver_info_t  midi_info;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
     // Result and error status.
@@ -160,11 +160,11 @@ int                     lscp_client_get_errno           (lscp_client_t *pClient 
 //-------------------------------------------------------------------------
 // Client command protocol functions.
 
-const char **           lscp_get_available_audio_types  (lscp_client_t *pClient);
-const char **           lscp_get_available_midi_types   (lscp_client_t *pClient);
+const char **           lscp_get_available_audio_drivers(lscp_client_t *pClient);
+const char **           lscp_get_available_midi_drivers (lscp_client_t *pClient);
 
-lscp_type_info_t *      lscp_get_audio_type_info        (lscp_client_t *pClient, const char *pszAudioType);
-lscp_type_info_t *      lscp_get_midi_type_info         (lscp_client_t *pClient, const char *pszMidiType);
+lscp_driver_info_t *    lscp_get_audio_driver_info      (lscp_client_t *pClient, const char *pszAudioDriver);
+lscp_driver_info_t *    lscp_get_midi_driver_info       (lscp_client_t *pClient, const char *pszMidiDriver);
 
 lscp_status_t           lscp_load_instrument            (lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel);
 lscp_status_t           lscp_load_engine                (lscp_client_t *pClient, const char *pszEngineName, int iSamplerChannel);

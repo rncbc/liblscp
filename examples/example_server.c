@@ -35,8 +35,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     lscp_status_t ret = LSCP_OK;
     lscp_parser_t tok;
     const char *pszResult = NULL;
-    char szAddChannel[33];
-    static int iAddChannel = 0;
+    char szChannel[33];
+    static int iChannel = 0;
 
     if (pchBuffer == NULL) {
         fprintf(stderr, "server_callback: addr=%s port=%d: ",
@@ -65,10 +65,10 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 pszResult = "ENGINE_NAME: DummyEngine\r\n"
                             "INSTRUMENT_FILE: DummyInstrument.gig\r\n"
                             "INSTRUMENT_NR: 0\r\n"
-                            "AUDIO_OUTPUT_TYPE: ALSA\r\n"
+                            "AUDIO_OUTPUT_DEVICE: 0\r\n"
                             "AUDIO_OUTPUT_CHANNELS: 2\r\n"
                             "AUDIO_OUTPUT_ROUTING: 0,1\r\n"
-                            "MIDI_INPUT_TYPE: ALSA\r\n"
+                            "MIDI_INPUT_DEVICE: 0\r\n"
                             "MIDI_INPUT_PORT: 0\r\n"
                             "MIDI_INPUT_CHANNEL: ALL\r\n"
                             "VOLUME: 0.5\r\n";
@@ -107,23 +107,25 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test(&tok, "CHANNELS")) {
             // Current number of sampler channels:
             // GET CHANNELS
+            sprintf(szChannel, "%d", iChannel);
+            pszResult = szChannel;
         }
-        else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_TYPES")) {
+        else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
             // Getting all available audio output drivers.
-            // GET AVAILABLE_AUDIO_OUTPUT_TYPES
+            // GET AVAILABLE_AUDIO_OUTPUT_DRIVERS
             pszResult = "ALSA,JACK\r\n";
         }
-        else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_TYPES")) {
+        else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_DRIVERS")) {
             // Getting all available MIDI input drivers.
-            // GET AVAILABLE_MIDI_INPUT_TYPES
+            // GET AVAILABLE_MIDI_INPUT_DRIVERS
             pszResult = "ALSA\r\n";
         }
-        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_TYPE", "INFO")) {
+        else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER", "INFO")) {
             // Getting informations about a specific audio output driver.
-            // GET AUDIO_OUTPUT_TYPE INFO <audio-output-type>
+            // GET AUDIO_OUTPUT_DRIVER INFO <audio-output-type>
             if (lscp_parser_test(&tok, "ALSA")) {
-                pszResult = "DESCRIPTION: ALSA PCM\r\n"
-                            "VERSION: 1.0\r\n"
+                pszResult = "DESCRIPTION: 'ALSA PCM'\r\n"
+                            "VERSION: '1.0'\r\n"
                             "PARAMETERS: CHANNELS,SAMPLERATE,ACTIVE,CARD\r\n";
             }
             else if (lscp_parser_test(&tok, "JACK")) {
@@ -133,9 +135,9 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             }
             else ret = LSCP_FAILED;
         }
-        else if (lscp_parser_test2(&tok, "MIDI_INPUT_TYPE", "INFO")) {
+        else if (lscp_parser_test2(&tok, "MIDI_INPUT_DRIVER", "INFO")) {
             // Getting informations about a specific MIDI input driver.
-            // GET MIDI_INPUT_TYPE INFO <midi-input-type>
+            // GET MIDI_INPUT_DRIVER INFO <midi-input-type>
             if (lscp_parser_test(&tok, "ALSA")) {
                 pszResult = "DESCRIPTION: ALSA Sequencer\r\n"
                             "VERSION: 1.0\r\n"
@@ -200,8 +202,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
         // Adding a new sampler channel:
         // ADD CHANNEL
-        sprintf(szAddChannel, "OK[%d]", iAddChannel++);
-        pszResult = szAddChannel;
+        sprintf(szChannel, "OK[%d]", iChannel++);
+        pszResult = szChannel;
     }
     else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
         // Removing a sampler channel:

@@ -10,7 +10,7 @@ Hi all,
 On the path to a GUI for linuxsampler, I've been taking some of my spare
 time by writing an early implementation for the LSCP (the LinuxSampler
 Control Protocol), as defined from the current available draft document
-(http://www.linuxsampler.org/api/draft-linuxsampler-protocol-05.pdf).
+(http://www.linuxsampler.org/api/draft-linuxsampler-protocol-06.pdf).
 
 My implementation, while still rather crude, is taking the form of a
 programming library for plain conventional C, codenamed liblscp.
@@ -118,8 +118,8 @@ client_callback function. To unsubscribe and stop this deliverance:<pre>
 the following functions defined in "@ref lscp_client.h", one for each corresponding
 LSCP comand:<pre>
 
-    @ref lscp_get_available_audio_types (client);
-    @ref lscp_get_available_midi_types (client);
+    @ref lscp_get_available_audio_drivers (client);
+    @ref lscp_get_available_midi_drivers (client);
     @ref lscp_load_instrument (client, file_name, instr_index, channel);
     @ref lscp_load_engine (client, engine_name, channel);
     @ref lscp_get_channels (client);
