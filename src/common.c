@@ -1,4 +1,4 @@
-// client.c
+// common.c
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API

@@ -43,8 +43,8 @@ struct _lscp_client_t
     void *              pvData;
     lscp_socket_agent_t cmd;
     lscp_socket_agent_t evt;
-    // Session identifier.
-    char *              sessid;
+    // Subscribed events.
+    lscp_event_t        events;
     // Client struct persistent caches.
     char **             audio_drivers;
     char **             midi_drivers;

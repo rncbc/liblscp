@@ -68,6 +68,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 pszResult = "ENGINE_NAME: DummyEngine\r\n"
                             "INSTRUMENT_FILE: DummyInstrument.gig\r\n"
                             "INSTRUMENT_NR: 0\r\n"
+                            "INSTRUMENT_STATUS: 100\r\n"
                             "AUDIO_OUTPUT_DEVICE: 0\r\n"
                             "AUDIO_OUTPUT_CHANNELS: 2\r\n"
                             "AUDIO_OUTPUT_ROUTING: 0,1\r\n"
@@ -113,12 +114,12 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
             // Getting all available audio output drivers.
             // GET AVAILABLE_AUDIO_OUTPUT_DRIVERS
-            pszResult = "ALSA,JACK\r\n";
+            pszResult = "Alsa,Jack,CoreAudio\r\n";
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_DRIVERS")) {
             // Getting all available MIDI input drivers.
             // GET AVAILABLE_MIDI_INPUT_DRIVERS
-            pszResult = "ALSA\r\n";
+            pszResult = "Alsa,MidiShare,CoreMidi\r\n";
         }
         else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER", "INFO")) {
             // Getting informations about a specific audio output driver.
@@ -228,7 +229,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         }
         else if (lscp_parser_test(&tok, "INSTRUMENT")) {
             // Loading an instrument:
-            // LOAD INSTRUMENT <filename> <instr-index> <sampler-channel>
+            // LOAD INSTRUMENT [NON_MODAL] <filename> <instr-index> <sampler-channel>
         }
         else ret = LSCP_FAILED;
     }

@@ -32,7 +32,7 @@ static WSADATA _wsaData;
 
 ////////////////////////////////////////////////////////////////////////
 
-lscp_status_t client_callback ( lscp_client_t *pClient, const char *pchBuffer, int cchBuffer, void *pvData )
+lscp_status_t client_callback ( lscp_client_t *pClient, lscp_event_t event, const char *pchBuffer, int cchBuffer, void *pvData )
 {
     lscp_status_t ret = LSCP_OK;
 
@@ -40,7 +40,7 @@ lscp_status_t client_callback ( lscp_client_t *pClient, const char *pchBuffer, i
     if (pszBuffer) {
         memcpy(pszBuffer, pchBuffer, cchBuffer);
         pszBuffer[cchBuffer] = (char) 0;
-        printf("client_callback: [%s]\n", pszBuffer);
+        printf("client_callback: event=0x%04x [%s]\n", (unsigned int) event, pszBuffer);
         free(pszBuffer);
     }
     else ret = LSCP_FAILED;
@@ -115,8 +115,10 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, pszAudioDriver));
+        CLIENT_TEST(pClient, lscp_set_channel_audio_device(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0, 1));
         CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, pszMidiDriver));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_device(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
@@ -182,10 +184,10 @@ int main (int argc, char *argv[] )
             break;
         else
         if (strcmp(szLine, "subscribe") == 0)
-            lscp_client_subscribe(pClient);
+            lscp_client_subscribe(pClient, LSCP_EVENT_CHANNELS | LSCP_EVENT_CHANNEL_INFO);
         else
         if (strcmp(szLine, "unsubscribe") == 0)
-            lscp_client_unsubscribe(pClient);
+            lscp_client_unsubscribe(pClient, LSCP_EVENT_CHANNELS | LSCP_EVENT_CHANNEL_INFO);
         else
         if (strcmp(szLine, "test") == 0)
             client_test(pClient);

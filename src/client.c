@@ -28,7 +28,10 @@
 
 // Local prototypes.
 
-static void _lscp_client_evt_proc   (void *pvClient);
+static void             _lscp_client_evt_proc       (void *pvClient);
+
+static lscp_status_t    _lscp_client_evt_connect    (lscp_client_t *pClient);
+static lscp_status_t    _lscp_client_evt_request    (lscp_client_t *pClient, int iSubscribe, lscp_event_t event);
 
 
 //-------------------------------------------------------------------------
@@ -37,58 +40,58 @@ static void _lscp_client_evt_proc   (void *pvClient);
 static void _lscp_client_evt_proc ( void *pvClient )
 {
     lscp_client_t *pClient = (lscp_client_t *) pvClient;
-    struct sockaddr_in addr;
-    int   cAddr;
     char  achBuffer[LSCP_BUFSIZ];
     int   cchBuffer;
-    const char *pszSeps = " \r\n";
+    const char *pszSeps = ":\r\n";
     char *pszToken;
     char *pch;
+    int   cchToken;
+    lscp_event_t event = LSCP_EVENT_NONE;
 
 #ifdef DEBUG
     fprintf(stderr, "_lscp_client_evt_proc: Client waiting for events.\n");
 #endif
 
     while (pClient->evt.iState) {
-        cAddr = sizeof(struct sockaddr_in);
-        cchBuffer = recvfrom(pClient->evt.sock, achBuffer, sizeof(achBuffer), 0, (struct sockaddr *) &addr, &cAddr);
+        // Wait for event...
+        cchBuffer = recv(pClient->evt.sock, achBuffer, sizeof(achBuffer), 0);
         if (cchBuffer > 0) {
-#ifdef DEBUG
-            lscp_socket_trace("_lscp_client_evt_proc: recvfrom", &addr, achBuffer, cchBuffer);
-#endif
-            if (strncasecmp(achBuffer, "PING ", 5) == 0) {
-                // Make sure received buffer it's null terminated.
-                achBuffer[cchBuffer] = (char) 0;
-                lscp_strtok(achBuffer, pszSeps, &(pch));       // Skip "PING"
-                lscp_strtok(NULL, pszSeps, &(pch));            // Skip port (must be the same as in addr)
-                pszToken = lscp_strtok(NULL, pszSeps, &(pch)); // Have session-id.
-                if (pszToken) {
-                    // Set now client's session-id, if not already
-                    if (pClient->sessid == NULL)
-                        pClient->sessid = strdup(pszToken);
-                    if (pClient->sessid && strcmp(pszToken, pClient->sessid) == 0) {
-                        sprintf(achBuffer, "PONG %s\r\n", pClient->sessid);
-                        cchBuffer = strlen(achBuffer);
-                        if (sendto(pClient->evt.sock, achBuffer, cchBuffer, 0, (struct sockaddr *) &addr, cAddr) < cchBuffer)
-                            lscp_socket_perror("_lscp_client_evt_proc: sendto");
-#ifdef DEBUG
-                        fprintf(stderr, "> %s", achBuffer);
-#endif
+            // Make sure received buffer it's null terminated.
+            achBuffer[cchBuffer] = (char) 0;
+            // Parse for the notification event message...
+            pszToken = lscp_strtok(achBuffer, pszSeps, &(pch)); // Have "NOTIFY".
+            if (strcasecmp(pszToken, "NOTIFY") == 0) {
+                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                if (strcasecmp(pszToken, "CHANNELS") == 0)
+                    event = LSCP_EVENT_CHANNELS;
+                else if (strcasecmp(pszToken, "VOICE_COUNT") == 0)
+                    event = LSCP_EVENT_VOICE_COUNT;
+                else if (strcasecmp(pszToken, "STREAM_COUNT") == 0)
+                    event = LSCP_EVENT_STREAM_COUNT;
+                else if (strcasecmp(pszToken, "BUFFER_FILL") == 0)
+                    event = LSCP_EVENT_BUFFER_FILL;
+                else if (strcasecmp(pszToken, "CHANNEL_INFO") == 0)
+                    event = LSCP_EVENT_CHANNEL_INFO;
+                else if (strcasecmp(pszToken, "MISCELLANEOUS") == 0)
+                    event = LSCP_EVENT_MISCELLANEOUS;
+                // And pick the rest of data...
+                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                cchToken = (pszToken == NULL ? 0 : strlen(pszToken));
+                // Double-check if we're really up to it...
+                if (pClient->events & event) {
+                    // Invoke the client event callback...
+                    if ((*pClient->pfnCallback)(
+                            pClient,
+                            event,
+                            pszToken,
+                            cchToken,
+                            pClient->pvData) != LSCP_OK) {
+                        pClient->evt.iState = 0;
                     }
-                }
-                // Done with life proof.
-            } else {
-                //
-                if ((*pClient->pfnCallback)(
-                        pClient,
-                        achBuffer,
-                        cchBuffer,
-                        pClient->pvData) != LSCP_OK) {
-                    pClient->evt.iState = 0;
                 }
             }
         } else {
-            lscp_socket_perror("_lscp_client_evt_proc: recvfrom");
+            lscp_socket_perror("_lscp_client_evt_proc: recv");
             pClient->evt.iState = 0;
         }
     }
@@ -96,6 +99,106 @@ static void _lscp_client_evt_proc ( void *pvClient )
 #ifdef DEBUG
     fprintf(stderr, "_lscp_client_evt_proc: Client closing.\n");
 #endif
+}
+
+
+//-------------------------------------------------------------------------
+// Event subscription helpers.
+
+// Open the event service socket connection.
+static lscp_status_t _lscp_client_evt_connect ( lscp_client_t *pClient )
+{
+    lscp_socket_t sock;
+    struct sockaddr_in addr;
+    int cAddr;
+#if defined(WIN32)
+    int iSockOpt = (-1);
+#endif
+
+    // Prepare the event connection socket...
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == INVALID_SOCKET) {
+        lscp_socket_perror("_lscp_client_evt_connect: socket");
+        return LSCP_FAILED;
+    }
+
+#if defined(WIN32)
+    if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
+        lscp_socket_perror("lscp_client_evt_connect: setsockopt(SO_DONTLINGER)");
+#endif
+
+#ifdef DEBUG
+    lscp_socket_getopts("_lscp_client_evt_connect:", sock);
+#endif
+
+    // Use same address of the command connection.
+    cAddr = sizeof(struct sockaddr_in);
+    memmove((char *) &addr, &(pClient->cmd.addr), cAddr);
+
+    // Start the connection...
+    if (connect(sock, (struct sockaddr *) &addr, cAddr) == SOCKET_ERROR) {
+        lscp_socket_perror("_lscp_client_evt_connect: connect");
+        closesocket(sock);
+        return LSCP_FAILED;
+    }
+    
+    // Set our socket agent struct...
+    lscp_socket_agent_init(&(pClient->evt), sock, &addr, cAddr);
+    
+    // And finally the service thread...
+    return lscp_socket_agent_start(&(pClient->evt), _lscp_client_evt_proc, pClient, 0);
+}
+
+
+// Subscribe to a single event.
+static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSubscribe, lscp_event_t event )
+{
+    char *pszEvent;
+    char  szQuery[LSCP_BUFSIZ];
+    int   cchQuery;
+
+    if (pClient == NULL)
+        return LSCP_FAILED;
+
+    // Which (single) event?
+    switch (event) {
+      case LSCP_EVENT_CHANNELS:
+        pszEvent = "CHANNELS";
+        break;
+      case LSCP_EVENT_VOICE_COUNT:
+        pszEvent = "VOICE_COUNT";
+        break;
+      case LSCP_EVENT_STREAM_COUNT:
+        pszEvent = "STREAM_COUNT";
+        break;
+      case LSCP_EVENT_BUFFER_FILL:
+        pszEvent = "BUFFER_FILL";
+        break;
+      case LSCP_EVENT_CHANNEL_INFO:
+        pszEvent = "CHANNEL_INFO";
+        break;
+      case LSCP_EVENT_MISCELLANEOUS:
+        pszEvent = "CHANNEL_INFO";
+        break;
+      default:
+        return LSCP_FAILED;
+    }
+    
+    // Build the query string...
+    cchQuery = sprintf(szQuery, "%sSUBSCRIBE %s\n\n", (iSubscribe == 0 ? "UN" : ""), pszEvent);
+    // Just send data, forget result...
+    if (send(pClient->evt.sock, szQuery, cchQuery, 0) < cchQuery) {
+        lscp_socket_perror("_lscp_client_evt_request: send");
+        return LSCP_FAILED;
+    }
+
+    // Update as naively as we can...
+    if (iSubscribe)
+        pClient->events |=  event;
+    else
+        pClient->events &= ~event;
+
+    return LSCP_OK;
 }
 
 
@@ -137,7 +240,9 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     lscp_socket_t sock;
     struct sockaddr_in addr;
     int cAddr;
+#if defined(WIN32)
     int iSockOpt = (-1);
+#endif
 
     if (pfnCallback == NULL) {
         fprintf(stderr, "lscp_client_create: Invalid client callback function.\n");
@@ -197,59 +302,17 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
         return NULL;
     }
 
+    // Initialize the command socket agent struct...
     lscp_socket_agent_init(&(pClient->cmd), sock, &addr, cAddr);
 
 #ifdef DEBUG
     fprintf(stderr, "lscp_client_create: cmd: pClient=%p: sock=%d addr=%s port=%d.\n", pClient, pClient->cmd.sock, inet_ntoa(pClient->cmd.addr.sin_addr), ntohs(pClient->cmd.addr.sin_port));
 #endif
 
-    // Prepare the event datagram service socket...
-
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock == INVALID_SOCKET) {
-        lscp_socket_perror("lscp_client_create: evt: socket");
-        lscp_socket_agent_free(&(pClient->cmd));
-        free(pClient);
-        return NULL;
-    }
-
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
-        lscp_socket_perror("lscp_client_create: evt: setsockopt(SO_REUSEADDR)");
-
-#ifdef DEBUG
-    lscp_socket_getopts("lscp_client_create: evt", sock);
-#endif
-
-    cAddr = sizeof(struct sockaddr_in);
-    memset((char *) &addr, 0, cAddr);
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(0);
-
-    if (bind(sock, (const struct sockaddr *) &addr, cAddr) == SOCKET_ERROR) {
-        lscp_socket_perror("lscp_client_create: evt: bind");
-        lscp_socket_agent_free(&(pClient->cmd));
-        closesocket(sock);
-        free(pClient);
-        return NULL;
-    }
-
-    if (getsockname(sock, (struct sockaddr *) &addr, &cAddr) == SOCKET_ERROR) {
-        lscp_socket_perror("lscp_client_create: evt: getsockname");
-        lscp_socket_agent_free(&(pClient->cmd));
-        closesocket(sock);
-        free(pClient);
-        return NULL;
-    }
-
-    lscp_socket_agent_init(&(pClient->evt), sock, &addr, cAddr);
-
-#ifdef DEBUG
-    fprintf(stderr, "lscp_client_create: evt: pClient=%p: sock=%d addr=%s port=%d.\n", pClient, pClient->evt.sock, inet_ntoa(pClient->evt.addr.sin_addr), ntohs(pClient->evt.addr.sin_port));
-#endif
-
-    // No session id, yet.
-    pClient->sessid = NULL;
+    // Initialize the event service socket struct...
+    lscp_socket_agent_init(&(pClient->evt), INVALID_SOCKET, NULL, 0);
+    // No events subscribed, yet.
+    pClient->events = LSCP_EVENT_NONE;
     // Initialize cached members.
     pClient->audio_drivers = NULL;
     pClient->midi_drivers = NULL;
@@ -272,16 +335,6 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 
     // Initialize the transaction mutex.
     lscp_mutex_init(pClient->mutex);
-
-    // Now's finally time to startup threads...
-    // Event service thread...
-    if (lscp_socket_agent_start(&(pClient->evt), _lscp_client_evt_proc, pClient, 0) != LSCP_OK) {
-        lscp_socket_agent_free(&(pClient->cmd));
-        lscp_socket_agent_free(&(pClient->evt));
-        lscp_mutex_destroy(pClient->mutex);
-        free(pClient);
-        return NULL;
-    }
 
     // Finally we've some success...
     return pClient;
@@ -328,10 +381,6 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
     
-   // Free session-id, if any.
-    if (pClient->sessid)
-        free(pClient->sessid);
-    pClient->sessid = NULL;
     // Free up all cached members.
     lscp_channel_info_reset(&(pClient->channel_info));
     lscp_engine_info_reset(&(pClient->engine_info));
@@ -478,43 +527,42 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
 // Client registration protocol functions.
 
 /**
- *  Register frontend for receiving UDP event messages:
- *  SUBSCRIBE NOTIFICATION <udp-port>
+ *  Register frontend for receiving event messages:
+ *  SUBSCRIBE CHANNELS | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
+ *      | CHANNEL_INFO | MISCELLANEOUS
  *
  *  @param pClient  Pointer to client instance structure.
+ *  @param events   Bit-wise OR'ed event flags to subscribe.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
+lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t events )
 {
-    lscp_status_t ret;
-    char szQuery[LSCP_BUFSIZ];
-    const char *pszResult;
-    const char *pszSeps = "[]";
-    char *pszToken;
-    char *pch;
+    lscp_status_t ret = LSCP_FAILED;
 
-    if (pClient == NULL || pClient->sessid)
+    if (pClient == NULL)
         return LSCP_FAILED;
 
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
+
+    // If applicable, start the alternate connection...
+    if (pClient->events == LSCP_EVENT_NONE)
+        ret = _lscp_client_evt_connect(pClient);
     
-    sprintf(szQuery, "SUBSCRIBE NOTIFICATION %d\r\n", ntohs(pClient->evt.addr.sin_port));
-    ret = lscp_client_call(pClient, szQuery);
-    if (ret == LSCP_OK) {
-        pszResult = lscp_client_get_result(pClient);
-#ifdef DEBUG
-        fprintf(stderr, "lscp_client_subscribe: %s\n", pszResult);
-#endif
-        // Check for the session-id on "OK[sessid]" response.
-        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
-        if (pszToken && strcasecmp(pszToken, "OK") == 0) {
-            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-            if (pszToken)
-                pClient->sessid = strdup(pszToken);
-        }
-    }
+    // Send the subscription commands.
+    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNELS))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNELS);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_VOICE_COUNT))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_VOICE_COUNT);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_STREAM_COUNT))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_STREAM_COUNT);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_BUFFER_FILL))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_BUFFER_FILL);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNEL_INFO))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNEL_INFO);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MISCELLANEOUS);
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -524,36 +572,42 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
 
 
 /**
- *  Deregister frontend for not receiving UDP event messages anymore:
- *  UNSUBSCRIBE NOTIFICATION <session-id>
+ *  Deregister frontend from receiving UDP event messages anymore:
+ *  SUBSCRIBE CHANNELS | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
+ *      | CHANNEL_INFO | MISCELLANEOUS
  *
  *  @param pClient  Pointer to client instance structure.
+ *  @param events   Bit-wise OR'ed event flags to unsubscribe.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient )
+lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t events )
 {
-    lscp_status_t ret;
-    char szQuery[LSCP_BUFSIZ];
+    lscp_status_t ret = LSCP_OK;
 
     if (pClient == NULL)
-        return LSCP_FAILED;
-    if (pClient->sessid == NULL)
         return LSCP_FAILED;
 
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    sprintf(szQuery, "UNSUBSCRIBE NOTIFICATION %s\n\n", pClient->sessid);
-    ret = lscp_client_call(pClient, szQuery);
-    if (ret == LSCP_OK) {
-#ifdef DEBUG
-        fprintf(stderr, "lscp_client_unsubscribe: %s\n", lscp_client_get_result(pClient));
-#endif
-        // Bail out session-id string.
-        free(pClient->sessid);
-        pClient->sessid = NULL;
-    }
+    // Send the unsubscription commands.
+    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNELS))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNELS);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_VOICE_COUNT))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_VOICE_COUNT);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_STREAM_COUNT))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_STREAM_COUNT);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_BUFFER_FILL))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_BUFFER_FILL);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNEL_INFO))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNEL_INFO);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MISCELLANEOUS);
+
+    // If necessary, close the alternate connection...
+    if (pClient->events == LSCP_EVENT_NONE)
+        lscp_socket_agent_free(&(pClient->evt));
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -583,7 +637,30 @@ lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFile
     if (pszFileName == NULL || iSamplerChannel < 0)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "LOAD INSTRUMENT %s %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
+    sprintf(szQuery, "LOAD INSTRUMENT '%s' %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Loading an instrument in the background (non modal):
+ *  LOAD INSTRUMENT NON_MODAL <filename> <instr-index> <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pszFileName      Instrument file name.
+ *  @param iInstrIndex      Instrument index number.
+ *  @param iSamplerChannel  Sampler Channel.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_load_instrument_non_modal ( lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (pszFileName == NULL || iSamplerChannel < 0)
+        return LSCP_FAILED;
+
+    sprintf(szQuery, "LOAD INSTRUMENT NON_MODAL '%s' %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1062,6 +1139,26 @@ lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSampler
 
 
 /**
+ *  Setting audio output device:
+ *  SET CHANNEL AUDIO_OUTPUT_DEVICE <sampler-channel> <device-id>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iAudioDevice     Audio output device number identifier.
+ */
+lscp_status_t lscp_set_channel_audio_device ( lscp_client_t *pClient, int iSamplerChannel, int iAudioDevice )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (iSamplerChannel < 0 || iAudioDevice < 0)
+        return LSCP_FAILED;
+
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_DEVICE %d %d\r\n", iSamplerChannel, iAudioDevice);
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
  *  Setting audio output channel:
  *  SET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> <audio-output-chan> <audio-input-chan>
  *
@@ -1102,6 +1199,26 @@ lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerC
         return LSCP_FAILED;
 
     sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiDriver);
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Setting MIDI input device:
+ *  SET CHANNEL MIDI_INPUT_DEVICE <sampler-channel> <device-id>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iMidiDevice      MIDI input device number identifier.
+ */
+lscp_status_t lscp_set_channel_midi_device ( lscp_client_t *pClient, int iSamplerChannel, int iMidiDevice )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (iSamplerChannel < 0 || iMidiDevice < 0)
+        return LSCP_FAILED;
+
+    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_DEVICE %d %d\r\n", iSamplerChannel, iMidiDevice);
     return lscp_client_query(pClient, szQuery);
 }
 

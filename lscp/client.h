@@ -78,16 +78,31 @@ typedef enum _lscp_usage_t
 } lscp_usage_t;
 
 
+/** Subscribable event notification bit-wise flags. */
+typedef enum _lscp_event_t
+{
+    LSCP_EVENT_NONE             = 0x0000,
+    LSCP_EVENT_CHANNELS         = 0x0001,
+    LSCP_EVENT_VOICE_COUNT      = 0x0002,
+    LSCP_EVENT_STREAM_COUNT     = 0x0004,
+    LSCP_EVENT_BUFFER_FILL      = 0x0008,
+    LSCP_EVENT_CHANNEL_INFO     = 0x0010,
+    LSCP_EVENT_MISCELLANEOUS    = 0x1000
+
+} lscp_event_t;
+
+
 //-------------------------------------------------------------------------
 // Client socket main structure.
 
 /** Client opaque descriptor struct. */
 typedef struct _lscp_client_t lscp_client_t;
 
-/** Client callback procedure prototype. */
+/** Client event callback procedure prototype. */
 typedef lscp_status_t (*lscp_client_proc_t)
 (
     struct _lscp_client_t *pClient,
+    lscp_event_t event,
     const char *pchBuffer,
     int cchBuffer,
     void *pvData
@@ -120,13 +135,16 @@ int                     lscp_client_get_errno           (lscp_client_t *pClient 
 //-------------------------------------------------------------------------
 // Client registration protocol functions.
 
-lscp_status_t           lscp_client_subscribe           (lscp_client_t *pClient);
-lscp_status_t           lscp_client_unsubscribe         (lscp_client_t *pClient);
+lscp_status_t           lscp_client_subscribe           (lscp_client_t *pClient, lscp_event_t events);
+lscp_status_t           lscp_client_unsubscribe         (lscp_client_t *pClient, lscp_event_t events);
+
+lscp_event_t            lscp_client_events              (lscp_client_t *pClient);
 
 //-------------------------------------------------------------------------
 // Client command protocol functions.
 
 lscp_status_t           lscp_load_instrument            (lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel);
+lscp_status_t           lscp_load_instrument_non_modal  (lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel);
 lscp_status_t           lscp_load_engine                (lscp_client_t *pClient, const char *pszEngineName, int iSamplerChannel);
 int                     lscp_get_channels               (lscp_client_t *pClient);
 int *                   lscp_list_channels              (lscp_client_t *pClient);
@@ -143,9 +161,11 @@ int                     lscp_get_channel_stream_count   (lscp_client_t *pClient,
 lscp_buffer_fill_t *    lscp_get_channel_buffer_fill    (lscp_client_t *pClient, lscp_usage_t iUsageType, int iSamplerChannel);
 
 lscp_status_t           lscp_set_channel_audio_type     (lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioType);
+lscp_status_t           lscp_set_channel_audio_device   (lscp_client_t *pClient, int iSamplerChannel, int iAudioDevice);
 lscp_status_t           lscp_set_channel_audio_channel  (lscp_client_t *pClient, int iSamplerChannel, int iAudioOut, int iAudioIn);
 
 lscp_status_t           lscp_set_channel_midi_type      (lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiType);
+lscp_status_t           lscp_set_channel_midi_device    (lscp_client_t *pClient, int iSamplerChannel, int iMidiDevice);
 lscp_status_t           lscp_set_channel_midi_port      (lscp_client_t *pClient, int iSamplerChannel, int iMidiPort);
 lscp_status_t           lscp_set_channel_midi_channel   (lscp_client_t *pClient, int iSamplerChannel, int iMidiChannel);
 lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient, int iSamplerChannel, float fVolume);

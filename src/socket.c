@@ -200,9 +200,11 @@ void lscp_socket_agent_init ( lscp_socket_agent_t *pAgent, lscp_socket_t sock, s
     memset(pAgent, 0, sizeof(lscp_socket_agent_t));
 
     pAgent->sock = sock;
-    memmove((char *) &(pAgent->addr), pAddr, cAddr);
     pAgent->pThread = NULL;
     pAgent->iState = 0;
+
+    if (pAddr)
+        memmove((char *) &(pAgent->addr), pAddr, cAddr);
 }
 
 
