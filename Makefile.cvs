@@ -2,9 +2,9 @@ all:	configure
 
 configure:	 configure.in Makefile.am src/Makefile.am lscp/Makefile.am doc/Makefile.am examples/Makefile.am
 	@aclocal
+	@libtoolize --force --copy
 	@autoheader
-	@libtoolize -f
-	@automake -a
+	@automake --add-missing --copy
 	@autoconf
 
 clean:
@@ -13,7 +13,7 @@ clean:
 	@rm -rvf examples/Makefile.in
 	@rm -rvf doc/Makefile.in
 	@rm -rvf lscp/Makefile.in
-	@rm -rvf src/Makefile.in src/config.h.in src/config.h 
-	@rm -rvf Makefile.in config.*
+	@rm -rvf src/Makefile.in src/config.h.in src/config.h src/stamp-h.*
+	@rm -rvf Makefile.in config.* stamp-h.*
 	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh
 	@rm -rvf configure
