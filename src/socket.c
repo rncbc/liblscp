@@ -237,12 +237,12 @@ lscp_status_t lscp_socket_agent_free ( lscp_socket_agent_t *pAgent )
 {
     lscp_status_t ret = LSCP_FAILED;
 
+    if (pAgent->iState)
+        pAgent->iState = 0;
+
     if (pAgent->sock != INVALID_SOCKET)
         closesocket(pAgent->sock);
     pAgent->sock = INVALID_SOCKET;
-
-    if (pAgent->iState)
-        pAgent->iState = 0;
 
     if (pAgent->pThread)
         ret = lscp_thread_destroy(pAgent->pThread);

@@ -159,14 +159,12 @@ lscp_status_t lscp_thread_cancel ( lscp_thread_t *pThread )
 
 lscp_status_t lscp_thread_destroy ( lscp_thread_t *pThread )
 {
-    lscp_status_t ret = lscp_thread_cancel(pThread);
-
-    if (ret == LSCP_OK)
-        ret = lscp_thread_join(pThread);
+    lscp_status_t ret = lscp_thread_join(pThread);
 
 //  fprintf(stderr, "lscp_thread_destroy: pThread=%p.\n", pThread);
 
-    free(pThread);
+    if (ret == LSCP_OK)
+        free(pThread);
 
     return ret;
 }

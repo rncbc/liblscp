@@ -133,7 +133,6 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
-        printf("\n");
       }
       CLIENT_TEST(pClient, lscp_destroy_midi_device(pClient, iMidiDevice));
      }

@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.2.0  2004-07-05  New LSCP extension draft (v.11) initial support.
+0.2.0  2004-07-06  New LSCP extension draft (v.11) initial support.
                    (still a work in progress...)
 
 0.1.9  2004-05-18  More fixes for MSVC++ example build.

@@ -219,12 +219,6 @@ static lscp_status_t _lscp_connect_destroy ( lscp_connect_t *pConnect )
 
 #ifdef DEBUG
     fprintf(stderr, "_lscp_connect_destroy: pConnect=%p.\n", pConnect);
-    fprintf(stderr, "<%p> sock=%d addr=%s port=%d events=0x%04x ...\n", pConnect,
-        pConnect->client.sock,
-        inet_ntoa(pConnect->client.addr.sin_addr),
-        ntohs(pConnect->client.addr.sin_port),
-        (int) pConnect->events
-    );
 #endif
 
     lscp_socket_agent_free(&(pConnect->client));
