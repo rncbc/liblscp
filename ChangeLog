@@ -6,6 +6,9 @@ ChangeLog
 0.2.4  2004-10-11  Fixed lscp_set_channel_midi_channel() again, MIDI
                    channels should be given in the range 0-15, and omni
                    mode with the LSCP_MIDI_CHANNEL_ALL symbol (16).
+                   
+                   Fixed lscp_get_channel_info() to parse MIDI omni
+                   (ALL) channels mode.
 
 0.2.3  2004-09-28  Fixed lscp_set_channel_midi_channel() where MIDI
                    channels should be given in the range 1-16, and

@@ -1006,8 +1006,13 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             }
             else if (strcasecmp(pszToken, "MIDI_INPUT_CHANNEL") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-                if (pszToken)
-                    pChannelInfo->midi_channel = atoi(lscp_ltrim(pszToken));
+                if (pszToken) {
+                    pszToken = lscp_ltrim(pszToken);
+                    if (strcasecmp(pszToken, "ALL") == 0)
+                        pChannelInfo->midi_channel = LSCP_MIDI_CHANNEL_ALL;
+                    else
+                        pChannelInfo->midi_channel = atoi(pszToken);
+                }
             }
             else if (strcasecmp(pszToken, "VOLUME") == 0) {
                 pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
