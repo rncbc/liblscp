@@ -32,18 +32,18 @@ static WSADATA _wsaData;
 
 ////////////////////////////////////////////////////////////////////////
 
-lscp_status_t client_callback ( lscp_client_t *pClient, lscp_event_t event, const char *pchBuffer, int cchBuffer, void *pvData )
+lscp_status_t client_callback ( lscp_client_t *pClient, lscp_event_t event, const char *pchData, int cchData, void *pvData )
 {
-    lscp_status_t ret = LSCP_OK;
+    lscp_status_t ret = LSCP_FAILED;
 
-    char *pszBuffer = (char *) malloc(cchBuffer + 1);
-    if (pszBuffer) {
-        memcpy(pszBuffer, pchBuffer, cchBuffer);
-        pszBuffer[cchBuffer] = (char) 0;
-        printf("client_callback: event=0x%04x [%s]\n", (unsigned int) event, pszBuffer);
-        free(pszBuffer);
+    char *pszData = (char *) malloc(cchData + 1);
+    if (pszData) {
+        memcpy(pszData, pchData, cchData);
+        pszData[cchData] = (char) 0;
+        printf("client_callback: event=%s (0x%04x) [%s]\n", lscp_event_to_text(event), (int) event, pszData);
+        free(pszData);
+        ret = LSCP_OK;
     }
-    else ret = LSCP_FAILED;
 
     return ret;
 }

@@ -606,10 +606,10 @@ lscp_status_t lscp_server_destroy ( lscp_server_t *pServer )
 /**
  *  Send an event notification message to all subscribed clients.
  *
- *  @param pServer      Pointer to server instance structure.
- *  @param event        Event type flag to send to all subscribed clients.
- *  @param pchBuffer    Pointer to event data to be sent to all clients.
- *  @param cchBuffer    Length of the event data to be sent in bytes.
+ *  @param pServer  Pointer to server instance structure.
+ *  @param event    Event type flag to send to all subscribed clients.
+ *  @param pchData  Pointer to event data to be sent to all clients.
+ *  @param cchData  Length of the event data to be sent in bytes.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
