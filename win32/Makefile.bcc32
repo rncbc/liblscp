@@ -15,7 +15,7 @@ LIBNAME = liblscp
 INCDIR = ..\lscp
 SRCDIR = ..\src
 
-CCFLAGS = -w -I..
+CCFLAGS = -tWR -w -w-hid -tWM -tWC -x- -RT- -I..
 !ifdef DEBUG
 CCFLAGS = -v -y -DDEBUG $(CCFLAGS)
 !else
