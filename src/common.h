@@ -124,36 +124,42 @@ int             lscp_plist_size        (lscp_param_t **ppList);
 // Engine struct helper functions.
 
 void            lscp_engine_info_init       (lscp_engine_info_t *pEngineInfo);
+void            lscp_engine_info_free       (lscp_engine_info_t *pEngineInfo);
 void            lscp_engine_info_reset      (lscp_engine_info_t *pEngineInfo);
 
 //-------------------------------------------------------------------------
 // Channel struct helper functions.
 
 void            lscp_channel_info_init      (lscp_channel_info_t *pChannelInfo);
+void            lscp_channel_info_free      (lscp_channel_info_t *pChannelInfo);
 void            lscp_channel_info_reset     (lscp_channel_info_t *pChannelInfo);
 
 //-------------------------------------------------------------------------
 // Driver struct helper functions.
 
 void            lscp_driver_info_init       (lscp_driver_info_t *pDriverInfo);
+void            lscp_driver_info_free       (lscp_driver_info_t *pDriverInfo);
 void            lscp_driver_info_reset      (lscp_driver_info_t *pDriverInfo);
 
 //-------------------------------------------------------------------------
 // Device struct helper functions.
 
 void            lscp_device_info_init       (lscp_device_info_t *pDeviceInfo);
+void            lscp_device_info_free       (lscp_device_info_t *pDeviceInfo);
 void            lscp_device_info_reset      (lscp_device_info_t *pDeviceInfo);
 
 //-------------------------------------------------------------------------
 // Device channel/port struct helper functions.
 
 void            lscp_device_port_info_init  (lscp_device_port_info_t *pDevicePortInfo);
+void            lscp_device_port_info_free  (lscp_device_port_info_t *pDevicePortInfo);
 void            lscp_device_port_info_reset (lscp_device_port_info_t *pDevicePortInfo);
 
 //-------------------------------------------------------------------------
 // Parameter struct helper functions.
 
 void            lscp_param_info_init        (lscp_param_info_t *pParamInfo);
+void            lscp_param_info_free        (lscp_param_info_t *pParamInfo);
 void            lscp_param_info_reset       (lscp_param_info_t *pParamInfo);
 
 //-------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 AC_INIT(src/client.c)
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(liblscp, 0.1.9.110)
+AM_INIT_AUTOMAKE(liblscp, 0.1.9.111)
 
 # Checks for programs.
 AC_PROG_CC

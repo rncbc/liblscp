@@ -398,18 +398,18 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     lscp_mutex_lock(pClient->mutex);
     
     // Free up all cached members.
-    lscp_channel_info_reset(&(pClient->channel_info));
-    lscp_engine_info_reset(&(pClient->engine_info));
-    lscp_param_info_reset(&(pClient->midi_port_param_info));
-    lscp_param_info_reset(&(pClient->audio_channel_param_info));
-    lscp_device_port_info_reset(&(pClient->midi_port_info));
-    lscp_device_port_info_reset(&(pClient->audio_channel_info));
-    lscp_param_info_reset(&(pClient->midi_param_info));
-    lscp_param_info_reset(&(pClient->audio_param_info));
-    lscp_device_info_reset(&(pClient->midi_device_info));
-    lscp_device_info_reset(&(pClient->audio_device_info));
-    lscp_driver_info_reset(&(pClient->midi_driver_info));
-    lscp_driver_info_reset(&(pClient->audio_driver_info));
+    lscp_channel_info_free(&(pClient->channel_info));
+    lscp_engine_info_free(&(pClient->engine_info));
+    lscp_param_info_free(&(pClient->midi_port_param_info));
+    lscp_param_info_free(&(pClient->audio_channel_param_info));
+    lscp_device_port_info_free(&(pClient->midi_port_info));
+    lscp_device_port_info_free(&(pClient->audio_channel_info));
+    lscp_param_info_free(&(pClient->midi_param_info));
+    lscp_param_info_free(&(pClient->audio_param_info));
+    lscp_device_info_free(&(pClient->midi_device_info));
+    lscp_device_info_free(&(pClient->audio_device_info));
+    lscp_driver_info_free(&(pClient->midi_driver_info));
+    lscp_driver_info_free(&(pClient->audio_driver_info));
     // Free available engine table.
     lscp_szsplit_destroy(pClient->audio_drivers);
     lscp_szsplit_destroy(pClient->midi_drivers);

@@ -610,13 +610,17 @@ void lscp_engine_info_init ( lscp_engine_info_t *pEngineInfo )
     pEngineInfo->version     = NULL;
 }
 
-void lscp_engine_info_reset ( lscp_engine_info_t *pEngineInfo )
+void lscp_engine_info_free ( lscp_engine_info_t *pEngineInfo )
 {
     if (pEngineInfo->description)
         free(pEngineInfo->description);
     if (pEngineInfo->version)
         free(pEngineInfo->version);
+}
 
+void lscp_engine_info_reset ( lscp_engine_info_t *pEngineInfo )
+{
+    lscp_engine_info_free(pEngineInfo);
     lscp_engine_info_init(pEngineInfo);
 }
 
@@ -639,7 +643,7 @@ void lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
     pChannelInfo->volume            = 0.0;
 }
 
-void lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
+void lscp_channel_info_free ( lscp_channel_info_t *pChannelInfo )
 {
     if (pChannelInfo->engine_name)
         free(pChannelInfo->engine_name);
@@ -647,7 +651,11 @@ void lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
         lscp_szsplit_destroy(pChannelInfo->audio_routing);
     if (pChannelInfo->instrument_file)
         free(pChannelInfo->instrument_file);
+}
 
+void lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
+{
+    lscp_channel_info_free(pChannelInfo);
     lscp_channel_info_init(pChannelInfo);
 }
 
@@ -662,14 +670,18 @@ void lscp_driver_info_init ( lscp_driver_info_t *pDriverInfo )
     pDriverInfo->parameters  = NULL;
 }
 
-void lscp_driver_info_reset ( lscp_driver_info_t *pDriverInfo )
+void lscp_driver_info_free ( lscp_driver_info_t *pDriverInfo )
 {
     if (pDriverInfo->description)
         free(pDriverInfo->description);
     if (pDriverInfo->version)
         free(pDriverInfo->version);
     lscp_szsplit_destroy(pDriverInfo->parameters);
+}
 
+void lscp_driver_info_reset ( lscp_driver_info_t *pDriverInfo )
+{
+    lscp_driver_info_free(pDriverInfo);
     lscp_driver_info_init(pDriverInfo);
 }
 
@@ -683,12 +695,16 @@ void lscp_device_info_init ( lscp_device_info_t *pDeviceInfo )
     lscp_plist_alloc(&(pDeviceInfo->params));
 }
 
-void lscp_device_info_reset ( lscp_device_info_t *pDeviceInfo )
+void lscp_device_info_free ( lscp_device_info_t *pDeviceInfo )
 {
     if (pDeviceInfo->driver)
         free(pDeviceInfo->driver);
     lscp_plist_free(&(pDeviceInfo->params));
+}
 
+void lscp_device_info_reset ( lscp_device_info_t *pDeviceInfo )
+{
+    lscp_device_info_free(pDeviceInfo);
     lscp_device_info_init(pDeviceInfo);
 }
 
@@ -702,12 +718,16 @@ void lscp_device_port_info_init ( lscp_device_port_info_t *pDevicePortInfo )
     lscp_plist_alloc(&(pDevicePortInfo->params));
 }
 
-void lscp_device_port_info_reset ( lscp_device_port_info_t *pDevicePortInfo )
+void lscp_device_port_info_free ( lscp_device_port_info_t *pDevicePortInfo )
 {
     if (pDevicePortInfo->name)
         free(pDevicePortInfo->name);
     lscp_plist_free(&(pDevicePortInfo->params));
+}
 
+void lscp_device_port_info_reset ( lscp_device_port_info_t *pDevicePortInfo )
+{
+    lscp_device_port_info_free(pDevicePortInfo);
     lscp_device_port_info_init(pDevicePortInfo);
 }
 
@@ -729,7 +749,7 @@ void lscp_param_info_init ( lscp_param_info_t *pParamInfo )
     pParamInfo->possibilities = NULL;
 }
 
-void lscp_param_info_reset ( lscp_param_info_t *pParamInfo )
+void lscp_param_info_free ( lscp_param_info_t *pParamInfo )
 {
     if (pParamInfo->description)
         free(pParamInfo->description);
@@ -741,7 +761,11 @@ void lscp_param_info_reset ( lscp_param_info_t *pParamInfo )
     if (pParamInfo->range_max)
         free(pParamInfo->range_max);
     lscp_szsplit_destroy(pParamInfo->possibilities);
-    
+}
+
+void lscp_param_info_reset ( lscp_param_info_t *pParamInfo )
+{
+    lscp_param_info_free(pParamInfo);
     lscp_param_info_init(pParamInfo);
 }
 

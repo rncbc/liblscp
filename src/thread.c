@@ -142,8 +142,8 @@ lscp_status_t lscp_thread_cancel ( lscp_thread_t *pThread )
 //  fprintf(stderr, "lscp_thread_cancel: pThread=%p.\n", pThread);
 
 #if defined(WIN32)
-    if (pThread->hThread && TerminateThread(pThread->hThread, 0)) {
-        pThread->hThread = NULL;
+    if (pThread->hThread) { // Should we TerminateThread(pThread->hThread, 0) ?
+    /*  pThread->hThread = NULL; */
         ret = LSCP_OK;
     }
 #else
@@ -159,8 +159,11 @@ lscp_status_t lscp_thread_cancel ( lscp_thread_t *pThread )
 
 lscp_status_t lscp_thread_destroy ( lscp_thread_t *pThread )
 {
-    lscp_status_t ret = lscp_thread_join(pThread);
+    lscp_status_t ret = lscp_thread_cancel(pThread);
 
+    if (ret == LSCP_OK)
+        ret = lscp_thread_join(pThread);
+        
 //  fprintf(stderr, "lscp_thread_destroy: pThread=%p.\n", pThread);
 
     if (ret == LSCP_OK)
