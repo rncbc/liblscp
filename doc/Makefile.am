@@ -1,7 +1,7 @@
 CLEANFILES = doxygen-build.stamp
 
 DOX = liblscp.doxygen
-
+EXTRA_DIST = reference.dox
 INSTIMAGES = html/doxygen.png
 
 all-local: doxygen-build.stamp

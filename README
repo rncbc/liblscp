@@ -13,7 +13,6 @@ Installation
 
 From the untarred directory:
 
-    make -f Makefile.cvs
     ./configure
     make
     make install

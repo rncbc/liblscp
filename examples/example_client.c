@@ -1,7 +1,7 @@
 // example_client.c
 //
 /****************************************************************************
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2005, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -221,6 +221,7 @@ int client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
     printf("    channel_info.audio_routing     = "); client_test_szsplit(pChannelInfo->audio_routing);
     printf("    channel_info.instrument_file   = %s\n", pChannelInfo->instrument_file);
     printf("    channel_info.instrument_nr     = %d\n", pChannelInfo->instrument_nr);
+    printf("    channel_info.instrument_name   = %s\n", pChannelInfo->instrument_name);
     printf("    channel_info.instrument_status = %d\n", pChannelInfo->instrument_status);
     printf("    channel_info.midi_device       = %d\n", pChannelInfo->midi_device);
     printf("    channel_info.midi_port         = %d\n", pChannelInfo->midi_port);

@@ -1,7 +1,7 @@
 // example_server.c
 //
 /****************************************************************************
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2005, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -70,6 +70,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 pszResult = "ENGINE_NAME: DummyEngine\r\n"
                             "INSTRUMENT_FILE: DummyInstrument.gig\r\n"
                             "INSTRUMENT_NR: 0\r\n"
+                            "INSTRUMENT_NAME: Dummy Instrument\r\n"
                             "INSTRUMENT_STATUS: 100\r\n"
                             "AUDIO_OUTPUT_DEVICE: 0\r\n"
                             "AUDIO_OUTPUT_CHANNELS: 2\r\n"

@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 10
+%define release 14
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -29,9 +29,9 @@ LinuxSampler control protocol API libraries and include files.
 %prep
 
 %setup
+if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
 
 %build
-make -f Makefile.cvs
 ./configure --prefix=%{prefix}
 make
 
@@ -57,6 +57,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Tue Feb 14 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.5 release.
+
 * Tue Oct 11 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Fixed 0.2.4 release.
 
