@@ -83,25 +83,25 @@ retrieved by:<pre>
 </pre>The client callback function must have the following prototype (@ref lscp_client_proc_t):
 
 - @ref lscp_status_t <i>client_callback</i> ( @ref lscp_client_t *client,
-        const char *buf, int buflen, void *client_data );
+        @ref lscp_event_t event, const char *buf, int buflen, void *client_data );
 
-where buf will be a pointer to the event text which is buflen bytes in
-length; client_data is exactly the same value given on @ref lscp_client_create
-call.
+where event is the specific event type notification, buf will be a pointer to
+the event text which is buflen bytes in length; client_data is exactly the same
+value given on @ref lscp_client_create call.
 
 This callback function is the place to handle all server notifications and
 will be only called if the client is currently subscribed. No response
 from the client is expected while processing an event within
 client_callback.
 
-A client subscribes to receive notifications by calling:<pre>
+A client subscribes to receive event notifications by calling:<pre>
 
-    @ref lscp_client_subscribe (client);
+    @ref lscp_client_subscribe (client, events);
 
 </pre>after which it will start receiving events by means of the supplied
 client_callback function. To unsubscribe and stop this deliverance:<pre>
 
-    @ref lscp_client_unsubscribe (client);
+    @ref lscp_client_unsubscribe (client, events);
 
 </pre>Finally, when a client is about to quit, the proper terminator is in order:<pre>
 
@@ -116,13 +116,16 @@ LSCP comand:<pre>
     @ref lscp_get_channels (client);
     @ref lscp_add_channel (client);
     @ref lscp_load_engine (client, engine_name, channel);
-    @ref lscp_set_channel_audio_channel (client, channel, audio_channel);
+    @ref lscp_set_channel_audio_device (client, channel, audio_device);
     @ref lscp_set_channel_audio_type (client, channel, audio_type);
-    @ref lscp_set_channel_midi_channel (client, channel, midi_channel);
-    @ref lscp_set_channel_midi_port (client, channel, midi_port);
+    @ref lscp_set_channel_audio_channel (client, channel, audio_in, audio_out);
+    @ref lscp_set_channel_midi_device (client, channel, midi_device);
     @ref lscp_set_channel_midi_type (client, channel, midi_type);
+    @ref lscp_set_channel_midi_port (client, channel, midi_port);
+    @ref lscp_set_channel_midi_channel (client, channel, midi_channel);
     @ref lscp_set_channel_volume (client, channel, volume);
     @ref lscp_load_instrument (client, file_name, instr_index, channel);
+    @ref lscp_load_instrument_non_modal (client, file_name, instr_index, channel);
     @ref lscp_get_channel_info (client, channel);
     @ref lscp_get_channel_voice_count (client, channel);
     @ref lscp_get_channel_stream_count (client, channel);
