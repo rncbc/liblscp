@@ -56,7 +56,7 @@ typedef struct _lscp_channel_info_t
     char *        engine_name;
     char *        audio_type;
     int           audio_channels;
-    char *        audio_routing;
+    char **       audio_routing;
     char *        instrument_file;
     int           instrument_nr;
     char *        midi_type;
@@ -101,8 +101,9 @@ typedef struct _lscp_client_t {
     // Session identifier.
     char *              sessid;
     // Info struct caches.
+    char **             audio_types;
+    char **             midi_types;
     char **             engines;
-    int                 iMaxEngines;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
     // Result and error status.
@@ -146,6 +147,9 @@ int                     lscp_client_get_errno           (lscp_client_t *pClient 
 
 //-------------------------------------------------------------------------
 // Client command protocol functions.
+
+const char **           lscp_get_available_audio_types  (lscp_client_t *pClient);
+const char **           lscp_get_available_midi_types   (lscp_client_t *pClient);
 
 lscp_status_t           lscp_load_instrument            (lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel);
 lscp_status_t           lscp_load_engine                (lscp_client_t *pClient, const char *pszEngineName, int iSamplerChannel);

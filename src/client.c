@@ -25,13 +25,25 @@
 #include <ctype.h>
 
 
-// Maximum number of engines as allocation lscp_get_available_engines.
-#define LSCP_MAX_ENGINES    8
+// Array list chunk size.
+#define LSCP_SPLIT_CHUNK1   4
+// Chunk size exponent: LSCP_SPLIT_CHUNK1 = 2^LSCP_SPLIT_CHUNK2
+#define LSCP_SPLIT_CHUNK2   2
+/** Chunk size calculator. */
+#define LSCP_SPLIT_SIZE(n)    ((((n) >> LSCP_SPLIT_CHUNK2) + 1) << LSCP_SPLIT_CHUNK2)
 
 
 // Local prototypes.
 
 static const char * _lscp_ltrim                 (const char *psz);
+
+static char **      _lscp_split_create          (const char *pszCsv, const char *pszSeps);
+static void         _lscp_split_destroy         (char **ppszSplit);
+
+#ifdef LSCP_SPLIT_COUNT
+static int          _lscp_split_count           (char **ppszSplit);
+static int          _lscp_split_size            (char **ppszSplit);
+#endif
 
 static void         _lscp_client_set_result     (lscp_client_t *pClient, const char *pszResult, int iErrno);
 
@@ -83,6 +95,86 @@ static const char *_lscp_ltrim ( const char *psz )
     return psz;
 }
 
+// Split a comma separated string into a null terminated array of strings.
+static char **_lscp_split_create ( const char *pszCsv, const char *pszSeps)
+{
+    char *pszHead, *pch;
+    int iSize, i, j, cchSeps;
+    char **ppszSplit, **ppszNewSplit;
+
+    // Make a copy of the original string.
+    pszHead = strdup(pszCsv);
+    // Initial size is one chunk away.
+    iSize = LSCP_SPLIT_CHUNK1;
+    // Allocate and split...
+    ppszSplit = (char **) malloc(iSize * sizeof(char *));
+    if (pszHead && ppszSplit) {
+        cchSeps = strlen(pszSeps);
+        i = 0;
+        ppszSplit[i++] = pszHead;
+        while ((pch = strstr(pszHead, pszSeps)) != NULL) {
+            // Do we need to grow?
+            if (i >= iSize) {
+                // Yes, but only grow in chunks.
+                iSize += LSCP_SPLIT_CHUNK1;
+                // Allocate and copy to new split array.
+                ppszNewSplit = (char **) malloc(iSize * sizeof(char *));
+                if (ppszNewSplit) {
+                    for (j = 0; j < i; j++)
+                        ppszNewSplit[j] = ppszSplit[j];
+                    free(ppszSplit);
+                    ppszSplit = ppszNewSplit;
+                }
+            }
+            // Pre-advance to next item.
+            pszHead = pch + cchSeps;
+            // Trim and null terminate current item.
+            while (isspace(*(pch - 1)) && pch > ppszSplit[0])
+                --pch;
+            *pch = (char) 0;
+            // Make it official.
+            ppszSplit[i++] = (char *) _lscp_ltrim(pszHead);
+        }
+        // NULL terminate split array.
+        for ( ; i < iSize; i++)
+            ppszSplit[i] = NULL;
+    }
+
+    return ppszSplit;
+}
+
+// Free allocated memory of a legal null terminated array of strings.
+static void _lscp_split_destroy ( char **ppszSplit )
+{
+    // Our split string is always the first item, if any.
+    if (ppszSplit && ppszSplit[0])
+        free(ppszSplit[0]);
+    // Now free the array itself.
+    if (ppszSplit)
+        free(ppszSplit);
+}
+
+
+#ifdef LSCP_SPLIT_COUNT
+
+// Return the number of items of a null terminated array of strings.
+static int _lscp_split_count ( char **ppszSplit )
+{
+    int i = 0;
+    while (ppszSplit && ppszSplit[i])
+        i++;
+    return i;
+}
+
+// Return the allocated number of items of a splitted string array.
+static int _lscp_split_size ( char **ppszSplit )
+{
+    return LSCP_SPLIT_SIZE(_lscp_split_count(ppszSplit));
+}
+
+#endif // LSCP_SPLIT_COUNT
+
+
 // Result buffer internal settler.
 static void _lscp_client_set_result ( lscp_client_t *pClient, const char *pszResult, int iErrno )
 {
@@ -125,7 +217,7 @@ static void _lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
     pChannelInfo->instrument_file = NULL;
     pChannelInfo->instrument_nr   = 0;
     pChannelInfo->midi_type       = NULL;
-    pChannelInfo->midi_port       = NULL;
+    pChannelInfo->midi_port       = 0;
     pChannelInfo->midi_channel    = 0;
     pChannelInfo->volume          = 0.0;
 }
@@ -137,7 +229,7 @@ static void _lscp_channel_info_reset ( lscp_channel_info_t *pChannelInfo )
     if (pChannelInfo->audio_type)
         free(pChannelInfo->audio_type);
     if (pChannelInfo->audio_routing)
-        free(pChannelInfo->audio_routing);
+        _lscp_split_destroy(pChannelInfo->audio_routing);
     if (pChannelInfo->instrument_file)
         free(pChannelInfo->instrument_file);
     if (pChannelInfo->midi_type)
@@ -368,8 +460,9 @@ lscp_client_t* lscp_client_create ( char *pszHost, int iPort, lscp_client_proc_t
     // No session id, yet.
     pClient->sessid = NULL;
     // Initialize cached members.
+    pClient->audio_types = NULL;
+    pClient->midi_types = NULL;
     pClient->engines = NULL;
-    pClient->iMaxEngines = 0;
     _lscp_engine_info_init(&(pClient->engine_info));
     _lscp_channel_info_init(&(pClient->channel_info));
     // Initialize error stuff.
@@ -380,7 +473,7 @@ lscp_client_t* lscp_client_create ( char *pszHost, int iPort, lscp_client_proc_t
     pClient->iStreamCount = 0;
 
     // Now's finally time to startup threads...
-    
+
     // UDP service thread...
     if (lscp_socket_agent_start(&(pClient->udp), _lscp_client_udp_proc, pClient, 0) != LSCP_OK) {
         lscp_socket_agent_free(&(pClient->tcp));
@@ -424,8 +517,6 @@ lscp_status_t lscp_client_join ( lscp_client_t *pClient )
  */
 lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 {
-    int i;
-    
     if (pClient == NULL)
         return LSCP_FAILED;
 
@@ -441,13 +532,12 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     _lscp_channel_info_reset(&(pClient->channel_info));
     _lscp_engine_info_reset(&(pClient->engine_info));
     // Free available engine table.
-    if (pClient->engines) {
-        for (i = 0; i < pClient->iMaxEngines; i++) {
-            if (pClient->engines[i])
-                free(pClient->engines[i]);
-        }
-        free(pClient->engines);
-    }
+    _lscp_split_destroy(pClient->audio_types);
+    _lscp_split_destroy(pClient->midi_types);
+    _lscp_split_destroy(pClient->engines);
+    // Make them null.
+    pClient->audio_types = NULL;
+    pClient->midi_types = NULL;
     pClient->engines = NULL;
     // Free result error stuff.
     _lscp_client_set_result(pClient, NULL, 0);
@@ -474,7 +564,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
  *  @param pchBuffer    Request data to be sent to server.
  *  @param cchBuffer    Length of the request data to be sent in bytes.
  *  @param pchResult    Receive buffer where server response will be stored.
- *  @param cchBuffer    Maximum size of the receive buffer.
+ *  @param pcchResult   Maximum size of the receive buffer and response length.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
@@ -500,7 +590,7 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, 
         else
             ret = LSCP_OK;
     }
-    
+
     return ret;
 }
 
@@ -510,11 +600,15 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pchBuffer, 
 
 
 /**
- *  Submit a command query string to the server. The query string must be
- *  cr/lf and null terminated.
+ *  Submit a command query line string to the server. The query string
+ *  must be cr/lf and null terminated. Besides the return code, the
+ *  specific server response to the command request is made available
+ *  by the @ref lscp_client_get_result and @ref lscp_client_get_errno
+ *  function calls.
  *
  *  @param pClient      Pointer to client instance structure.
- *  @param pszQuery     Command request line to be sent to server.
+ *  @param pszQuery     Command request line to be sent to server,
+ *                      must be cr/lf and null terminated.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
@@ -647,7 +741,7 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
                 pClient->sessid = strdup(pszToken);
         }
     }
-    
+
     return ret;
 }
 
@@ -680,13 +774,57 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient )
         free(pClient->sessid);
         pClient->sessid = NULL;
     }
-    
+
     return ret;
 }
 
 
 //-------------------------------------------------------------------------
 // Client command protocol functions.
+
+/**
+ *  Getting all available audio output drivers.
+ *  GET AVAILABLE_AUDIO_OUTPUT_TYPES
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns A NULL terminated array of audio output driver type
+ *  name strings, or NULL in case of failure.
+ */
+const char ** lscp_get_available_audio_types ( lscp_client_t *pClient )
+{
+    const char *pszSeps = ",";
+
+    if (lscp_client_query(pClient, "GET AVAILABLE_AUDIO_OUTPUT_TYPES\r\n") == LSCP_OK) {
+        _lscp_split_destroy(pClient->audio_types);
+        pClient->audio_types = _lscp_split_create(lscp_client_get_result(pClient), pszSeps);
+    }
+
+    return (const char **) pClient->audio_types;
+}
+
+
+/**
+ *  Getting all available MIDI input drivers.
+ *  GET AVAILABLE_MIDI_INPUT_TYPES
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns A NULL terminated array of MIDI input driver type
+ *  name strings, or NULL in case of failure.
+ */
+const char** lscp_get_available_midi_types ( lscp_client_t *pClient )
+{
+    const char *pszSeps = ",";
+
+    if (lscp_client_query(pClient, "GET AVAILABLE_MIDI_INPUT_TYPES\r\n") == LSCP_OK) {
+        _lscp_split_destroy(pClient->midi_types);
+        pClient->midi_types = _lscp_split_create(lscp_client_get_result(pClient), pszSeps);
+    }
+
+    return (const char **) pClient->midi_types;
+}
+
 
 /**
  *  Loading an instrument:
@@ -702,7 +840,7 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient )
 lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel )
 {
     char szQuery[LSCP_BUFSIZ];
-    
+
     if (pszFileName == NULL || iSamplerChannel < 0)
         return LSCP_FAILED;
 
@@ -797,56 +935,14 @@ lscp_status_t lscp_remove_channel ( lscp_client_t *pClient, int iSamplerChannel 
  */
 const char **lscp_get_available_engines ( lscp_client_t *pClient )
 {
-    const char *pszResult;
-    const char  *pszCrlf = "\r\n";
-    char **ppEngines = NULL;
-    int    iEngines = 0;
-    int    iMaxEngines, i;
-    char  *pszToken;
-    char  *pch;
+    const char *pszSeps = ",";
 
     if (lscp_client_query(pClient, "GET AVAILABLE_ENGINES\r\n") == LSCP_OK) {
-        pszResult = lscp_client_get_result(pClient);
-        ppEngines = pClient->engines;
-        pszToken = strtok_r((char *) pszResult, pszCrlf, &(pch));
-        while (pszToken) {
-            if (*pszToken) {
-                // Grow current engine table?
-                if (iEngines >= pClient->iMaxEngines) {
-                    iMaxEngines = pClient->iMaxEngines + LSCP_MAX_ENGINES;
-                    ppEngines = (char **) malloc(iMaxEngines * sizeof(char *));
-                    if (ppEngines == NULL)
-                        break;
-                    // Initialize table, and copy old contents into it if any.
-                    for (i = 0; i < iMaxEngines; i++) {
-                        if (pClient->engines && i < iEngines)
-                            ppEngines[i] = pClient->engines[i];
-                        else
-                            ppEngines[i] = NULL;
-                    }
-                    // Free old table.
-                    if (pClient->engines)
-                        free(pClient->engines);
-                    // Set new one.
-                    pClient->iMaxEngines = iMaxEngines;
-                    pClient->engines = ppEngines;
-
-                }
-                // Free old entry.
-                if (ppEngines[iEngines])
-                    free(ppEngines[iEngines]);
-                // Set new one.
-                ppEngines[iEngines] = strdup(pszToken);
-                iEngines++;
-            }
-            pszToken = strtok_r(NULL, pszCrlf, &(pch));
-        }
-        // Don't forget to have a null termination.
-        if (ppEngines)
-            ppEngines[iEngines] = NULL;
+        _lscp_split_destroy(pClient->engines);
+        pClient->engines = _lscp_split_create(lscp_client_get_result(pClient), pszSeps);
     }
 
-    return (const char **) ppEngines;
+    return (const char **) pClient->engines;
 }
 
 
@@ -920,7 +1016,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 
     if (iSamplerChannel < 0)
         return NULL;
-        
+
     sprintf(szQuery, "GET CHANNEL INFO %d\r\n", iSamplerChannel);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
@@ -946,7 +1042,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
             else if (strcmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
                 if (pszToken)
-                    pChannelInfo->audio_routing = strdup(_lscp_ltrim(pszToken));
+                    pChannelInfo->audio_routing = _lscp_split_create(pszToken, ",");
             }
             else if (strcmp(pszToken, "INSTRUMENT_FILE") == 0) {
                 pszToken = strtok_r(NULL, pszCrlf, &(pch));
@@ -1135,7 +1231,7 @@ lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamp
     if (iSamplerChannel < 0 || iAudioOut < 0 || iAudioIn < 0)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNELS %d %d\ %dr\n", iSamplerChannel, iAudioOut, iAudioIn);
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNELS %d %d %d\r\n", iSamplerChannel, iAudioOut, iAudioIn);
     return lscp_client_query(pClient, szQuery);
 }
 

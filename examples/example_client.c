@@ -61,20 +61,38 @@ float client_test_elapsed ( clock_t *pclk ) { return (float) ((long) clock() - *
 
 void client_test ( lscp_client_t *pClient )
 {
+    const char **ppszAudioTypes, **ppszMidiTypes, **ppszEngines;
+    const char *pszAudioType, *pszMidiType, *pszEngine;
+    int iAudioType, iMidiType, iEngine;
     int iSamplerChannel;
-    const char **ppszEngines, *pszEngine;
-    int iEngine;
-    
+
+    CLIENT_TEST(pClient, ppszAudioTypes = lscp_get_available_audio_types(pClient));
+    if (ppszAudioTypes == NULL) {
+        fprintf(stderr, "client_test: No audio types available.\n");
+        return;
+    }
+
+    CLIENT_TEST(pClient, ppszMidiTypes = lscp_get_available_midi_types(pClient));
+    if (ppszMidiTypes == NULL) {
+        fprintf(stderr, "client_test: No MIDI types available.\n");
+        return;
+    }
+
     CLIENT_TEST(pClient, ppszEngines = lscp_get_available_engines(pClient));
     if (ppszEngines == NULL) {
         fprintf(stderr, "client_test: No engines available.\n");
         return;
     }
 
-    for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
+    for (iAudioType = 0; ppszAudioTypes[iAudioType]; iAudioType++) {
+     pszAudioType = ppszAudioTypes[iAudioType];
+     for (iMidiType = 0; ppszMidiTypes[iMidiType]; iMidiType++) {
+      pszMidiType = ppszMidiTypes[iMidiType];
+      for (iEngine = 0; ppszEngines[iEngine]; iEngine++) {
         pszEngine = ppszEngines[iEngine];
+        printf("--- AudioType=\"%s\" MidiType=\"%s\" Engine=\"%s\" ---\n", pszAudioType, pszMidiType, pszEngine);
         CLIENT_TEST(pClient, lscp_get_engine_info(pClient, pszEngine));
-        CLIENT_TEST(pClient, iSamplerChannel = lscp_get_channels(pClient)); iSamplerChannel++;
+        CLIENT_TEST(pClient, iSamplerChannel = lscp_get_channels(pClient));
         CLIENT_TEST(pClient, lscp_add_channel(pClient));
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_load_engine(pClient, pszEngine, iSamplerChannel));
@@ -83,15 +101,17 @@ void client_test ( lscp_client_t *pClient )
         CLIENT_TEST(pClient, lscp_get_channel_stream_count(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_BYTES, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_get_channel_buffer_fill(pClient, LSCP_USAGE_PERCENTAGE, iSamplerChannel));
-        CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, "ALSA"));
+        CLIENT_TEST(pClient, lscp_set_channel_audio_type(pClient, iSamplerChannel, pszAudioType));
         CLIENT_TEST(pClient, lscp_set_channel_audio_channel(pClient, iSamplerChannel, 0, 1));
-        CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, "ALSA"));
+        CLIENT_TEST(pClient, lscp_set_channel_midi_type(pClient, iSamplerChannel, pszMidiType));
         CLIENT_TEST(pClient, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_midi_port(pClient, iSamplerChannel, 0));
         CLIENT_TEST(pClient, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
         CLIENT_TEST(pClient, lscp_get_channel_info(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_reset_channel(pClient, iSamplerChannel));
         CLIENT_TEST(pClient, lscp_remove_channel(pClient, iSamplerChannel));
+      }
+     }
     }
 }
 
@@ -100,10 +120,10 @@ void client_test ( lscp_client_t *pClient )
 void client_usage (void)
 {
     printf("\n  %s %s (Build: %s)\n", lscp_client_package(), lscp_client_version(), lscp_client_build());
-    
+
     fputs("\n  Available client commands: help, test, exit, quit, subscribe, unsubscribe", stdout);
     fputs("\n  (all else are sent verbatim to server)\n\n", stdout);
-    
+
 }
 
 void client_prompt (void)
@@ -138,12 +158,12 @@ int main (int argc, char *argv[] )
     client_prompt();
 
     while (fgets(szLine, sizeof(szLine) - 3, stdin)) {
-        
+
         cchLine = strlen(szLine);
         while (cchLine > 0 && (szLine[cchLine - 1] == '\n' || szLine[cchLine - 1] == '\r'))
             cchLine--;
         szLine[cchLine] = '\0';
-        
+
         if (strcmp(szLine, "exit") == 0 || strcmp(szLine, "quit") == 0)
             break;
         else
@@ -171,7 +191,7 @@ int main (int argc, char *argv[] )
             }
         }
         else client_usage();
-        
+
         client_prompt();
     }
 

@@ -141,7 +141,7 @@ static void _lscp_connect_list_remove_safe ( lscp_connect_list_t *pList, lscp_co
 static void _lscp_connect_list_free ( lscp_connect_list_t *pList )
 {
     lscp_connect_t *p, *pNext;
-    
+
 //  fprintf(stderr, "_lscp_connect_list_free: pList=%p.\n", pList);
 
     lscp_mutex_lock(pList->mutex);
@@ -200,7 +200,7 @@ static void _lscp_connect_proc ( void *pvConnect )
             pConnect->client.iState = 0;
     }
 
-    (*pServer->pfnCallback)(pConnect, NULL, LSCP_CONNECT_CLOSE, pServer->pvData);    
+    (*pServer->pfnCallback)(pConnect, NULL, LSCP_CONNECT_CLOSE, pServer->pvData);
     _lscp_connect_list_remove_safe(&(pServer->connects), pConnect);
     closesocket(pConnect->client.sock);
 }
@@ -254,10 +254,10 @@ static lscp_status_t _lscp_connect_destroy ( lscp_connect_t *pConnect )
 #endif
 
     lscp_socket_agent_free(&(pConnect->client));
-    
+
     if (pConnect->sessid)
         free(pConnect->sessid);
-        
+
     free(pConnect);
 
     return ret;
@@ -277,7 +277,7 @@ lscp_status_t _lscp_connect_recv ( lscp_connect_t *pConnect )
     pServer = pConnect->server;
     if (pServer == NULL)
         return ret;
-        
+
     cchBuffer = recv(pConnect->client.sock, achBuffer, sizeof(achBuffer), 0);
     if (cchBuffer > 0)
         ret = (*pServer->pfnCallback)(pConnect, achBuffer, cchBuffer, pServer->pvData);
@@ -411,7 +411,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
     struct sockaddr_in addr;
     int cAddr;
     lscp_connect_t *pConnect;
-    
+
 #ifdef DEBUG
     fprintf(stderr, "_lscp_server_select_proc: Server listening for connections.\n");
 #endif
@@ -432,7 +432,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
     // To start counting for regular watchdog simulation.
     gettimeofday(&tv1, NULL);
     gettimeofday(&tv2, NULL);
-    
+
     // Main loop...
     while (pServer->tcp.iState) {
 
@@ -446,7 +446,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
 
         // Check later id it's time for ping time...
         gettimeofday(&tv2, NULL);
-        
+
         if (iSelect < 0) {
             lscp_socket_perror("_lscp_server_select_proc: select");
             pServer->tcp.iState = 0;
@@ -504,7 +504,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
             }
             // Done (iSelect > 0)
         }
-         
+
         // Maybe select has timed out?
         if (iSelect == 0 || (tv2.tv_sec - tv1.tv_sec > LSCP_SERVER_SLEEP)) {
             // Let the pseudo-watchdog do it's stuff...
@@ -622,7 +622,7 @@ const char* lscp_server_build   (void) { return __DATE__ " " __TIME__; }
 
 /**
  *  Create a server instance, listening on the given port for client
- *  connections. A server callback function must be suplied that will 
+ *  connections. A server callback function must be suplied that will
  *  handle every and each client request.
  *
  *  @param iPort        Port number where the server will bind for listening.
@@ -794,7 +794,7 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 #endif
 
     // Now's finally time to startup threads...
-    
+
     // TCP/Main service thread...
     if (lscp_socket_agent_start(&(pServer->tcp), _lscp_server_tcp_proc, pServer, 0) != LSCP_OK) {
         lscp_socket_agent_free(&(pServer->tcp));
@@ -810,13 +810,13 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
             lscp_socket_agent_free(&(pServer->udp));
             free(pServer);
             return NULL;
-        }    
+        }
         // Watchdog thread...
         pServer->iWatchdog = 1;
         pServer->iSleep    = LSCP_SERVER_SLEEP;
         pServer->pWatchdog = lscp_thread_create(_lscp_watchdog_proc, pServer, 0);
     }
-    
+
     // Finally we've some success...
     return pServer;
 }
@@ -908,7 +908,7 @@ lscp_status_t lscp_server_broadcast ( lscp_server_t *pServer, const char *pchBuf
 /**
  *  Send response for the current client callback request.
  *
- *  @param pServer      Pointer to server instance structure.
+ *  @param pConnect     Pointer to client connection instance structure.
  *  @param pchBuffer    Pointer to data to be sent to the client as response.
  *  @param cchBuffer    Length of the response data to be sent in bytes.
  *
@@ -935,7 +935,7 @@ lscp_status_t lscp_server_result ( lscp_connect_t *pConnect, const char *pchBuff
 /**
  *  Register client as a subscriber of event broadcast messages.
  *
- *  @param pServer  Pointer to server instance structure.
+ *  @param pConnect     Pointer to client connection instance structure.
  *  @param iPort    UDP port number of the requesting client connection.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
@@ -943,7 +943,7 @@ lscp_status_t lscp_server_result ( lscp_connect_t *pConnect, const char *pchBuff
 lscp_status_t lscp_server_subscribe ( lscp_connect_t *pConnect, int iPort )
 {
     char szSessID[32];
-    
+
     if (pConnect == NULL)
         return LSCP_FAILED;
     if (iPort == 0 || pConnect->port > 0 || pConnect->sessid)
@@ -951,7 +951,7 @@ lscp_status_t lscp_server_subscribe ( lscp_connect_t *pConnect, int iPort )
 
     // Generate a psudo-unique session-id.
     sprintf(szSessID, "%08x", ((unsigned int) pConnect->server << 8) ^ (unsigned int) pConnect);
-    
+
     pConnect->port = iPort;
     pConnect->ping = 0;
     pConnect->sessid = strdup(szSessID);
@@ -963,9 +963,9 @@ lscp_status_t lscp_server_subscribe ( lscp_connect_t *pConnect, int iPort )
 /**
  *  Deregister client as subscriber of event broadcast messages.
  *
- *  @param pServer      Pointer to server instance structure.
+ *  @param pConnect     Pointer to client connection instance structure.
  *  @param pszSessID    Session identifier of the requesting client connection.
-  *
+ *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
 */
 lscp_status_t lscp_server_unsubscribe ( lscp_connect_t *pConnect, const char *pszSessID )
@@ -974,7 +974,7 @@ lscp_status_t lscp_server_unsubscribe ( lscp_connect_t *pConnect, const char *ps
         return LSCP_FAILED;
     if (pConnect->port == 0 || pConnect->sessid == NULL)
         return LSCP_FAILED;
-        
+
     // Session ids must match.
     if (strcmp(pszSessID, pConnect->sessid) != 0)
         return LSCP_FAILED;

@@ -3,11 +3,11 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.2.0  2004-05-21  New LSCP extension draft (v.05) support.
+0.2.0  2004-05-22  New LSCP extension draft (v.05) initial support.
 
 0.1.9  2004-05-18  More fixes for MSVC++ example build.
 
-0.1.8  2004-05-17  Fix for MSVC++ example build; snprintf replaced by 
+0.1.8  2004-05-17  Fix for MSVC++ example build; snprintf replaced by
                    buffer overflow friendlier sprintf.
 
 0.1.7  2004-05-10  Missing version.h now included on install; WIN32 is

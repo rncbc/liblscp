@@ -37,8 +37,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     const char *pszResult = NULL;
 
     if (pchBuffer == NULL) {
-        fprintf(stderr, "server_callback: addr=%s port=%d: ", 
-            inet_ntoa(pConnect->client.addr.sin_addr), 
+        fprintf(stderr, "server_callback: addr=%s port=%d: ",
+            inet_ntoa(pConnect->client.addr.sin_addr),
             htons(pConnect->client.addr.sin_port));
         switch (cchBuffer) {
           case LSCP_CONNECT_OPEN:
@@ -47,12 +47,12 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
           case LSCP_CONNECT_CLOSE:
             fprintf(stderr, "Connection closed.\n");
             break;
-        }    
+        }
         return ret;
     }
 
     lscp_socket_trace("server_callback", &(pConnect->client.addr), pchBuffer, cchBuffer);
-    
+
     lscp_parser_init(&tok, pchBuffer, cchBuffer);
 
     if (lscp_parser_test(&tok, "GET")) {
@@ -82,12 +82,12 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             }
             else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_TYPE")) {
                 // Getting audio output type:
-                // GET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel> 
+                // GET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel>
                 // (unspecified as of draft 04)
             }
             else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
                 // Getting audio output channel:
-                // GET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel> 
+                // GET CHANNEL AUDIO_OUTPUT_CHANNEL <sampler-channel>
                 // (unspecified as of draft 04)
             }
             else ret = LSCP_FAILED;
@@ -96,10 +96,20 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             // Current number of sampler channels:
             // GET CHANNELS
         }
+        else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_TYPES")) {
+            // Getting all available audio output drivers.
+            // GET AVAILABLE_AUDIO_OUTPUT_TYPES
+            pszResult = "ALSA,JACK\r\n";
+        }
+        else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_TYPES")) {
+            // Getting all available MIDI input drivers.
+            // GET AVAILABLE_MIDI_INPUT_TYPES
+            pszResult = "ALSA\r\n";
+        }
         else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
             // Getting all available engines:
             // GET AVAILABLE_ENGINES
-            pszResult = "Engine1\r\nEngine2\r\nEngine3\r\n";
+            pszResult = "Engine1,Engine2,Engine3\r\n";
         }
         else if (lscp_parser_test2(&tok, "ENGINE", "INFO")) {
             // Getting information about an engine.
@@ -116,12 +126,6 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_TYPE")) {
                 // Setting audio output type:
                 // SET CHANNEL AUDIO_OUTPUT_TYPE <sampler-channel> <audio-output-type>
-                /* int iSamplerChannel = */ lscp_parser_nextint(&tok);
-                if (lscp_parser_test(&tok, "ALSA")) {
-                }
-                else if (lscp_parser_test(&tok, "JACK")) {
-                }
-                else ret = LSCP_FAILED;
             }
             else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
                 // Setting audio output channel:
