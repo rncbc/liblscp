@@ -511,7 +511,7 @@ lscp_status_t lscp_set_audio_device_param ( lscp_client_t *pClient, int iAudioDe
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET AUDIO_OUTPUT_DEVICE_PARAMETER %d %s='%s'", iAudioDevice, pParam->key, pParam->value);
+    sprintf(szQuery, "SET AUDIO_OUTPUT_DEVICE_PARAMETER %d %s='%s'\r\n", iAudioDevice, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -597,7 +597,7 @@ lscp_status_t lscp_set_audio_channel_param ( lscp_client_t *pClient, int iAudioD
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET AUDIO_OUTPUT_CHANNEL_PARAMETER %d %d %s='%s'", iAudioDevice, iAudioChannel, pParam->key, pParam->value);
+    sprintf(szQuery, "SET AUDIO_OUTPUT_CHANNEL_PARAMETER %d %d %s='%s'\r\n", iAudioDevice, iAudioChannel, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -856,7 +856,7 @@ lscp_status_t lscp_set_midi_device_param ( lscp_client_t *pClient, int iMidiDevi
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET MIDI_INPUT_DEVICE_PARAMETER %d %s='%s'", iMidiDevice, pParam->key, pParam->value);
+    sprintf(szQuery, "SET MIDI_INPUT_DEVICE_PARAMETER %d %s='%s'\r\n", iMidiDevice, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -942,7 +942,7 @@ lscp_status_t lscp_set_midi_port_param ( lscp_client_t *pClient, int iMidiDevice
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET MIDI_INPUT_PORT_PARAMETER %d %d %s='%s'", iMidiDevice, iMidiPort, pParam->key, pParam->value);
+    sprintf(szQuery, "SET MIDI_INPUT_PORT_PARAMETER %d %d %s='%s'\r\n", iMidiDevice, iMidiPort, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -953,7 +953,7 @@ lscp_status_t lscp_set_midi_port_param ( lscp_client_t *pClient, int iMidiDevice
 const char *lscp_get_param_value ( lscp_param_t *pParams, const char *pszParam )
 {
     int i;
-    
+
     for (i = 0; pParams && pParams[i].key; i++) {
         if (strcasecmp(pParams[i].key, pszParam) == 0)
             return (const char *) pParams[i].value;
