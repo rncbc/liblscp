@@ -55,6 +55,7 @@ typedef int lscp_socket_t;
 #define LSCP_BUFSIZ     1024
 
 void lscp_socket_perror (const char *pszPrefix);
+void lscp_socket_herror (const char *pszPrefix);
 
 void lscp_socket_getopts (const char *pszPrefix, lscp_socket_t sock);
 void lscp_socket_trace   (const char *pszPrefix, struct sockaddr_in *pAddr, const char *pchBuffer, int cchBuffer);

@@ -46,7 +46,7 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
         return NULL;
 
     pszResult = lscp_client_get_result(pClient);
-    pszToken = lscp_strtok(pszResult, pszSeps, &(pch));
+    pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
     while (pszToken) {
         if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
             pszToken = lscp_strtok(NULL, pszCrlf, &(pch));

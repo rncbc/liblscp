@@ -164,7 +164,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 
     pHost = gethostbyname(pszHost);
     if (pHost == NULL) {
-        lscp_socket_perror("lscp_client_create: gethostbyname");
+        lscp_socket_herror("lscp_client_create: gethostbyname");
         return NULL;
     }
 
@@ -617,7 +617,7 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient )
         fprintf(stderr, "lscp_client_subscribe: %s\n", pszResult);
 #endif
         // Check for the session-id on "OK[sessid]" response.
-        pszToken = lscp_strtok(pszResult, pszSeps, &(pch));
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         if (pszToken && strcasecmp(pszToken, "OK") == 0) {
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
             if (pszToken)
@@ -823,7 +823,7 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
         return NULL;
 
     pszResult = lscp_client_get_result(pClient);
-    pszToken = lscp_strtok(pszResult, pszSeps, &(pch));
+    pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
     while (pszToken) {
         if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
             pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
@@ -873,7 +873,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
         return NULL;
 
     pszResult = lscp_client_get_result(pClient);
-    pszToken = lscp_strtok(pszResult, pszSeps, &(pch));
+    pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
     while (pszToken) {
         if (strcasecmp(pszToken, "ENGINE_NAME") == 0) {
             pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
@@ -1026,7 +1026,7 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
     sprintf(szQuery, "GET CHANNEL BUFFER_FILL %s %d\r\n", pszUsageType, iSamplerChannel);
     if (lscp_client_query(pClient, szQuery) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
-        pszToken = lscp_strtok(pszResult, pszSeps, &(pch));
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken && iStream < pClient->iStreamCount) {
             if (*pszToken) {
                 pBufferFill[iStream].stream_id = atol(pszToken);

@@ -104,11 +104,21 @@ void lscp_socket_perror ( const char *pszPrefix )
     fprintf(stderr, "%s: %s (%d)\n", pszPrefix, pszError, iError);
 }
 
+void lscp_socket_herror ( const char *pszPrefix )
+{
+    lscp_socket_perror(pszPrefix);
+}
+
 #else
 
 void lscp_socket_perror ( const char *pszPrefix )
 {
     perror(pszPrefix);
+}
+
+void lscp_socket_herror ( const char *pszPrefix )
+{
+    herror(pszPrefix);
 }
 
 #endif
