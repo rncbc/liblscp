@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2005, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -511,8 +511,7 @@ lscp_status_t lscp_set_audio_device_param ( lscp_client_t *pClient, int iAudioDe
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET AUDIO_OUTPUT_DEVICE_PARAMETER %d", iAudioDevice);
-    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    sprintf(szQuery, "SET AUDIO_OUTPUT_DEVICE_PARAMETER %d %s='%s'", iAudioDevice, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -598,8 +597,7 @@ lscp_status_t lscp_set_audio_channel_param ( lscp_client_t *pClient, int iAudioD
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET AUDIO_OUTPUT_CHANNEL_PARAMETER %d %d", iAudioDevice, iAudioChannel);
-    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    sprintf(szQuery, "SET AUDIO_OUTPUT_CHANNEL_PARAMETER %d %d %s='%s'", iAudioDevice, iAudioChannel, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -858,8 +856,7 @@ lscp_status_t lscp_set_midi_device_param ( lscp_client_t *pClient, int iMidiDevi
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET MIDI_INPUT_DEVICE_PARAMETER %d", iMidiDevice);
-    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    sprintf(szQuery, "SET MIDI_INPUT_DEVICE_PARAMETER %d %s='%s'", iMidiDevice, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -945,8 +942,7 @@ lscp_status_t lscp_set_midi_port_param ( lscp_client_t *pClient, int iMidiDevice
     if (pParam == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET MIDI_INPUT_PORT_PARAMETER %d %d", iMidiDevice, iMidiPort);
-    lscp_param_concat(szQuery, sizeof(szQuery), pParam);
+    sprintf(szQuery, "SET MIDI_INPUT_PORT_PARAMETER %d %d %s='%s'", iMidiDevice, iMidiPort, pParam->key, pParam->value);
     return lscp_client_query(pClient, szQuery);
 }
 
