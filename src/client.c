@@ -40,12 +40,19 @@ static lscp_status_t    _lscp_client_evt_request    (lscp_client_t *pClient, int
 static void _lscp_client_evt_proc ( void *pvClient )
 {
     lscp_client_t *pClient = (lscp_client_t *) pvClient;
-    char  achBuffer[LSCP_BUFSIZ];
-    int   cchBuffer;
+    
+    fd_set fds;                         // File descriptor list for select().
+    int    fd, fdmax;                   // Maximum file descriptor number.
+    struct timeval tv;                  // For specifying a timeout value.
+    int    iSelect;                     // Holds select return status.
+    int    iTimeout;
+    
+    char   achBuffer[LSCP_BUFSIZ];
+    int    cchBuffer;
     const char *pszSeps = ":\r\n";
-    char *pszToken;
-    char *pch;
-    int   cchToken;
+    char * pszToken;
+    char * pch;
+    int     cchToken;
     lscp_event_t event;
 
 #ifdef DEBUG
@@ -53,36 +60,63 @@ static void _lscp_client_evt_proc ( void *pvClient )
 #endif
 
     while (pClient->evt.iState) {
+
+        // Prepare for waiting on select...
+        fd = (int) pClient->evt.sock;
+        FD_ZERO(&fds);
+        FD_SET((unsigned int) fd, &fds);
+        fdmax = fd;
+
+        // Use the timeout (x10) select feature ...
+        iTimeout = 10 * pClient->iTimeout;
+        if (iTimeout > 1000) {
+            tv.tv_sec = iTimeout / 1000;
+            iTimeout -= tv.tv_sec * 1000;
+        }
+        else tv.tv_sec = 0;
+        tv.tv_usec = iTimeout * 1000;
+
         // Wait for event...
-        cchBuffer = recv(pClient->evt.sock, achBuffer, sizeof(achBuffer), 0);
-        if (cchBuffer > 0) {
-            // Make sure received buffer it's null terminated.
-            achBuffer[cchBuffer] = (char) 0;
-            // Parse for the notification event message...
-            pszToken = lscp_strtok(achBuffer, pszSeps, &(pch)); // Have "NOTIFY".
-            if (strcasecmp(pszToken, "NOTIFY") == 0) {
-                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-                event    = lscp_event_from_text(pszToken);
-                // And pick the rest of data...
-                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-                cchToken = (pszToken == NULL ? 0 : strlen(pszToken));
-                // Double-check if we're really up to it...
-                if (pClient->events & event) {
-                    // Invoke the client event callback...
-                    if ((*pClient->pfnCallback)(
-                            pClient,
-                            event,
-                            pszToken,
-                            cchToken,
-                            pClient->pvData) != LSCP_OK) {
-                        pClient->evt.iState = 0;
+        iSelect = select(fdmax + 1, &fds, NULL, NULL, &tv);
+        if (iSelect > 0 && FD_ISSET(fd, &fds)) {
+            // May recv now...
+            cchBuffer = recv(pClient->evt.sock, achBuffer, sizeof(achBuffer), 0);
+            if (cchBuffer > 0) {
+                // Make sure received buffer it's null terminated.
+                achBuffer[cchBuffer] = (char) 0;
+                // Parse for the notification event message...
+                pszToken = lscp_strtok(achBuffer, pszSeps, &(pch)); // Have "NOTIFY".
+                if (strcasecmp(pszToken, "NOTIFY") == 0) {
+                    pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                    event    = lscp_event_from_text(pszToken);
+                    // And pick the rest of data...
+                    pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                    cchToken = (pszToken == NULL ? 0 : strlen(pszToken));
+                    // Double-check if we're really up to it...
+                    if (pClient->events & event) {
+                        // Invoke the client event callback...
+                        if ((*pClient->pfnCallback)(
+                                pClient,
+                                event,
+                                pszToken,
+                                cchToken,
+                                pClient->pvData) != LSCP_OK) {
+                            pClient->evt.iState = 0;
+                        }
                     }
                 }
+            } else {
+                lscp_socket_perror("_lscp_client_evt_proc: recv");
+                pClient->evt.iState = 0;
             }
-        } else {
-            lscp_socket_perror("_lscp_client_evt_proc: recv");
+        }   // Check if select has in error.
+        else if (iSelect < 0) {
+            lscp_socket_perror("_lscp_client_call: select");
             pClient->evt.iState = 0;
         }
+        
+        // Finally, always signal the event.
+        lscp_cond_signal(pClient->cond);
     }
 
 #ifdef DEBUG
@@ -162,6 +196,9 @@ static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSub
         return LSCP_FAILED;
     }
 
+    // Wait on response.
+    lscp_cond_wait(pClient->cond, pClient->mutex);
+    
     // Update as naively as we can...
     if (iSubscribe)
         pClient->events |=  event;
@@ -313,6 +350,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 
     // Initialize the transaction mutex.
     lscp_mutex_init(pClient->mutex);
+    lscp_cond_init(pClient->cond);
 
     // Finally we've some success...
     return pClient;
@@ -399,6 +437,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     // Last but not least, free good ol'transaction mutex.
     lscp_mutex_unlock(pClient->mutex);
     lscp_mutex_destroy(pClient->mutex);
+    lscp_cond_destroy(pClient->cond);
 
     free(pClient);
 

@@ -74,6 +74,7 @@ struct _lscp_client_t
     // Transaction call timeout (msecs).
     int                 iTimeout;
     lscp_mutex_t        mutex;
+    lscp_cond_t         cond;
 };
 
 

@@ -77,6 +77,23 @@ typedef pthread_mutex_t lscp_mutex_t;
 #endif
 
 //-------------------------------------------------------------------------
+// Simple condition variables (FIXME: probably incorrect on WIN32).
+
+#if defined(WIN32)
+typedef HANDLE lscp_cond_t;
+#define lscp_cond_init(c)       { (c) = CreateEvent(NULL, FALSE, FALSE, NULL); }
+#define lscp_cond_destroy(c)    if (c) { CloseHandle(c); }
+#define lscp_cond_wait(c, m)    { lscp_mutex_unlock(m); WaitForSingleObject((c), INFINITE); lscp_mutex_lock(m); }
+#define lscp_cond_signal(c)     SetEvent(c)
+#else
+typedef pthread_cond_t lscp_cond_t;
+#define lscp_cond_init(c)       pthread_cond_init(&(c), NULL)
+#define lscp_cond_destroy(c)    pthread_cond_destroy(&(c))
+#define lscp_cond_wait(c, m)    pthread_cond_wait(&(c), &(m))
+#define lscp_cond_signal(c)     pthread_cond_signal(&(c))
+#endif
+
+//-------------------------------------------------------------------------
 // Threads.
 
 struct _lscp_thread_t;

@@ -246,7 +246,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             // GET CHANNELS
             if (iSamplerChannel > 0) {
                 strcpy(szTemp, "0");
-                for (i = 1; i < iSamplerChannel; i++)
+                for (i = 1; i < iSamplerChannel && strlen(szTemp) < sizeof(szTemp) - 8; i++)
                     sprintf(szTemp + strlen(szTemp), ",%d", i);
                 strcat(szTemp, "\r\n");
                 pszResult = szTemp;
@@ -258,7 +258,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             // GET AUDIO_OUTPUT_DEVICES
             if (iAudioDevice > 0) {
                 strcpy(szTemp, "0");
-                for (i = 1; i < iAudioDevice; i++)
+                for (i = 1; i < iAudioDevice && strlen(szTemp) < sizeof(szTemp) - 8; i++)
                     sprintf(szTemp + strlen(szTemp), ",%d", i);
                 strcat(szTemp, "\r\n");
                 pszResult = szTemp;
@@ -270,7 +270,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             // GET MIDI_INPUT_DEVICES
             if (iMidiDevice > 0) {
                 strcpy(szTemp, "0");
-                for (i = 1; i < iMidiDevice; i++)
+                for (i = 1; i < iMidiDevice && strlen(szTemp) < sizeof(szTemp) - 8; i++)
                     sprintf(szTemp + strlen(szTemp), ",%d", i);
                 strcat(szTemp, "\r\n");
                 pszResult = szTemp;
