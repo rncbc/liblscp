@@ -41,6 +41,38 @@
 #define LSCP_TIMEOUT_MSECS  200
 
 
+//-------------------------------------------------------------------------
+// Client opaque descriptor struct.
+
+struct _lscp_client_t 
+{
+    // Client socket stuff.
+    lscp_client_proc_t  pfnCallback;
+    void *              pvData;
+    lscp_socket_agent_t tcp;
+    lscp_socket_agent_t udp;
+    // Session identifier.
+    char *              sessid;
+    // Client struct persistent caches.
+    char **             audio_drivers;
+    char **             midi_drivers;
+    char **             engines;
+    // Client struct volatile caches.
+    lscp_driver_info_t  audio_info;
+    lscp_driver_info_t  midi_info;
+    lscp_engine_info_t  engine_info;
+    lscp_channel_info_t channel_info;
+    // Result and error status.
+    char *              pszResult;
+    int                 iErrno;
+    // Stream buffers status.
+    lscp_buffer_fill_t *buffer_fill;
+    int                 iStreamCount;
+    // Transaction call timeout (msecs).
+    int                 iTimeout;
+    lscp_mutex_t        mutex;
+};
+
 // Local prototypes.
 
 static char *       _lscp_strtok                (char *pchBuffer, const char *pszSeps, char **ppch);
@@ -1030,20 +1062,20 @@ const char** lscp_get_available_midi_drivers ( lscp_client_t *pClient )
  *  Getting informations about a specific audio output driver.
  *  GET AUDIO_OUTPUT_DRIVER INFO <audio-output-type>
  *
- *  @param pClient      Pointer to client instance structure.
- *  @param pszAudioType Audio driver type string (e.g. "ALSA").
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pszAudioDriver   Audio driver type string (e.g. "ALSA").
  *
  *  @returns A pointer to a @ref lscp_driver_info_t structure, with
  *  the given audio driver information, or NULL in case of failure.
  */
-lscp_driver_info_t* lscp_get_audio_driver_info ( lscp_client_t *pClient, const char *pszAudioType )
+lscp_driver_info_t* lscp_get_audio_driver_info ( lscp_client_t *pClient, const char *pszAudioDriver )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (pszAudioType == NULL)
+    if (pszAudioDriver == NULL)
         return NULL;
 
-    sprintf(szQuery, "GET AUDIO_OUTPUT_DRIVER INFO %s\r\n", pszAudioType);
+    sprintf(szQuery, "GET AUDIO_OUTPUT_DRIVER INFO %s\r\n", pszAudioDriver);
     return _lscp_driver_info_query(pClient, &(pClient->audio_info), szQuery);
 }
 
@@ -1052,20 +1084,20 @@ lscp_driver_info_t* lscp_get_audio_driver_info ( lscp_client_t *pClient, const c
  *  Getting informations about a specific MIDI input driver.
  *  GET MIDI_INPUT_DRIVER INFO <midi-input-type>
  *
- *  @param pClient      Pointer to client instance structure.
- *  @param pszMidiType  MIDI driver type string (e.g. "ALSA").
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pszMidiDriver    MIDI driver type string (e.g. "ALSA").
  *
  *  @returns A pointer to a @ref lscp_driver_info_t structure, with
  *  the given MIDI driver information, or NULL in case of failure.
  */
-lscp_driver_info_t* lscp_get_midi_driver_info ( lscp_client_t *pClient, const char *pszMidiType )
+lscp_driver_info_t* lscp_get_midi_driver_info ( lscp_client_t *pClient, const char *pszMidiDriver )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (pszMidiType == NULL)
+    if (pszMidiDriver == NULL)
         return NULL;
 
-    sprintf(szQuery, "GET MIDI_INPUT_DRIVER INFO %s\r\n", pszMidiType);
+    sprintf(szQuery, "GET MIDI_INPUT_DRIVER INFO %s\r\n", pszMidiDriver);
     return _lscp_driver_info_query(pClient, &(pClient->midi_info), szQuery);
 }
 
@@ -1447,16 +1479,16 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
  *
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
- *  @param pszAudioType     Audio output driver type (e.g. "ALSA" or "JACK").
+ *  @param pszAudioDriver   Audio output driver type (e.g. "ALSA" or "JACK").
  */
-lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioType )
+lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioDriver )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (iSamplerChannel < 0 || pszAudioType == NULL)
+    if (iSamplerChannel < 0 || pszAudioDriver == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n", iSamplerChannel, pszAudioType);
+    sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n", iSamplerChannel, pszAudioDriver);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1490,18 +1522,18 @@ lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamp
  *
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
- *  @param pszMidiType      MIDI input driver type (e.g. "ALSA").
+ *  @param pszMidiDriver    MIDI input driver type (e.g. "ALSA").
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiType )
+lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiDriver )
 {
     char szQuery[LSCP_BUFSIZ];
 
-    if (iSamplerChannel < 0 || pszMidiType == NULL)
+    if (iSamplerChannel < 0 || pszMidiDriver == NULL)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiType);
+    sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiDriver);
     return lscp_client_query(pClient, szQuery);
 }
 

@@ -99,36 +99,8 @@ typedef lscp_status_t (*lscp_client_proc_t)
     void *pvData
 );
 
-/** Client descriptor struct. */
-typedef struct _lscp_client_t {
-
-    // Client socket stuff.
-    lscp_client_proc_t  pfnCallback;
-    void *              pvData;
-    lscp_socket_agent_t tcp;
-    lscp_socket_agent_t udp;
-    // Session identifier.
-    char *              sessid;
-    // Client struct persistent caches.
-    char **             audio_drivers;
-    char **             midi_drivers;
-    char **             engines;
-    // Client struct volatile caches.
-    lscp_driver_info_t  audio_info;
-    lscp_driver_info_t  midi_info;
-    lscp_engine_info_t  engine_info;
-    lscp_channel_info_t channel_info;
-    // Result and error status.
-    char *              pszResult;
-    int                 iErrno;
-    // Stream buffers status.
-    lscp_buffer_fill_t *buffer_fill;
-    int                 iStreamCount;
-    // Transaction call timeout (msecs).
-    int                 iTimeout;
-    lscp_mutex_t        mutex;
-
-} lscp_client_t;
+/** Client opaque descriptor struct. */
+typedef struct _lscp_client_t lscp_client_t;
 
 
 //-------------------------------------------------------------------------

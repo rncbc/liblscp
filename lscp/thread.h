@@ -77,21 +77,11 @@ typedef pthread_mutex_t lscp_mutex_t;
 //-------------------------------------------------------------------------
 // Threads.
 
+struct _lscp_thread_t;
+
 typedef void (*lscp_thread_proc_t)(void *pvData);
 
-typedef struct _lscp_thread_t {
-
-#if defined(WIN32)
-    HANDLE              hThread;
-    DWORD               dwThreadID;
-#else
-    pthread_t           pthread;
-#endif
-    lscp_thread_proc_t  pfnProc;
-    void               *pvData;
-    int                 iDetach;
-
-} lscp_thread_t;
+typedef struct _lscp_thread_t lscp_thread_t;
 
 lscp_thread_t *lscp_thread_create  (lscp_thread_proc_t pfnProc, void *pvData, int iDetach);
 lscp_status_t  lscp_thread_join    (lscp_thread_t *pThread);

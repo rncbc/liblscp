@@ -26,6 +26,18 @@
 //-------------------------------------------------------------------------
 // Threads.
 
+struct _lscp_thread_t {
+#if defined(WIN32)
+    HANDLE              hThread;
+    DWORD               dwThreadID;
+#else
+    pthread_t           pthread;
+#endif
+    lscp_thread_proc_t  pfnProc;
+    void               *pvData;
+    int                 iDetach;
+};
+
 
 #if defined(WIN32)
 static DWORD WINAPI _lscp_thread_start ( LPVOID pvThread )
