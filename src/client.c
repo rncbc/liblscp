@@ -836,15 +836,41 @@ lscp_status_t lscp_remove_channel ( lscp_client_t *pClient, int iSamplerChannel 
 
 
 /**
- *  Getting all available engines:
+ *  Getting all available engines count:
  *  GET AVAILABLE_ENGINES
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of sampler engines on success,
+ *  -1 otherwise.
+ */
+int lscp_get_available_engines ( lscp_client_t *pClient )
+{
+	int iAvailableEngines = -1;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET AVAILABLE_ENGINES\r\n") == LSCP_OK)
+        iAvailableEngines = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iAvailableEngines;
+}
+
+
+/**
+ *  Getting all available engines:
+ *  LIST AVAILABLE_ENGINES
  *
  *  @param pClient  Pointer to client instance structure.
  *
  *  @returns A NULL terminated array of engine name strings,
  *  or NULL in case of failure.
  */
-const char **lscp_get_available_engines ( lscp_client_t *pClient )
+const char **lscp_list_available_engines ( lscp_client_t *pClient )
 {
     const char *pszSeps = ",";
 
@@ -856,7 +882,7 @@ const char **lscp_get_available_engines ( lscp_client_t *pClient )
         pClient->engines = NULL;
     }
 
-    if (lscp_client_call(pClient, "GET AVAILABLE_ENGINES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AVAILABLE_ENGINES\r\n") == LSCP_OK)
         pClient->engines = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.

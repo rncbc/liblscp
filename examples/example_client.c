@@ -429,19 +429,22 @@ void client_test_all ( lscp_client_t *pClient, int step )
     g_test_count = 0;
     g_test_fails = 0;
 
-    CLIENT_TEST(pClient, szsplit, ppszAudioDrivers = lscp_get_available_audio_drivers(pClient));
+    CLIENT_TEST(pClient, int, lscp_get_available_audio_drivers(pClient));
+    CLIENT_TEST(pClient, szsplit, ppszAudioDrivers = lscp_list_available_audio_drivers(pClient));
     if (ppszAudioDrivers == NULL) {
         fprintf(stderr, "client_test: No audio drivers available.\n");
         return;
     }
 
-    CLIENT_TEST(pClient, szsplit, ppszMidiDrivers = lscp_get_available_midi_drivers(pClient));
+    CLIENT_TEST(pClient, int, lscp_get_available_midi_drivers(pClient));
+    CLIENT_TEST(pClient, szsplit, ppszMidiDrivers = lscp_list_available_midi_drivers(pClient));
     if (ppszMidiDrivers == NULL) {
         fprintf(stderr, "client_test: No MIDI drivers available.\n");
         return;
     }
 
-    CLIENT_TEST(pClient, szsplit, ppszEngines = lscp_get_available_engines(pClient));
+    CLIENT_TEST(pClient, int, lscp_get_available_engines(pClient));
+    CLIENT_TEST(pClient, szsplit, ppszEngines = lscp_list_available_engines(pClient));
     if (ppszEngines == NULL) {
         fprintf(stderr, "client_test: No engines available.\n");
         return;

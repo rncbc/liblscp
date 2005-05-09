@@ -143,7 +143,9 @@ int                     lscp_get_channels               (lscp_client_t *pClient)
 int *                   lscp_list_channels              (lscp_client_t *pClient);
 int                     lscp_add_channel                (lscp_client_t *pClient);
 lscp_status_t           lscp_remove_channel             (lscp_client_t *pClient, int iSamplerChannel);
-const char **           lscp_get_available_engines      (lscp_client_t *pClient);
+
+int                     lscp_get_available_engines      (lscp_client_t *pClient);
+const char **           lscp_list_available_engines     (lscp_client_t *pClient);
 
 lscp_engine_info_t *    lscp_get_engine_info            (lscp_client_t *pClient, const char *pszEngineName);
 lscp_channel_info_t *   lscp_get_channel_info           (lscp_client_t *pClient, int iSamplerChannel);

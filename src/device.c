@@ -263,15 +263,41 @@ static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_
 // Audio driver control functions.
 
 /**
- *  Getting all available audio output drivers.
+ *  Getting all available audio output driver count.
  *  GET AVAILABLE_AUDIO_OUTPUT_DRIVERS
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of audio output drivers on success,
+ *  -1 otherwise.
+ */
+int lscp_get_available_audio_drivers ( lscp_client_t *pClient )
+{
+    int iAudioDrivers = -1;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
+        iAudioDrivers = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iAudioDrivers;
+}
+
+
+/**
+ *  Getting all available audio output drivers.
+ *  LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS
  *
  *  @param pClient  Pointer to client instance structure.
  *
  *  @returns A NULL terminated array of audio output driver type
  *  name strings, or NULL in case of failure.
  */
-const char ** lscp_get_available_audio_drivers ( lscp_client_t *pClient )
+const char ** lscp_list_available_audio_drivers ( lscp_client_t *pClient )
 {
     const char *pszSeps = ",";
 
@@ -283,7 +309,7 @@ const char ** lscp_get_available_audio_drivers ( lscp_client_t *pClient )
         pClient->audio_drivers = NULL;
     }
 
-    if (lscp_client_call(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
         pClient->audio_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.
@@ -606,15 +632,41 @@ lscp_status_t lscp_set_audio_channel_param ( lscp_client_t *pClient, int iAudioD
 // MIDI driver control functions.
 
 /**
- *  Getting all available MIDI input drivers.
+ *  Getting all available MIDI input driver count.
  *  GET AVAILABLE_MIDI_INPUT_DRIVERS
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of MIDI input drivers on success,
+ *  -1 otherwise.
+ */
+int lscp_get_available_midi_drivers ( lscp_client_t *pClient )
+{
+    int iMidiDrivers = -1;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
+        iMidiDrivers = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section up.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iMidiDrivers;
+}
+
+
+/**
+ *  Getting all available MIDI input drivers.
+ *  LIST AVAILABLE_MIDI_INPUT_DRIVERS
  *
  *  @param pClient  Pointer to client instance structure.
  *
  *  @returns A NULL terminated array of MIDI input driver type
  *  name strings, or NULL in case of failure.
  */
-const char** lscp_get_available_midi_drivers ( lscp_client_t *pClient )
+const char** lscp_list_available_midi_drivers ( lscp_client_t *pClient )
 {
     const char *pszSeps = ",";
 
@@ -626,7 +678,7 @@ const char** lscp_get_available_midi_drivers ( lscp_client_t *pClient )
         pClient->midi_drivers = NULL;
     }
 
-    if (lscp_client_call(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
         pClient->midi_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section up.

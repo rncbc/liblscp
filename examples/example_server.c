@@ -115,14 +115,14 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             pszResult = szTemp;
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
-            // Getting all available audio output drivers.
+            // Getting all available audio output driver count.
             // GET AVAILABLE_AUDIO_OUTPUT_DRIVERS
-            pszResult = "Alsa,Jack\r\n";
+            pszResult = "2\r\n";
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_DRIVERS")) {
-            // Getting all available MIDI input drivers.
+            // Getting all available MIDI input driver count.
             // GET AVAILABLE_MIDI_INPUT_DRIVERS
-            pszResult = "Alsa\r\n";
+            pszResult = "1\r\n";
         }
         else if (lscp_parser_test2(&tok, "AUDIO_OUTPUT_DRIVER", "INFO")) {
             // Getting informations about a specific audio output driver.
@@ -344,9 +344,9 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             pszResult = szTemp;
         }
         else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
-            // Getting all available engines:
+            // Getting all available engine count:
             // GET AVAILABLE_ENGINES
-            pszResult = "GigEngine,DLSEngine,AkaiEngine\r\n";
+            pszResult = "3\r\n";
         }
         else if (lscp_parser_test2(&tok, "ENGINE", "INFO")) {
             // Getting information about an engine.
@@ -379,6 +379,21 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                 pszResult = szTemp;
             }
             else ret = LSCP_FAILED;
+        }
+        else if (lscp_parser_test(&tok, "AVAILABLE_ENGINES")) {
+            // Getting all available engines:
+            // LIST AVAILABLE_ENGINES
+            pszResult = "GigEngine,DLSEngine,AkaiEngine\r\n";
+        }
+        else if (lscp_parser_test(&tok, "AVAILABLE_AUDIO_OUTPUT_DRIVERS")) {
+            // Getting all available audio output drivers.
+            // LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS
+            pszResult = "ALSA,JACK\r\n";
+        }
+        else if (lscp_parser_test(&tok, "AVAILABLE_MIDI_INPUT_DRIVERS")) {
+            // Getting all available MIDI input drivers.
+            // LIST AVAILABLE_MIDI_INPUT_DRIVERS
+            pszResult = "ALSA\r\n";
         }
         else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICES")) {
             // Getting all created audio output device list.

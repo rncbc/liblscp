@@ -102,7 +102,8 @@ typedef struct _lscp_device_port_info_t
 //-------------------------------------------------------------------------
 // Audio driver control functions.
 
-const char **           lscp_get_available_audio_drivers(lscp_client_t *pClient);
+int                     lscp_get_available_audio_drivers    (lscp_client_t *pClient);
+const char **           lscp_list_available_audio_drivers   (lscp_client_t *pClient);
 
 lscp_driver_info_t *    lscp_get_audio_driver_info      (lscp_client_t *pClient, const char *pszAudioDriver);
 lscp_param_info_t *     lscp_get_audio_driver_param_info(lscp_client_t *pClient, const char *pszAudioDriver, const char *pszParam, lscp_param_t *pDepList);
@@ -127,7 +128,8 @@ lscp_status_t           lscp_set_audio_channel_param        (lscp_client_t *pCli
 //-------------------------------------------------------------------------
 // MIDI driver control functions.
 
-const char **           lscp_get_available_midi_drivers (lscp_client_t *pClient);
+int                     lscp_get_available_midi_drivers (lscp_client_t *pClient);
+const char **           lscp_list_available_midi_drivers(lscp_client_t *pClient);
 
 lscp_driver_info_t *    lscp_get_midi_driver_info       (lscp_client_t *pClient, const char *pszMidiDriver);
 lscp_param_info_t *     lscp_get_midi_driver_param_info (lscp_client_t *pClient, const char *pszMidiDriver, const char *pszParam, lscp_param_t *pDepList);

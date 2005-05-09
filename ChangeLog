@@ -3,6 +3,22 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.2.8  2005-05-08  [bug #9] Fixed for a LSCP command syntax convention 
+                   consistency, regarding the enumeration of available 
+                   sampler engines, Audio and MIDI drivers; this has 
+                   affected the signature of the following functions:
+                     lscp_get_available_engines();
+                     lscp_get_available_audio_drivers();
+                     lscp_get_available_midi_drivers();
+                   which are now returning an integer count of engines
+                   and drivers, respectively, while the following 
+                   functions are now being introduced:
+                     lscp_list_available_engines();
+                     lscp_list_available_audio_drivers();
+                     lscp_list_available_midi_drivers();
+                   taking on the previous functionality, returning
+                   a comma separated list of names.
+
 0.2.7  2005-03-10  Mini bitsy regression; a severe crash (segfault)
                    was fixed on the device configuration functions:
                      lscp_set_audio_device_param();
