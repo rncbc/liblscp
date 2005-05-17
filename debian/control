@@ -1,7 +1,7 @@
 Source: liblscp
 Section: devel
 Priority: optional
-Maintainer: Christian Schoenebeck <cuse@users.sourceforge.net>
+Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.1
 
