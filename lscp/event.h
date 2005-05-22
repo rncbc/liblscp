@@ -34,7 +34,7 @@ extern "C" {
 typedef enum _lscp_event_t
 {
     LSCP_EVENT_NONE             = 0x0000,
-    LSCP_EVENT_CHANNELS         = 0x0001,
+    LSCP_EVENT_CHANNEL_COUNT    = 0x0001,
     LSCP_EVENT_VOICE_COUNT      = 0x0002,
     LSCP_EVENT_STREAM_COUNT     = 0x0004,
     LSCP_EVENT_BUFFER_FILL      = 0x0008,

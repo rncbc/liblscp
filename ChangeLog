@@ -3,6 +3,11 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.2.8  2005-05-22  More LSCP command syntax changes, particularly on the
+                   event subscription ones: the LSCP_EVENT_CHANNELS event
+                   definition were renamed to LSCP_EVENT_CHANNEL_COUNT,
+                   as to be more meaningful.
+
 0.2.8  2005-05-08  [bug #9] Fixed for a LSCP command syntax convention 
                    consistency, regarding the enumeration of available 
                    sampler engines, Audio and MIDI drivers; this has 

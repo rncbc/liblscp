@@ -40,13 +40,13 @@ static lscp_status_t    _lscp_client_evt_request    (lscp_client_t *pClient, int
 static void _lscp_client_evt_proc ( void *pvClient )
 {
     lscp_client_t *pClient = (lscp_client_t *) pvClient;
-    
+
     fd_set fds;                         // File descriptor list for select().
     int    fd, fdmax;                   // Maximum file descriptor number.
     struct timeval tv;                  // For specifying a timeout value.
     int    iSelect;                     // Holds select return status.
     int    iTimeout;
-    
+
     char   achBuffer[LSCP_BUFSIZ];
     int    cchBuffer;
     const char *pszSeps = ":\r\n";
@@ -114,7 +114,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
             lscp_socket_perror("_lscp_client_evt_proc: select");
             pClient->evt.iState = 0;
         }
-        
+
         // Finally, always signal the event.
         lscp_cond_signal(pClient->cond);
     }
@@ -164,10 +164,10 @@ static lscp_status_t _lscp_client_evt_connect ( lscp_client_t *pClient )
         closesocket(sock);
         return LSCP_FAILED;
     }
-    
+
     // Set our socket agent struct...
     lscp_socket_agent_init(&(pClient->evt), sock, &addr, cAddr);
-    
+
     // And finally the service thread...
     return lscp_socket_agent_start(&(pClient->evt), _lscp_client_evt_proc, pClient, 0);
 }
@@ -198,7 +198,7 @@ static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSub
 
     // Wait on response.
     lscp_cond_wait(pClient->cond, pClient->mutex);
-    
+
     // Update as naively as we can...
     if (iSubscribe)
         pClient->events |=  event;
@@ -396,7 +396,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
-    
+
     // Free up all cached members.
     lscp_channel_info_free(&(pClient->channel_info));
     lscp_engine_info_free(&(pClient->engine_info));
@@ -500,16 +500,16 @@ int lscp_client_get_timeout ( lscp_client_t *pClient )
 lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
 {
     lscp_status_t ret;
-    
+
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
     // Just make the now guarded call.
     ret = lscp_client_call(pClient, pszQuery);
-    
+
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
-    
+
     return ret;
 }
 
@@ -553,7 +553,7 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
 
 /**
  *  Register frontend for receiving event messages:
- *  SUBSCRIBE CHANNELS | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
+ *  SUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
  *      | CHANNEL_INFO | MISCELLANEOUS
  *
  *  @param pClient  Pointer to client instance structure.
@@ -574,10 +574,10 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
     // If applicable, start the alternate connection...
     if (pClient->events == LSCP_EVENT_NONE)
         ret = _lscp_client_evt_connect(pClient);
-    
+
     // Send the subscription commands.
-    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNELS))
-        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNELS);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNEL_COUNT))
+        ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNEL_COUNT);
     if (ret == LSCP_OK && (events & LSCP_EVENT_VOICE_COUNT))
         ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_VOICE_COUNT);
     if (ret == LSCP_OK && (events & LSCP_EVENT_STREAM_COUNT))
@@ -598,7 +598,7 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 
 /**
  *  Deregister frontend from receiving UDP event messages anymore:
- *  SUBSCRIBE CHANNELS | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
+ *  SUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
  *      | CHANNEL_INFO | MISCELLANEOUS
  *
  *  @param pClient  Pointer to client instance structure.
@@ -617,8 +617,8 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t eve
     lscp_mutex_lock(pClient->mutex);
 
     // Send the unsubscription commands.
-    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNELS))
-        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNELS);
+    if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNEL_COUNT))
+        ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNEL_COUNT);
     if (ret == LSCP_OK && (events & LSCP_EVENT_VOICE_COUNT))
         ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_VOICE_COUNT);
     if (ret == LSCP_OK && (events & LSCP_EVENT_STREAM_COUNT))
@@ -769,7 +769,7 @@ int *lscp_list_channels ( lscp_client_t *pClient )
 
     if (pClient == NULL)
         return NULL;
-        
+
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
@@ -806,7 +806,7 @@ int lscp_add_channel ( lscp_client_t *pClient )
 
     if (lscp_client_call(pClient, "ADD CHANNEL\r\n") == LSCP_OK)
         iSamplerChannel = atoi(lscp_client_get_result(pClient));
-        
+
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
 
@@ -846,7 +846,7 @@ lscp_status_t lscp_remove_channel ( lscp_client_t *pClient, int iSamplerChannel 
  */
 int lscp_get_available_engines ( lscp_client_t *pClient )
 {
-	int iAvailableEngines = -1;
+    int iAvailableEngines = -1;
 
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
@@ -940,7 +940,7 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
         }
     }
     else pEngineInfo = NULL;
-    
+
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
 
@@ -973,7 +973,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
-    
+
     pChannelInfo = &(pClient->channel_info);
     lscp_channel_info_reset(pChannelInfo);
 
@@ -1054,7 +1054,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
         }
     }
     else pChannelInfo = NULL;
-    
+
     // Unlock this section up.
     lscp_mutex_unlock(pClient->mutex);
 
@@ -1247,7 +1247,7 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
         else while (iStream < pClient->iStreamCount)
             pBufferFill[iStream++].stream_usage = 0;
     }
-    
+
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
 

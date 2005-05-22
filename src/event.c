@@ -43,10 +43,10 @@
 const char *lscp_event_to_text ( lscp_event_t event )
 {
     const char *pszText = NULL;
-    
+
     switch (event) {
-      case LSCP_EVENT_CHANNELS:
-        pszText = "CHANNELS";
+      case LSCP_EVENT_CHANNEL_COUNT:
+        pszText = "CHANNEL_COUNT";
         break;
       case LSCP_EVENT_VOICE_COUNT:
         pszText = "VOICE_COUNT";
@@ -84,8 +84,8 @@ lscp_event_t lscp_event_from_text ( const char *pszText )
     lscp_event_t event = LSCP_EVENT_NONE;
 
     if (pszText) {
-        if (strcasecmp(pszText, "CHANNELS") == 0)
-            event = LSCP_EVENT_CHANNELS;
+        if (strcasecmp(pszText, "CHANNEL_COUNT") == 0)
+            event = LSCP_EVENT_CHANNEL_COUNT;
         else if (strcasecmp(pszText, "VOICE_COUNT") == 0)
             event = LSCP_EVENT_VOICE_COUNT;
         else if (strcasecmp(pszText, "STREAM_COUNT") == 0)

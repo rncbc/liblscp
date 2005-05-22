@@ -112,8 +112,10 @@ the following functions defined in <lscp/@ref:client.h>, one for each correspond
 LSCP comand, and regarding the sampler channel space:<pre>
 
     @ref lscp_get_available_engines (client);
+    @ref lscp_list_available_engines (client);
     @ref lscp_get_engine_info (client, engine_name);
     @ref lscp_get_channels (client);
+    @ref lscp_list_channels (client);
     @ref lscp_add_channel (client);
     @ref lscp_load_engine (client, engine_name, channel);
     @ref lscp_set_channel_audio_device (client, channel, audio_device);
@@ -138,6 +140,7 @@ LSCP comand, and regarding the sampler channel space:<pre>
 the following functions are respectively defined in <lscp/@ref:device.h>:<pre>
 
     @ref lscp_get_available_audio_drivers (client);
+    @ref lscp_list_available_audio_drivers (client);
     @ref lscp_get_audio_driver_info (client, audio_driver);
     @ref lscp_get_audio_driver_param_info (client, audio_driver, param_key, deplist);
     @ref lscp_create_audio_device (client, audio_driver, params);
@@ -151,6 +154,7 @@ the following functions are respectively defined in <lscp/@ref:device.h>:<pre>
     @ref lscp_set_audio_channel_param (client, audio_device, audio_channel, param);
 
     @ref lscp_get_available_midi_drivers (client);
+    @ref lscp_list_available_midi_drivers (client);
     @ref lscp_get_midi_driver_info (client, midi_driver);
     @ref lscp_get_midi_driver_param_info (client, midi_driver, param_key, deplist);
     @ref lscp_create_midi_device (client, midi_driver, params);
