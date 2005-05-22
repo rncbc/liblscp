@@ -14,7 +14,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
+   You should 14have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
@@ -1491,7 +1491,7 @@ lscp_server_info_t *lscp_get_server_info ( lscp_client_t *pClient )
     lscp_mutex_lock(pClient->mutex);
 
     pServerInfo = &(pClient->server_info);
-    lscp_engine_info_reset(pServerInfo);
+    lscp_server_info_reset(pServerInfo);
 
     if (lscp_client_call(pClient, "GET SERVER INFO\r\n") == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
