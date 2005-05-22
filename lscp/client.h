@@ -39,6 +39,15 @@ extern "C" {
 //-------------------------------------------------------------------------
 // Client data structures.
 
+/** Server info cache struct. */
+typedef struct _lscp_server_info_t
+{
+    char *        description;
+    char *        version;
+
+} lscp_server_info_t;
+
+
 /** Engine info cache struct. */
 typedef struct _lscp_engine_info_t
 {
@@ -169,6 +178,8 @@ lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient,
 lscp_status_t           lscp_reset_channel              (lscp_client_t *pClient, int iSamplerChannel);
 
 lscp_status_t           lscp_reset_sampler              (lscp_client_t *pClient);
+
+lscp_server_info_t *    lscp_get_server_info            (lscp_client_t *pClient);
 
 #if defined(__cplusplus)
 }

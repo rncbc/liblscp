@@ -63,6 +63,7 @@ struct _lscp_client_t
     lscp_device_port_info_t midi_port_info;
     lscp_param_info_t   audio_channel_param_info;
     lscp_param_info_t   midi_port_param_info;
+    lscp_server_info_t  server_info;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
     // Result and error status.
@@ -121,6 +122,13 @@ void            lscp_plist_append      (lscp_param_t **ppList, const char *pszKe
 int             lscp_plist_count       (lscp_param_t **ppList);
 int             lscp_plist_size        (lscp_param_t **ppList);
 #endif
+
+//-------------------------------------------------------------------------
+// Server struct helper functions.
+
+void            lscp_server_info_init       (lscp_server_info_t *pServerInfo);
+void            lscp_server_info_free       (lscp_server_info_t *pServerInfo);
+void            lscp_server_info_reset      (lscp_server_info_t *pServerInfo);
 
 //-------------------------------------------------------------------------
 // Engine struct helper functions.

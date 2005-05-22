@@ -660,6 +660,30 @@ int lscp_plist_size ( lscp_param_t **ppList )
 
 
 //-------------------------------------------------------------------------
+// Server info struct helper functions.
+
+void lscp_server_info_init ( lscp_server_info_t *pServerInfo )
+{
+    pServerInfo->description = NULL;
+    pServerInfo->version     = NULL;
+}
+
+void lscp_server_info_free ( lscp_server_info_t *pServerInfo )
+{
+    if (pServerInfo->description)
+        free(pServerInfo->description);
+    if (pServerInfo->version)
+        free(pServerInfo->version);
+}
+
+void lscp_server_info_reset ( lscp_server_info_t *pServerInfo )
+{
+    lscp_server_info_free(pServerInfo);
+    lscp_server_info_init(pServerInfo);
+}
+
+
+//-------------------------------------------------------------------------
 // Engine info struct helper functions.
 
 void lscp_engine_info_init ( lscp_engine_info_t *pEngineInfo )

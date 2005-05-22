@@ -123,7 +123,7 @@ int client_test_params ( lscp_param_t *pParams )
 int client_test_param_info ( lscp_param_info_t *pParamInfo )
 {
     const char *pszType;
-    
+
     if (pParamInfo == NULL) {
         printf("(nil)\n");
         return 1;
@@ -189,6 +189,20 @@ int client_test_device_port_info ( lscp_device_port_info_t *pDevicePortInfo )
     printf("{\n");
     printf("    device_port_info.name          = %s\n", pDevicePortInfo->name);
     printf("    device_port_info.params        = "); client_test_params(pDevicePortInfo->params);
+    printf("  }\n");
+    return 0;
+}
+
+
+int client_test_server_info ( lscp_server_info_t *pServerInfo )
+{
+    if (pServerInfo == NULL) {
+        printf("(nil)\n");
+        return 1;
+    }
+    printf("{\n");
+    printf("    server_info.description        = %s\n", pServerInfo->description);
+    printf("    server_info.version            = %s\n", pServerInfo->version);
     printf("  }\n");
     return 0;
 }
@@ -260,6 +274,7 @@ typedef lscp_driver_info_t *        driver_info;
 typedef lscp_device_info_t *        device_info;
 typedef lscp_device_port_info_t *   device_port_info;
 typedef lscp_param_info_t  *        param_info;
+typedef lscp_server_info_t *        server_info;
 typedef lscp_engine_info_t *        engine_info;
 typedef lscp_channel_info_t *       channel_info;
 typedef lscp_buffer_fill_t *        buffer_fill;
@@ -277,7 +292,7 @@ typedef lscp_buffer_fill_t *        buffer_fill;
 void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const char *pszAudioDriver, int iAudioDevice, const char *pszMidiDriver, int iMidiDevice )
 {
     int iSamplerChannel;
-    
+
     printf("\n--- pszEngine=\"%s\" pszAudioDevice=\"%s\" iAudioDevice=%d pszMidiDevice=\"%s\" iMidiDevice=%d ---\n", pszEngine, pszAudioDriver, iAudioDevice, pszMidiDriver, iMidiDevice);
     CLIENT_TEST(pClient, engine_info, lscp_get_engine_info(pClient, pszEngine));
     CLIENT_TEST(pClient, int, lscp_get_channels(pClient));
@@ -403,7 +418,7 @@ void client_test_audio_driver ( lscp_client_t *pClient, const char *pszAudioDriv
     lscp_driver_info_t *pDriverInfo;
     const char *pszParam;
     int i;
-    
+
     printf("\n--- pszAudioDriver=\"%s\" ---\n", pszAudioDriver);
     CLIENT_TEST(pClient, driver_info, pDriverInfo = lscp_get_audio_driver_info(pClient, pszAudioDriver));
     if (pDriverInfo && pDriverInfo->parameters) {
@@ -428,6 +443,8 @@ void client_test_all ( lscp_client_t *pClient, int step )
     g_test_step  = step;
     g_test_count = 0;
     g_test_fails = 0;
+
+    CLIENT_TEST(pClient, server_info, lscp_get_server_info(pClient));
 
     CLIENT_TEST(pClient, int, lscp_get_available_audio_drivers(pClient));
     CLIENT_TEST(pClient, szsplit, ppszAudioDrivers = lscp_list_available_audio_drivers(pClient));

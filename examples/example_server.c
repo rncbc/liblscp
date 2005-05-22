@@ -348,6 +348,14 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             // GET AVAILABLE_ENGINES
             pszResult = "3\r\n";
         }
+        else if (lscp_parser_test2(&tok, "SERVER", "INFO")) {
+            // Getting information about the server.
+            // GET SERVER INFO
+            sprintf(szTemp, "DESCRIPTION: example_server (%s) %s\r\n"
+                "VERSION: %s\r\n", lscp_server_package(),
+                lscp_server_build(), lscp_server_version());
+            pszResult = szTemp;
+        }
         else if (lscp_parser_test2(&tok, "ENGINE", "INFO")) {
             // Getting information about an engine.
             // GET ENGINE INFO <engine-name>

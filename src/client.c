@@ -337,6 +337,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     lscp_device_port_info_init(&(pClient->midi_port_info));
     lscp_param_info_init(&(pClient->audio_channel_param_info));
     lscp_param_info_init(&(pClient->midi_port_param_info));
+    lscp_server_info_init(&(pClient->server_info));
     lscp_engine_info_init(&(pClient->engine_info));
     lscp_channel_info_init(&(pClient->channel_info));
     // Initialize error stuff.
@@ -400,6 +401,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     // Free up all cached members.
     lscp_channel_info_free(&(pClient->channel_info));
     lscp_engine_info_free(&(pClient->engine_info));
+    lscp_server_info_free(&(pClient->server_info));
     lscp_param_info_free(&(pClient->midi_port_param_info));
     lscp_param_info_free(&(pClient->audio_channel_param_info));
     lscp_device_port_info_free(&(pClient->midi_port_info));
@@ -1464,6 +1466,56 @@ lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
 lscp_status_t lscp_reset_sampler ( lscp_client_t *pClient )
 {
     return lscp_client_query(pClient, "RESET\r\n");
+}
+
+
+/**
+ *  Getting information about the server.
+ *  GET SERVER INFO
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns A pointer to a @ref lscp_server_info_t structure, with all the
+ *  information of the current connected server, or NULL in case of failure.
+ */
+lscp_server_info_t *lscp_get_server_info ( lscp_client_t *pClient )
+{
+    lscp_server_info_t *pServerInfo;
+    const char *pszResult;
+    const char *pszSeps = ":";
+    const char *pszCrlf = "\r\n";
+    char *pszToken;
+    char *pch;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    pServerInfo = &(pClient->server_info);
+    lscp_engine_info_reset(pServerInfo);
+
+    if (lscp_client_call(pClient, "GET SERVER INFO\r\n") == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (strcasecmp(pszToken, "DESCRIPTION") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pServerInfo->description), &pszToken);
+            }
+            else if (strcasecmp(pszToken, "VERSION") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pServerInfo->version), &pszToken);
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+        }
+    }
+    else pServerInfo = NULL;
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return pServerInfo;
 }
 
 

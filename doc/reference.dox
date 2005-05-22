@@ -135,6 +135,7 @@ LSCP comand, and regarding the sampler channel space:<pre>
     @ref lscp_reset_channel (client, channel);
     @ref lscp_remove_channel (client, channel);
     @ref lscp_reset_sampler (client);
+    @ref lscp_get_server_info (client);
 
 </pre>For the audio output and MIDI input device configuration interface,
 the following functions are respectively defined in <lscp/@ref:device.h>:<pre>
