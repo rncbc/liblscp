@@ -3,6 +3,10 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.3.0  2005-06-09  [bug #11] Timeout flush idiosyncrasy is now a feature;
+                   this just tries to flush the receive buffer whenever
+                   any previous transaction has failed due to a timeout.
+
 0.2.8  2005-05-22  More LSCP command syntax changes, particularly on the
                    event subscription ones: the LSCP_EVENT_CHANNELS event
                    definition were renamed to LSCP_EVENT_CHANNEL_COUNT,

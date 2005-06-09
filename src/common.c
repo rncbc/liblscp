@@ -133,6 +133,23 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
         return ret;
     }
 
+	// Check if last transaction has timed out, in which case
+	// we'll retry wait and flush for some pending garbage...
+	if (pClient->iTimeoutCount > 0) {
+		cchResult = sizeof(achResult);
+		ret = lscp_client_recv(pClient, achResult, &cchResult, pClient->iTimeout);
+		if (ret == LSCP_OK) {
+			// We've got rid of timeout trouble (hopefully).
+			pClient->iTimeoutCount = 0;
+		} else {
+			// Things are worse than before. Fake a result message.
+			iErrno = (int) ret;
+			pszResult = "Failure during flush timeout operation";
+			lscp_client_set_result(pClient, pszResult, iErrno);
+			return ret;
+		}
+	}
+
     // Send data, and then, wait for the result...
     cchQuery = strlen(pszQuery);
     if (send(pClient->cmd.sock, pszQuery, cchQuery, 0) < cchQuery) {
@@ -188,6 +205,8 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
         break;
 
       case LSCP_TIMEOUT:
+		// We have trouble...
+       	pClient->iTimeoutCount++;
         // Fake a result message.
         pszResult = "Timeout during receive operation";
         iErrno = (int) ret;
