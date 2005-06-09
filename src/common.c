@@ -72,7 +72,7 @@ lscp_status_t lscp_client_recv ( lscp_client_t *pClient, char *pchBuffer, int *p
     // Use the timeout select feature...
     if (iTimeout < 1)
         iTimeout = pClient->iTimeout;
-    if (iTimeout > 1000) {
+    if (iTimeout >= 1000) {
         tv.tv_sec = iTimeout / 1000;
         iTimeout -= tv.tv_sec * 1000;
     }

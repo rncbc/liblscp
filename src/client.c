@@ -69,7 +69,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
 
         // Use the timeout (x10) select feature ...
         iTimeout = 10 * pClient->iTimeout;
-        if (iTimeout > 1000) {
+        if (iTimeout >= 1000) {
             tv.tv_sec = iTimeout / 1000;
             iTimeout -= tv.tv_sec * 1000;
         }

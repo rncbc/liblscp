@@ -6,6 +6,12 @@ ChangeLog
 0.3.0  2005-06-09  [bug #11] Timeout flush idiosyncrasy is now a feature;
                    this just tries to flush the receive buffer whenever
                    any previous transaction has failed due to a timeout.
+                   
+                   Fixed an off-by-one timeout quirk, that has been a real 
+				   showstopper on Mac OS X at least, which is incidental
+				   to qsampler's default timeout setting of 1000 msecs,
+				   giving up systematically on select() due to "Invalid 
+				   argument" (EINVAL).
 
 0.2.8  2005-05-22  More LSCP command syntax changes, particularly on the
                    event subscription ones: the LSCP_EVENT_CHANNELS event
