@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 19
+%define release 7
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -57,8 +57,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
-* Thu Jun  9 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
-- Prepare 0.3.0 release featuring timeout flush idiosyncrasy.
+* Thu Jun 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.3.0 release featuring timeout flush idiosyncrasies.
 
 * Sun May 22 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Prepare 0.2.9 release due to event subscription LSCP command changes.

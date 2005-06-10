@@ -206,7 +206,7 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
 
       case LSCP_TIMEOUT:
 		// We have trouble...
-       	pClient->iTimeoutCount++;
+		pClient->iTimeoutCount++;
         // Fake a result message.
         pszResult = "Timeout during receive operation";
         iErrno = (int) ret;

@@ -348,7 +348,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     pClient->iStreamCount = 0;
     // Default timeout value.
     pClient->iTimeout = LSCP_TIMEOUT_MSECS;
-    pClient->iTimeoutCount = 0;
+	pClient->iTimeoutCount = 0;
 
     // Initialize the transaction mutex.
     lscp_mutex_init(pClient->mutex);

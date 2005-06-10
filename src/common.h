@@ -77,7 +77,7 @@ struct _lscp_client_t
     lscp_mutex_t        mutex;
     lscp_cond_t         cond;
     // Flag last transaction timedout.
-    int                 iTimeoutCount;
+	int                 iTimeoutCount;
 };
 
 
