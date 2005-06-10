@@ -1,7 +1,37 @@
+liblscp (0.3.0-1) unstable; urgency=low
+
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 10 Jun 2005 13:33:26 +0200
+
+liblscp (0.2.cvs20050602-1) unstable; urgency=low
+
+  * another fix to multiple port build error
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Thu,  2 Jun 2005 17:42:00 +1000
+
+liblscp (0.2.cvs20050524-3) unstable; urgency=low
+
+  * Properly fixed multuple port build error
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Thu,  2 Jun 2005 17:27:48 +1000
+
+liblscp (0.2.cvs20050524-2) unstable; urgency=low
+
+  * Fixed multiple port build error (Closes: #311062)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Sun, 29 May 2005 23:08:28 +1000
+
+liblscp (0.2.cvs20050524-1) unstable; urgency=low
+
+  * Incorperating new upstream changes (Closes: #280580)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Tue, 24 May 2005 15:20:23 +1000
+
 liblscp (0.2.1-1) unstable; urgency=low
 
   * renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
   * Altered Christian's original changelog (Closes: #280580)
   * altered rules to gen. configure script
-	
+
  -- Matt Flax <flatmax@pgb.unsw.edu.au>  Tue, 13 Jul 2004 20:19:13 +0200

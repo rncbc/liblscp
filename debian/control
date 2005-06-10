@@ -1,5 +1,5 @@
 Source: liblscp
-Section: devel
+Section: sound
 Priority: optional
 Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
 Build-Depends: debhelper (>= 4.0.0)
@@ -10,6 +10,8 @@ Section: libdevel
 Architecture: any
 Depends: liblscp (= ${Source-Version})
 Description: LinuxSampler Control Protocol wrapper library
+ This package is for use with the LinuxSampler audio sampling
+ engine / library and packages.
  Wraps the LinuxSampler network protocol and offers a
  convenient API in form of a C library.
  .
@@ -25,6 +27,8 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: LinuxSampler Control Protocol wrapper library
+ This package is for use with the LinuxSampler audio sampling
+ engine /  library and packages.
  Wraps the LinuxSampler network protocol and offers a
  convenient API in form of a C library.
  .
