@@ -7,10 +7,9 @@ INSTIMAGES = html/doxygen.png
 all-local: doxygen-build.stamp
 
 doxygen-build.stamp: $(DOX) reference.dox \
-	@top_srcdir@/lscp/thread.h @top_srcdir@/lscp/socket.h \
-	@top_srcdir@/lscp/client.h @top_srcdir@/lscp/device.h \
-    @top_srcdir@/lscp/event.h \
-	@top_srcdir@/examples/server.h @top_srcdir@/examples/parser.h
+	../lscp/thread.h ../lscp/socket.h \
+	../lscp/client.h ../lscp/device.h ../lscp/event.h \
+	../examples/server.h ../examples/parser.h
 	@echo '*** Running doxygen ***'
 	doxygen $(DOX)
 	touch doxygen-build.stamp

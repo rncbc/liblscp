@@ -1,5 +1,5 @@
 
-AM_CFLAGS = -Wall -I@top_srcdir@
+AM_CFLAGS = -Wall -I..
 
 lib_LTLIBRARIES = liblscp.la
 

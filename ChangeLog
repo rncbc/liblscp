@@ -3,6 +3,9 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.3.1  2005-07-21  [bug #21] Fixed automake support for separate build
+                   directory.
+
 0.3.0  2005-06-10  [bug #11] Timeout flush idiosyncrasy is now a feature;
                    this just tries to flush the receive buffer whenever
                    any previous transaction has failed due to a timeout.
