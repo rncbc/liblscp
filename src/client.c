@@ -1464,7 +1464,7 @@ lscp_status_t lscp_set_channel_mute ( lscp_client_t *pClient, int iSamplerChanne
     if (iSamplerChannel < 0 || iMute < 0 || iMute > 1)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL MUTE %d %g\r\n", iSamplerChannel, iMute);
+    sprintf(szQuery, "SET CHANNEL MUTE %d %d\r\n", iSamplerChannel, iMute);
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1488,7 +1488,7 @@ lscp_status_t lscp_set_channel_solo ( lscp_client_t *pClient, int iSamplerChanne
     if (iSamplerChannel < 0 || iSolo < 0 || iSolo > 1)
         return LSCP_FAILED;
 
-    sprintf(szQuery, "SET CHANNEL SOLO %d %g\r\n", iSamplerChannel, iSolo);
+    sprintf(szQuery, "SET CHANNEL SOLO %d %d\r\n", iSamplerChannel, iSolo);
     return lscp_client_query(pClient, szQuery);
 }
 
