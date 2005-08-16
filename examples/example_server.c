@@ -78,7 +78,9 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
                             "MIDI_INPUT_DEVICE: 0\r\n"
                             "MIDI_INPUT_PORT: 0\r\n"
                             "MIDI_INPUT_CHANNEL: ALL\r\n"
-                            "VOLUME: 0.5\r\n";
+                            "VOLUME: 0.5\r\n"
+                            "MUTE: FALSE\r\n"
+                            "SOLO: TRUE\r\n";
             }
             else if (lscp_parser_test(&tok, "VOICE_COUNT")) {
                 // Current number of active voices:
@@ -434,6 +436,14 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             if (lscp_parser_test(&tok, "VOLUME")) {
                 // Setting channel volume:
                 // SET CHANNEL VOLUME <sampler-channel> <volume>
+            }
+            else if (lscp_parser_test(&tok, "MUTE")) {
+                // Muting a sampler channel:
+                // SET CHANNEL MUTE <sampler-channel> <mute>
+            }
+            else if (lscp_parser_test(&tok, "SOLO")) {
+                // Soloing a sampler channel:
+                // SET CHANNEL SOLO <sampler-channel> <solo>
             }
             else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_TYPE")) {
                 // Setting audio output type:

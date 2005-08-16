@@ -125,6 +125,8 @@ LSCP comand, and regarding the sampler channel space:<pre>
     @ref lscp_set_channel_midi_type (client, channel, midi_type);
     @ref lscp_set_channel_midi_port (client, channel, midi_port);
     @ref lscp_set_channel_midi_channel (client, channel, midi_channel);
+    @ref lscp_set_channel_mute (client, channel, mute);
+    @ref lscp_set_channel_solo (client, channel, solo);
     @ref lscp_set_channel_volume (client, channel, volume);
     @ref lscp_load_instrument (client, file_name, instr_index, channel);
     @ref lscp_load_instrument_non_modal (client, file_name, instr_index, channel);

@@ -3,8 +3,13 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.3.1  2005-07-21  [bug #21] Fixed automake support for separate build
+0.3.1  2005-08-16  [bug #21] Fixed automake support for separate build
                    directory.
+                   
+                   Added support to sampler channel MUTE/SOLO states:
+                     lscp_set_channel_mute();
+                     lscp_set_channel_solo();
+                   with corresponding new lscp_channel_info_t fields.
 
 0.3.0  2005-06-10  [bug #11] Timeout flush idiosyncrasy is now a feature;
                    this just tries to flush the receive buffer whenever

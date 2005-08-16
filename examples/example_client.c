@@ -241,6 +241,8 @@ int client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
     printf("    channel_info.midi_port         = %d\n", pChannelInfo->midi_port);
     printf("    channel_info.midi_channel      = %d\n", pChannelInfo->midi_channel);
     printf("    channel_info.volume            = %g\n", pChannelInfo->volume);
+    printf("    channel_info.mute              = %d\n", pChannelInfo->mute);
+    printf("    channel_info.solo              = %d\n", pChannelInfo->solo);
     printf("  }\n");
     return 0;
 }
@@ -315,6 +317,8 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
     CLIENT_TEST(pClient, status, lscp_set_channel_midi_channel(pClient, iSamplerChannel, 0));
     CLIENT_TEST(pClient, status, lscp_set_channel_midi_port(pClient, iSamplerChannel, 0));
     CLIENT_TEST(pClient, status, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
+    CLIENT_TEST(pClient, status, lscp_set_channel_mute(pClient, iSamplerChannel, 1));
+    CLIENT_TEST(pClient, status, lscp_set_channel_solo(pClient, iSamplerChannel, 1));
     CLIENT_TEST(pClient, channel_info, lscp_get_channel_info(pClient, iSamplerChannel));
     CLIENT_TEST(pClient, status, lscp_reset_channel(pClient, iSamplerChannel));
     CLIENT_TEST(pClient, status, lscp_remove_channel(pClient, iSamplerChannel));

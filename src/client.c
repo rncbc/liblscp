@@ -1053,6 +1053,16 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
                 if (pszToken)
                     pChannelInfo->volume = (float) atof(lscp_ltrim(pszToken));
             }
+            else if (strcasecmp(pszToken, "MUTE") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pChannelInfo->mute = (strcasecmp(lscp_unquote(&pszToken, 0), "TRUE") == 0);
+            }
+            else if (strcasecmp(pszToken, "SOLO") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pChannelInfo->solo = (strcasecmp(lscp_unquote(&pszToken, 0), "TRUE") == 0);
+            }
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
         }
     }
@@ -1431,6 +1441,54 @@ lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChan
         return LSCP_FAILED;
 
     sprintf(szQuery, "SET CHANNEL VOLUME %d %g\r\n", iSamplerChannel, fVolume);
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Muting a sampler channel:
+ *  SET CHANNEL MUTE <sampler-channel> <mute>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iMute            Sampler channel mute state as a boolean value,
+ *                          either 1 (one) to mute the channel or 0 (zero)
+ *                          to unmute the channel.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_channel_mute ( lscp_client_t *pClient, int iSamplerChannel, int iMute )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (iSamplerChannel < 0 || iMute < 0 || iMute > 1)
+        return LSCP_FAILED;
+
+    sprintf(szQuery, "SET CHANNEL MUTE %d %g\r\n", iSamplerChannel, iMute);
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Soloing a sampler channel:
+ *  SET CHANNEL SOLO <sampler-channel> <solo>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iSolo            Sampler channel solo state as a boolean value,
+ *                          either 1 (one) to solo the channel or 0 (zero)
+ *                          to unsolo the channel.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_channel_solo ( lscp_client_t *pClient, int iSamplerChannel, int iSolo )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (iSamplerChannel < 0 || iSolo < 0 || iSolo > 1)
+        return LSCP_FAILED;
+
+    sprintf(szQuery, "SET CHANNEL SOLO %d %g\r\n", iSamplerChannel, iSolo);
     return lscp_client_query(pClient, szQuery);
 }
 

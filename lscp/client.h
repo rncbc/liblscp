@@ -72,6 +72,8 @@ typedef struct _lscp_channel_info_t
     int           midi_port;
     int           midi_channel;
     float         volume;
+    int           mute;
+    int           solo;
 
 } lscp_channel_info_t;
 
@@ -174,6 +176,9 @@ lscp_status_t           lscp_set_channel_midi_device    (lscp_client_t *pClient,
 lscp_status_t           lscp_set_channel_midi_port      (lscp_client_t *pClient, int iSamplerChannel, int iMidiPort);
 lscp_status_t           lscp_set_channel_midi_channel   (lscp_client_t *pClient, int iSamplerChannel, int iMidiChannel);
 lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient, int iSamplerChannel, float fVolume);
+
+lscp_status_t           lscp_set_channel_mute           (lscp_client_t *pClient, int iSamplerChannel, int iMute);
+lscp_status_t           lscp_set_channel_solo           (lscp_client_t *pClient, int iSamplerChannel, int iSolo);
 
 lscp_status_t           lscp_reset_channel              (lscp_client_t *pClient, int iSamplerChannel);
 
