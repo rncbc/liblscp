@@ -1,3 +1,9 @@
+liblscp (0.3.1-1) unstable; urgency=low
+
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Tue, 16 Aug 2005 19:54:04 +0200
+
 liblscp (0.3.0-1) unstable; urgency=low
 
   * new release
