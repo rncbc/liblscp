@@ -743,6 +743,8 @@ void lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
     pChannelInfo->midi_port         = 0;
     pChannelInfo->midi_channel      = 0;
     pChannelInfo->volume            = 0.0;
+    pChannelInfo->mute              = 0;
+    pChannelInfo->solo              = 0;
 }
 
 void lscp_channel_info_free ( lscp_channel_info_t *pChannelInfo )

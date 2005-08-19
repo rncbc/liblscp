@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 8
+%define release 9
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -57,6 +57,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Tue Aug 19 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed for 0.3.2 release.
+
 * Tue Aug 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Prepare 0.3.1 release for sampler channel mute/solo support.
 

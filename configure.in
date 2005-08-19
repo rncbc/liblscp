@@ -2,7 +2,7 @@
 AC_INIT(src/client.c)
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(liblscp, 0.3.1)
+AM_INIT_AUTOMAKE(liblscp, 0.3.2)
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:
@@ -20,7 +20,7 @@ AM_INIT_AUTOMAKE(liblscp, 0.3.1)
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-SHARED_VERSION_INFO="0:9:0"
+SHARED_VERSION_INFO="0:10:0"
 
 AC_SUBST(SHARED_VERSION_INFO)
 
@@ -50,5 +50,5 @@ AC_ENABLE_SHARED(yes)
 AC_CHECK_PROG(ac_doxygen, doxygen, [doc], [])
 AC_SUBST(ac_doxygen)
 
-AC_OUTPUT(Makefile src/Makefile lscp/Makefile examples/Makefile doc/Makefile doc/liblscp.doxygen lscp.pc liblscp.spec lscp/version.h)
+AC_OUTPUT(Makefile src/Makefile lscp/Makefile examples/Makefile debian/Makefile doc/Makefile doc/liblscp.doxygen lscp.pc liblscp.spec lscp/version.h)
 
