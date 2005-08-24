@@ -8,6 +8,8 @@ ChangeLog
 
                    Include debian files into distribution.
 
+                   Renamed configure.in to newer configure.ac.
+
 0.3.1  2005-08-16  [bug #21] Fixed automake support for separate build
                    directory.
 
