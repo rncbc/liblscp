@@ -57,7 +57,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
-* Tue Aug 19 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+* Sun Aug 28 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Fixed for 0.3.2 release.
 
 * Tue Aug 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
