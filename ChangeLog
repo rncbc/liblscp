@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.3.2  2005-08-28  Fixed missing initialization bug on lscp_channel_info_t
+0.3.2  2005-08-29  Fixed missing initialization bug on lscp_channel_info_t
                    new struct fields (mute/solo).
 
                    Include debian files into distribution.
