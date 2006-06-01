@@ -455,7 +455,7 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
     lscp_server_t *pServer;
     lscp_socket_t sock;
     struct sockaddr_in addr;
-    int cAddr;
+    socklen_t cAddr;
     int iSockOpt = (-1);
 
     if (pfnCallback == NULL) {
