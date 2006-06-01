@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 9
+%define release 10
 %define prefix  @prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -9,7 +9,7 @@ Name:		%{name}
 Version:	%{version}
 Release:	%{release}
 Prefix:		%{prefix}
-Copyright:	LGPL
+License:	LGPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.gz
 URL:		http://www.linuxsampler.org/
@@ -40,6 +40,12 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
 make prefix=$RPM_BUILD_ROOT%{prefix} install
 
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+
 %clean
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 
@@ -57,6 +63,11 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Thu Jun 01 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Take a chance for a new 0.3.3 release.
+- Changed deprecated copyright attribute to license.
+- Added ldconfig to post-(un)install steps.
+
 * Mon Aug 29 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Fixed for 0.3.2 release.
 

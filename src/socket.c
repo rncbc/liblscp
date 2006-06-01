@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -127,11 +127,11 @@ void lscp_socket_herror ( const char *pszPrefix )
 static void _lscp_socket_getopt_bool ( lscp_socket_t sock, const char *pszOptName, int iOptName )
 {
     int iSockOpt;
-    int iSockLen = sizeof(int);
+    socklen_t cSockLen = sizeof(int);
     char szPrefix[33];
 
     sprintf(szPrefix, "  %s\t", pszOptName);
-    if (getsockopt(sock, SOL_SOCKET, iOptName, (char *) &iSockOpt, &iSockLen) == SOCKET_ERROR)
+    if (getsockopt(sock, SOL_SOCKET, iOptName, (char *) &iSockOpt, &cSockLen) == SOCKET_ERROR)
         lscp_socket_perror(szPrefix);
     else
         fprintf(stderr, "%s: %s\n", szPrefix, (iSockOpt ? "ON" : "OFF"));
@@ -140,11 +140,11 @@ static void _lscp_socket_getopt_bool ( lscp_socket_t sock, const char *pszOptNam
 static void _lscp_socket_getopt_int  ( lscp_socket_t sock, const char *pszOptName, int iOptName )
 {
     int iSockOpt;
-    int iSockLen = sizeof(int);
+    socklen_t cSockLen = sizeof(int);
     char szPrefix[33];
 
     sprintf(szPrefix, "  %s\t", pszOptName);
-    if (getsockopt(sock, SOL_SOCKET, iOptName, (char *) &iSockOpt, &iSockLen) == SOCKET_ERROR)
+    if (getsockopt(sock, SOL_SOCKET, iOptName, (char *) &iSockOpt, &cSockLen) == SOCKET_ERROR)
         lscp_socket_perror(szPrefix);
     else
         fprintf(stderr, "%s: %d\n", szPrefix, iSockOpt);

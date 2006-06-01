@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -260,7 +260,7 @@ static void _lscp_server_thread_proc ( lscp_server_t *pServer )
 {
     lscp_socket_t sock;
     struct sockaddr_in addr;
-    int cAddr;
+    socklen_t cAddr;
     lscp_connect_t *pConnect;
 
 #ifdef DEBUG
@@ -298,7 +298,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
 
     lscp_socket_t sock;
     struct sockaddr_in addr;
-    int cAddr;
+    socklen_t cAddr;
     lscp_connect_t *pConnect;
 
 #ifdef DEBUG

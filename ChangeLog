@@ -3,6 +3,13 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.3.3  2006-06-01  Fixed some compilation warnings due to suspicious type
+                   casting and unsused header macros.
+
+                   Changed deprecated copyright attribute to license
+                   and added ldconfig to post-(un)install steps
+                   to liblscp.spec (RPM).
+
 0.3.2  2005-08-29  Fixed missing initialization bug on lscp_channel_info_t
                    new struct fields (mute/solo).
 

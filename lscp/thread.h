@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -108,9 +108,9 @@ lscp_status_t  lscp_thread_cancel  (lscp_thread_t *pThread);
 lscp_status_t  lscp_thread_destroy (lscp_thread_t *pThread);
 
 #if defined(WIN32)
-#define lscp_thread_exit()  pthread_exit(NULL)
-#else
 #define lscp_thread_exit()  ExitThread(0)
+#else
+#define lscp_thread_exit()  pthread_exit(NULL)
 #endif
 
 #if defined(__cplusplus)

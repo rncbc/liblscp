@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,7 @@ extern "C" {
 
 #if defined(WIN32)
 typedef SOCKET lscp_socket_t;
+typedef int socklen_t;
 #else
 typedef int lscp_socket_t;
 #define INVALID_SOCKET  -1
