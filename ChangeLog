@@ -3,6 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.3.4  2006-09-24  GPL address update.
+
 0.3.3  2006-06-01  Fixed some compilation warnings due to suspicious type
                    casting and unsused header macros.
 
