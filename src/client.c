@@ -340,6 +340,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     lscp_server_info_init(&(pClient->server_info));
     lscp_engine_info_init(&(pClient->engine_info));
     lscp_channel_info_init(&(pClient->channel_info));
+    lscp_midi_instrument_info_init(&(pClient->midi_instrument_info));
     // Initialize error stuff.
     pClient->pszResult = NULL;
     pClient->iErrno = -1;
@@ -400,6 +401,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     lscp_mutex_lock(pClient->mutex);
 
     // Free up all cached members.
+    lscp_midi_instrument_info_free(&(pClient->midi_instrument_info));
     lscp_channel_info_free(&(pClient->channel_info));
     lscp_engine_info_free(&(pClient->engine_info));
     lscp_server_info_free(&(pClient->server_info));
@@ -1275,6 +1277,8 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
  *  @param pszAudioDriver   Audio output driver type (e.g. "ALSA" or "JACK").
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioDriver )
 {
@@ -1295,6 +1299,8 @@ lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSampler
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
  *  @param iAudioDevice     Audio output device number identifier.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_set_channel_audio_device ( lscp_client_t *pClient, int iSamplerChannel, int iAudioDevice )
 {
@@ -1360,6 +1366,8 @@ lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerC
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
  *  @param iMidiDevice      MIDI input device number identifier.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_set_channel_midi_device ( lscp_client_t *pClient, int iSamplerChannel, int iMidiDevice )
 {
@@ -1575,6 +1583,291 @@ lscp_server_info_t *lscp_get_server_info ( lscp_client_t *pClient )
     lscp_mutex_unlock(pClient->mutex);
 
     return pServerInfo;
+}
+
+
+/**
+ *  Current total number of active voices:
+ *  GET TOTAL_VOICE_COUNT
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The total number of voices currently active,
+ *  -1 in case of failure.
+ */
+int lscp_get_total_voice_count ( lscp_client_t *pClient )
+{
+    int iVoiceCount = -1;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET TOTAL_VOICE_COUNT\r\n") == LSCP_OK)
+        iVoiceCount = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iVoiceCount;
+}
+
+
+/**
+ *  Maximum amount of active voices:
+ *  GET TOTAL_VOICE_COUNT_MAX
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The maximum amount of voices currently active,
+ *  -1 in case of failure.
+ */
+int lscp_get_total_voice_count_max ( lscp_client_t *pClient )
+{
+    int iVoiceCount = -1;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET TOTAL_VOICE_COUNT_MAX\r\n") == LSCP_OK)
+        iVoiceCount = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iVoiceCount;
+}
+
+
+/**
+ *  Create or replace a MIDI instrumnet map entry:
+ *  MAP MIDI_INSTRUMENT <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+ *      <engine-name> <filename> <instr-index> <volume> <load-mode> [<name>]
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param pMidiInstr       MIDI instrument bank and program parameter key.
+ *  @param pszEngineName    Engine name.
+ *  @param pszFileName      Instrument file name.
+ *  @param iInstrIndex      Instrument index number.
+ *  @param fVolume          Reflects the master volume of the instrument as
+ *                          a positive floating point number, where a value 
+ *                          less than 1.0 for attenuation, and greater than
+ *                          1.0 for amplification.
+ *  @param load_mode        Instrument load life-time strategy, either
+ *                          @ref LSCP_LOAD_DEFAULT, or
+ *                          @ref LSCP_LOAD_ON_DEMAND, or
+ *                          @ref LSCP_LOAD_ON_DEMAND_HOLD, or
+ *                          @ref LSCP_LOAD_PERSISTENT.
+ *  @param pszName          Instrument custom name for the map entry.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
+        return LSCP_FAILED;
+    if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
+        return LSCP_FAILED;
+    if (pMidiInstr->program < 0 || pMidiInstr->program > 127)
+        return LSCP_FAILED;
+    if (pszEngineName == NULL || pszFileName == NULL)
+        return LSCP_FAILED;
+
+	if (fVolume < 0.0f)
+		fVolume = 1.0f;
+
+    sprintf(szQuery, "MAP MIDI_INSTRUMENT %d %d %d %s '%s' %d %g",
+		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program,
+		pszEngineName, pszFileName, iInstrIndex, fVolume);
+
+	switch (load_mode) {
+	case LSCP_LOAD_PERSISTENT:
+		strcat(szQuery, " PERSISTENT");
+		break;
+	case LSCP_LOAD_ON_DEMAND_HOLD:
+		strcat(szQuery, " ON_DEMAND_HOLD");
+		break;
+	case LSCP_LOAD_ON_DEMAND:
+		strcat(szQuery, " ON_DEMAND_HOLD");
+		break;
+	case LSCP_LOAD_DEFAULT:
+	default:
+		break;
+	}
+
+	if (pszName)
+		sprintf(szQuery + strlen(szQuery), " '%s'", pszName);
+
+	strcat(szQuery, "\r\n");
+
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Remove an entry from the MIDI instrument map:
+ *  UNMAP MIDI_INSTRUMENT <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param pMidiInstr   MIDI instrument bank and program parameter key.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_unmap_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr )
+{
+    char szQuery[LSCP_BUFSIZ];
+
+    if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
+        return LSCP_FAILED;
+    if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
+        return LSCP_FAILED;
+    if (pMidiInstr->program < 0 || pMidiInstr->program > 127)
+        return LSCP_FAILED;
+
+    sprintf(szQuery, "UNMAP MIDI_INSTRUMENT %d %d %d\r\n",
+		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program);
+
+    return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Get the total count of MIDI instrument map entries:
+ *  GET MIDI_INSTRUMENTS
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current total number of MIDI instrument map entries
+ *  on success, -1 otherwise.
+ */
+int lscp_get_midi_instruments ( lscp_client_t *pClient )
+{
+    int iInstruments = -1;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (lscp_client_call(pClient, "GET MIDI_INSTRUMENTS\r\n") == LSCP_OK)
+        iInstruments = atoi(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return iInstruments;
+}
+
+
+/**
+ *  Getting information about a MIDI instrument map entry:
+ *  GET MIDI_INSTRUMENT INFO <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param pMidiInstr   MIDI instrument bank and program parameter key.
+ *
+ *  @returns A pointer to a @ref lscp_midi_instrument_info_t structure,
+ *  with all the information of the given MIDI instrument map entry,
+ *  or NULL in case of failure.
+ */
+lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr )
+{
+    lscp_midi_instrument_info_t *pInstrInfo;
+    char szQuery[LSCP_BUFSIZ];
+    const char *pszResult;
+    const char *pszSeps = ":";
+    const char *pszCrlf = "\r\n";
+    char *pszToken;
+    char *pch;
+
+    if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
+        return NULL;
+    if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
+        return NULL;
+    if (pMidiInstr->program < 0 || pMidiInstr->program > 127)
+        return NULL;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    pInstrInfo = &(pClient->midi_instrument_info);
+    lscp_midi_instrument_info_reset(pInstrInfo);
+
+    sprintf(szQuery, "GET MIDI_INSTRUMENT INFO %d %d %d\r\n",
+		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program);
+    if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+        pszResult = lscp_client_get_result(pClient);
+        pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+        while (pszToken) {
+            if (strcasecmp(pszToken, "NAME") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pInstrInfo->name), &pszToken);
+            }
+            else if (strcasecmp(pszToken, "ENGINE_NAME") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pInstrInfo->engine_name), &pszToken);
+            }
+            else if (strcasecmp(pszToken, "INSTRUMENT_FILE") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pInstrInfo->instrument_file), &pszToken);
+            }
+            else if (strcasecmp(pszToken, "INSTRUMENT_NR") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pInstrInfo->instrument_nr = atoi(lscp_ltrim(pszToken));
+            }
+            else if (strcasecmp(pszToken, "INSTRUMENT_NAME") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    lscp_unquote_dup(&(pInstrInfo->instrument_name), &pszToken);
+            }
+            else if (strcasecmp(pszToken, "LOAD_MODE") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken) {
+                    pszToken = lscp_ltrim(pszToken);
+                    if (strcasecmp(pszToken, "ON_DEMAND") == 0)
+                        pInstrInfo->load_mode = LSCP_LOAD_ON_DEMAND;
+                    else
+                    if (strcasecmp(pszToken, "ON_DEMAND_HOLD") == 0)
+                        pInstrInfo->load_mode = LSCP_LOAD_ON_DEMAND_HOLD;
+                    else
+                    if (strcasecmp(pszToken, "PERSISTENT") == 0)
+                        pInstrInfo->load_mode = LSCP_LOAD_PERSISTENT;
+                    else
+                        pInstrInfo->load_mode = LSCP_LOAD_DEFAULT;
+                }
+            }
+            else if (strcasecmp(pszToken, "VOLUME") == 0) {
+                pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+                if (pszToken)
+                    pInstrInfo->volume = (float) atof(lscp_ltrim(pszToken));
+            }
+            pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+		}
+    }
+    else pInstrInfo = NULL;
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return pInstrInfo;
+}
+
+
+/**
+ *  Clear the MIDI instrumnet map:
+ *  CLEAR MIDI_INSTRUMENTS
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_clear_midi_instruments  ( lscp_client_t *pClient )
+{
+    return lscp_client_query(pClient, "CLEAR MIDI_INSTRUMENTS\r\n");
 }
 
 

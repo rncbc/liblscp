@@ -138,6 +138,17 @@ LSCP comand, and regarding the sampler channel space:<pre>
     @ref lscp_remove_channel (client, channel);
     @ref lscp_reset_sampler (client);
     @ref lscp_get_server_info (client);
+    @ref lscp_get_server_info (client);
+    @ref lscp_get_total_voice_count (client);
+    @ref lscp_get_total_voice_count_max (client);
+
+</pre>Specific to MIDI instrument mapping interface:<pre>
+
+    @ref lscp_map_midi_instrument (client, midi_instr, engine_name, file_name, instr_index, volume, load_mode, name);
+    @ref lscp_unmap_midi_instrument (client, midi_instr);
+    @ref lscp_get_midi_instruments (client);
+    @ref lscp_get_midi_instrument_info (client, midi_instr);
+    @ref lscp_clear_midi_instruments (client);
 
 </pre>For the audio output and MIDI input device configuration interface,
 the following functions are respectively defined in <lscp/@ref:device.h>:<pre>

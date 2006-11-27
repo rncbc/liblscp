@@ -43,6 +43,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
     static int iSamplerChannel = 0;
     static int iAudioDevice = 0;
     static int iMidiDevice  = 0;
+    static int iMidiInstruments = 0;
 
     if (pchBuffer == NULL) {
         fprintf(stderr, "server_callback: addr=%s port=%d: ",
@@ -376,6 +377,35 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             }
             else ret = LSCP_FAILED;
         }
+		else if (lscp_parser_test(&tok, "TOTAL_VOICE_COUNT")) {
+			// Current number of active voices:
+			// GET TOTAL_VOICE_COUNT
+			sprintf(szTemp, "%d", rand() % 100);
+			pszResult = szTemp;
+		}
+		else if (lscp_parser_test(&tok, "TOTAL_VOICE_COUNT_MAX")) {
+			// Maximum amount of active voices:
+			// GET TOTAL_VOICE_COUNT_MAX
+			sprintf(szTemp, "%d", rand() % 100);
+			pszResult = szTemp;
+		}
+        else if (lscp_parser_test(&tok, "MIDI_INSTRUMENTS")) {
+            // Get the total count of MIDI instrument map entries:
+            // GET MIDI_INSTRUMENTS
+            sprintf(szTemp, "%d", iMidiInstruments);
+            pszResult = szTemp;
+        }
+        if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT", "INFO")) {
+            // Getting information about a MIDI instrument map entry:
+            // GET MIDI_INSTRUMENT INFO <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+            pszResult = "NAME: DummyName\r\n"
+                        "ENGINE_NAME: DummyEngine\r\n"
+                        "INSTRUMENT_FILE: DummyInstrument.gig\r\n"
+                        "INSTRUMENT_NR: 0\r\n"
+                        "INSTRUMENT_NAME: Dummy Instrument\r\n"
+                        "LOAD_MODE: ON_DEMAND\r\n"
+                        "VOLUME: 0.5\r\n";
+        }
         else ret = LSCP_FAILED;
     }
     else if (lscp_parser_test(&tok, "LIST")) {
@@ -430,6 +460,18 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
             }
             else ret = LSCP_FAILED;
         }
+        else if (lscp_parser_test(&tok, "LIST_MIDI_INSTRUMENTS")) {
+			// Getting indeces of all MIDI instrument map entries:
+			// LIST MIDI_INSTRUMENTS
+            if (iMidiInstruments > 0) {
+				strcpy(szTemp, "{0,0,0}");
+                for (i = 1; i < iMidiInstruments && strlen(szTemp) < sizeof(szTemp) - 16; i++)
+                    sprintf(szTemp + strlen(szTemp), ",{0,%d,%d}", i / 128, i % 128);
+                strcat(szTemp, "\r\n");
+                pszResult = szTemp;
+            }
+            else ret = LSCP_FAILED;
+		}
         else ret = LSCP_FAILED;
     }
     else if (lscp_parser_test(&tok, "SET")) {
@@ -566,6 +608,24 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
         }
         else ret = LSCP_FAILED;
     }
+    else if (lscp_parser_test2(&tok, "MAP", "MIDI_INSTRUMENT")) {
+        // Create or replace a MIDI instrumnet map entry:
+        // MAP MIDI_INSTRUMENT <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+        // <engine-name> <filename> <instr-index> <volume> <load-mode> [<name>]
+		iMidiInstruments++;
+	}
+    else if (lscp_parser_test2(&tok, "UNMAP", "MIDI_INSTRUMENT")) {
+        // Remove an entry from the MIDI instrument map:
+        // UNMAP MIDI_INSTRUMENT <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+		if (iMidiInstruments > 0)
+			iMidiInstruments--;
+		else
+            ret = LSCP_FAILED;
+	}
+    else if (lscp_parser_test2(&tok, "CLEAR", "MIDI_INSTRUMENTS")) {
+        // Clear the MIDI instrumnet map:
+        // CLEAR MIDI_INSTRUMENTS
+	}
     else if (lscp_parser_test(&tok, "SUBSCRIBE")) {
         // Register frontend for receiving event notification messages:
         // SUBSCRIBE <event>

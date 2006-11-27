@@ -60,6 +60,9 @@ const char *lscp_event_to_text ( lscp_event_t event )
       case LSCP_EVENT_CHANNEL_INFO:
         pszText = "CHANNEL_INFO";
         break;
+      case LSCP_EVENT_TOTAL_VOICE_COUNT:
+        pszText = "TOTAL_VOICE_COUNT";
+        break;
       case LSCP_EVENT_MISCELLANEOUS:
         pszText = "MISCELLANEOUS";
         break;
@@ -94,6 +97,8 @@ lscp_event_t lscp_event_from_text ( const char *pszText )
             event = LSCP_EVENT_BUFFER_FILL;
         else if (strcasecmp(pszText, "CHANNEL_INFO") == 0)
             event = LSCP_EVENT_CHANNEL_INFO;
+        else if (strcasecmp(pszText, "TOTAL_VOICE_COUNT") == 0)
+            event = LSCP_EVENT_TOTAL_VOICE_COUNT;
         else if (strcasecmp(pszText, "MISCELLANEOUS") == 0)
             event = LSCP_EVENT_MISCELLANEOUS;
     }

@@ -137,16 +137,16 @@ int client_test_param_info ( lscp_param_info_t *pParamInfo )
       default:                  pszType = "NONE";   break;
     }
     printf("{\n");
-    printf("    param_info.type                = %d (%s)\n", (int) pParamInfo->type, pszType);
-    printf("    param_info.description         = %s\n", pParamInfo->description);
-    printf("    param_info.mandatory           = %d\n", pParamInfo->mandatory);
-    printf("    param_info.fix                 = %d\n", pParamInfo->fix);
-    printf("    param_info.multiplicity        = %d\n", pParamInfo->multiplicity);
-    printf("    param_info.depends             = "); client_test_szsplit(pParamInfo->depends);
-    printf("    param_info.defaultv            = %s\n", pParamInfo->defaultv);
-    printf("    param_info.range_min           = %s\n", pParamInfo->range_min);
-    printf("    param_info.range_max           = %s\n", pParamInfo->range_max);
-    printf("    param_info.possibilities       = "); client_test_szsplit(pParamInfo->possibilities);
+    printf("    param_info.type          = %d (%s)\n", (int) pParamInfo->type, pszType);
+    printf("    param_info.description   = %s\n", pParamInfo->description);
+    printf("    param_info.mandatory     = %d\n", pParamInfo->mandatory);
+    printf("    param_info.fix           = %d\n", pParamInfo->fix);
+    printf("    param_info.multiplicity  = %d\n", pParamInfo->multiplicity);
+    printf("    param_info.depends       = "); client_test_szsplit(pParamInfo->depends);
+    printf("    param_info.defaultv      = %s\n", pParamInfo->defaultv);
+    printf("    param_info.range_min     = %s\n", pParamInfo->range_min);
+    printf("    param_info.range_max     = %s\n", pParamInfo->range_max);
+    printf("    param_info.possibilities = "); client_test_szsplit(pParamInfo->possibilities);
     printf("  }\n");
     return 0;
 }
@@ -159,9 +159,9 @@ int client_test_driver_info ( lscp_driver_info_t *pDriverInfo )
         return 1;
     }
     printf("{\n");
-    printf("    driver_info.description        = %s\n", pDriverInfo->description);
-    printf("    driver_info.version            = %s\n", pDriverInfo->version);
-    printf("    driver_info.parameters         = "); client_test_szsplit(pDriverInfo->parameters);
+    printf("    driver_info.description = %s\n", pDriverInfo->description);
+    printf("    driver_info.version     = %s\n", pDriverInfo->version);
+    printf("    driver_info.parameters  = "); client_test_szsplit(pDriverInfo->parameters);
     printf("  }\n");
     return 0;
 }
@@ -174,8 +174,8 @@ int client_test_device_info ( lscp_device_info_t *pDeviceInfo )
         return 1;
     }
     printf("{\n");
-    printf("    device_info.driver             = %s\n", pDeviceInfo->driver);
-    printf("    device_info.params             = "); client_test_params(pDeviceInfo->params);
+    printf("    device_info.driver = %s\n", pDeviceInfo->driver);
+    printf("    device_info.params = "); client_test_params(pDeviceInfo->params);
     printf("  }\n");
     return 0;
 }
@@ -188,8 +188,8 @@ int client_test_device_port_info ( lscp_device_port_info_t *pDevicePortInfo )
         return 1;
     }
     printf("{\n");
-    printf("    device_port_info.name          = %s\n", pDevicePortInfo->name);
-    printf("    device_port_info.params        = "); client_test_params(pDevicePortInfo->params);
+    printf("    device_port_info.name   = %s\n", pDevicePortInfo->name);
+    printf("    device_port_info.params = "); client_test_params(pDevicePortInfo->params);
     printf("  }\n");
     return 0;
 }
@@ -202,8 +202,8 @@ int client_test_server_info ( lscp_server_info_t *pServerInfo )
         return 1;
     }
     printf("{\n");
-    printf("    server_info.description        = %s\n", pServerInfo->description);
-    printf("    server_info.version            = %s\n", pServerInfo->version);
+    printf("    server_info.description = %s\n", pServerInfo->description);
+    printf("    server_info.version     = %s\n", pServerInfo->version);
     printf("  }\n");
     return 0;
 }
@@ -216,8 +216,8 @@ int client_test_engine_info ( lscp_engine_info_t *pEngineInfo )
         return 1;
     }
     printf("{\n");
-    printf("    engine_info.description        = %s\n", pEngineInfo->description);
-    printf("    engine_info.version            = %s\n", pEngineInfo->version);
+    printf("    engine_info.description = %s\n", pEngineInfo->description);
+    printf("    engine_info.version     = %s\n", pEngineInfo->version);
     printf("  }\n");
     return 0;
 }
@@ -260,6 +260,40 @@ int client_test_buffer_fill ( lscp_buffer_fill_t *pBufferFill )
 }
 
 
+int client_test_load_mode ( lscp_load_mode_t load_mode )
+{
+	const char *pszLoadMode;
+
+    switch (load_mode) {
+      case LSCP_LOAD_ON_DEMAND:      pszLoadMode = "ON_DEMAND";      break;
+      case LSCP_LOAD_ON_DEMAND_HOLD: pszLoadMode = "ON_DEMAND_HOLD"; break;
+      case LSCP_LOAD_PERSISTENT:     pszLoadMode = "PERSISTENT";     break;
+      default:                       pszLoadMode = "DEFAULT";        break;
+    }
+    printf("%s\n", pszLoadMode);
+    return 0;
+}
+
+
+int client_test_midi_instrument_info ( lscp_midi_instrument_info_t *pInstrInfo )
+{
+    if (pInstrInfo == NULL) {
+        printf("(nil)\n");
+        return 1;
+    }
+    printf("{\n");
+    printf("    midi_instrument_info.name            = %s\n", pInstrInfo->name);
+    printf("    midi_instrument_info.engine_name     = %s\n", pInstrInfo->engine_name);
+    printf("    midi_instrument_info.instrument_file = %s\n", pInstrInfo->instrument_file);
+    printf("    midi_instrument_info.instrument_nr   = %d\n", pInstrInfo->instrument_nr);
+    printf("    midi_instrument_info.instrument_name = %s\n", pInstrInfo->instrument_name);
+    printf("    midi_instrument_info.load_mode       = "); client_test_load_mode(pInstrInfo->load_mode);
+    printf("    midi_instrument_info.volume          = %g\n", pInstrInfo->volume);
+    printf("  }\n");
+    return 0;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 
 static int g_test_step  = 0;
@@ -270,17 +304,18 @@ static int g_test_fails = 0;
 void  client_test_start   ( clock_t *pclk ) { *pclk = clock(); }
 float client_test_elapsed ( clock_t *pclk ) { return (float) ((long) clock() - *pclk) / (float) CLOCKS_PER_SEC; }
 
-typedef int *                       isplit;
-typedef char **                     szsplit;
-typedef lscp_status_t               status;
-typedef lscp_driver_info_t *        driver_info;
-typedef lscp_device_info_t *        device_info;
-typedef lscp_device_port_info_t *   device_port_info;
-typedef lscp_param_info_t  *        param_info;
-typedef lscp_server_info_t *        server_info;
-typedef lscp_engine_info_t *        engine_info;
-typedef lscp_channel_info_t *       channel_info;
-typedef lscp_buffer_fill_t *        buffer_fill;
+typedef int *                        isplit;
+typedef char **                      szsplit;
+typedef lscp_status_t                status;
+typedef lscp_driver_info_t *         driver_info;
+typedef lscp_device_info_t *         device_info;
+typedef lscp_device_port_info_t *    device_port_info;
+typedef lscp_param_info_t  *         param_info;
+typedef lscp_server_info_t *         server_info;
+typedef lscp_engine_info_t *         engine_info;
+typedef lscp_channel_info_t *        channel_info;
+typedef lscp_buffer_fill_t *         buffer_fill;
+typedef lscp_midi_instrument_info_t *midi_instrument_info;
 
 #define CLIENT_TEST(p, t, x) { clock_t c; void *v; g_test_count++; \
     printf("\n" #x ":\n"); client_test_start(&c); v = (void *) (x); \
@@ -295,9 +330,12 @@ typedef lscp_buffer_fill_t *        buffer_fill;
 void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const char *pszAudioDriver, int iAudioDevice, const char *pszMidiDriver, int iMidiDevice )
 {
     int iSamplerChannel;
+	lscp_midi_instrument_t midi_instr;
 
     printf("\n--- pszEngine=\"%s\" pszAudioDevice=\"%s\" iAudioDevice=%d pszMidiDevice=\"%s\" iMidiDevice=%d ---\n", pszEngine, pszAudioDriver, iAudioDevice, pszMidiDriver, iMidiDevice);
     CLIENT_TEST(pClient, engine_info, lscp_get_engine_info(pClient, pszEngine));
+    CLIENT_TEST(pClient, int, lscp_get_total_voice_count(pClient));
+    CLIENT_TEST(pClient, int, lscp_get_total_voice_count_max(pClient));
     CLIENT_TEST(pClient, int, lscp_get_channels(pClient));
     CLIENT_TEST(pClient, isplit, lscp_list_channels(pClient));
     CLIENT_TEST(pClient, int, iSamplerChannel = lscp_add_channel(pClient));
@@ -323,6 +361,16 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
     CLIENT_TEST(pClient, channel_info, lscp_get_channel_info(pClient, iSamplerChannel));
     CLIENT_TEST(pClient, status, lscp_reset_channel(pClient, iSamplerChannel));
     CLIENT_TEST(pClient, status, lscp_remove_channel(pClient, iSamplerChannel));
+
+	midi_instr.bank_msb = 0;
+	midi_instr.bank_lsb = 0;
+	midi_instr.program  = 0;
+    printf("\n--- midi_instr={%d,%d,%d} ---\n", midi_instr.bank_msb, midi_instr.bank_lsb, midi_instr.program);
+    CLIENT_TEST(pClient, status, lscp_map_midi_instrument(pClient, &midi_instr, pszEngine, "DefaultInstrument.gig", 0, 1.0f, LSCP_LOAD_ON_DEMAND, "DummyName"));
+    CLIENT_TEST(pClient, int, lscp_get_midi_instruments(pClient));
+    CLIENT_TEST(pClient, midi_instrument_info, lscp_get_midi_instrument_info(pClient, &midi_instr));
+    CLIENT_TEST(pClient, status, lscp_unmap_midi_instrument(pClient, &midi_instr));
+    CLIENT_TEST(pClient, status, lscp_clear_midi_instruments(pClient));
 }
 
 

@@ -96,6 +96,41 @@ typedef enum _lscp_usage_t
 } lscp_usage_t;
 
 
+/** MIDI instrument parameter struct. */
+typedef struct _lscp_midi_instrument_t
+{
+    int bank_msb;
+    int bank_lsb;
+    int program;
+
+} lscp_midi_instrument_t;
+
+
+/** MIDI instrument load mode. */
+typedef enum _lscp_load_mode_t
+{
+    LSCP_LOAD_DEFAULT = 0,
+    LSCP_LOAD_ON_DEMAND,
+    LSCP_LOAD_ON_DEMAND_HOLD,
+    LSCP_LOAD_PERSISTENT
+
+} lscp_load_mode_t;
+
+
+/** MIDI instrument info cache struct. */
+typedef struct _lscp_midi_instrument_info_t
+{
+    char *           name;
+    char *           engine_name;
+    char *           instrument_file;
+    int              instrument_nr;
+    char *           instrument_name;
+    lscp_load_mode_t load_mode;
+    float            volume;
+
+} lscp_midi_instrument_info_t;
+
+
 //-------------------------------------------------------------------------
 // Client socket main structure.
 
@@ -185,6 +220,22 @@ lscp_status_t           lscp_reset_channel              (lscp_client_t *pClient,
 lscp_status_t           lscp_reset_sampler              (lscp_client_t *pClient);
 
 lscp_server_info_t *    lscp_get_server_info            (lscp_client_t *pClient);
+
+int                     lscp_get_total_voice_count      (lscp_client_t *pClient);
+int                     lscp_get_total_voice_count_max  (lscp_client_t *pClient);
+
+//-------------------------------------------------------------------------
+// MIDI instrument mapping control functions.
+
+lscp_status_t           lscp_map_midi_instrument        (lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName);
+lscp_status_t           lscp_unmap_midi_instrument      (lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr);
+
+int                     lscp_get_midi_instruments       (lscp_client_t *pClient);
+
+lscp_midi_instrument_info_t *lscp_get_midi_instrument_info(lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr);
+
+lscp_status_t           lscp_clear_midi_instruments     (lscp_client_t *pClient);
+
 
 #if defined(__cplusplus)
 }

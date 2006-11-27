@@ -66,6 +66,7 @@ struct _lscp_client_t
     lscp_server_info_t  server_info;
     lscp_engine_info_t  engine_info;
     lscp_channel_info_t channel_info;
+    lscp_midi_instrument_info_t midi_instrument_info;
     // Result and error status.
     char *              pszResult;
     int                 iErrno;
@@ -178,6 +179,13 @@ void            lscp_param_info_reset       (lscp_param_info_t *pParamInfo);
 // Concatenate a parameter list (key='value'...) into a string.
 
 int             lscp_param_concat           (char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams);
+
+//-------------------------------------------------------------------------
+// MIDI instrument info struct helper functions.
+
+void            lscp_midi_instrument_info_init      (lscp_midi_instrument_info_t *pInstrInfo);
+void            lscp_midi_instrument_info_free      (lscp_midi_instrument_info_t *pInstrInfo);
+void            lscp_midi_instrument_info_reset     (lscp_midi_instrument_info_t *pInstrInfo);
 
 
 #endif // __LSCP_COMMON_H

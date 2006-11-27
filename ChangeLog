@@ -3,6 +3,18 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.4.0  2006-11-27  As of the LSCP 1.2 working draft document, added
+                   some missing client interface functions:
+                     lscp_get_total_voice_count();
+                     lscp_get_total_voice_count_max();
+                   and for the new MIDI instrumenbt mapping features:
+                     lscp_map_midi_instrument();
+                     lscp_unmap_midi_instrument();
+                     lscp_get_midi_instruments();
+                     lscp_get_midi_instrument_info();
+                     lscp_clear_midi_instruments();
+
+
 0.3.4  2006-09-24  GPL address update.
 
 0.3.3  2006-06-01  Fixed some compilation warnings due to suspicious type
@@ -36,6 +48,7 @@ ChangeLog
                    to qsampler's default timeout setting of 1000 msecs,
                    giving up systematically on select() due to "Invalid
                    argument" (EINVAL).
+
 
 0.2.8  2005-05-22  More LSCP command syntax changes, particularly on the
                    event subscription ones: the LSCP_EVENT_CHANNELS event
@@ -98,6 +111,7 @@ ChangeLog
 
 0.2.0  2004-07-06  New LSCP extension draft (v.11) initial support.
                    (still a work in progress...)
+
 
 0.1.9  2004-05-18  More fixes for MSVC++ example build.
 

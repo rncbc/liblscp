@@ -906,4 +906,37 @@ int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams
 }
 
 
+//-------------------------------------------------------------------------
+// MIDI instrument info struct helper functions.
+
+void lscp_midi_instrument_info_init ( lscp_midi_instrument_info_t *pInstrInfo )
+{
+    pInstrInfo->name              = NULL;
+    pInstrInfo->engine_name       = NULL;
+    pInstrInfo->instrument_file   = NULL;
+    pInstrInfo->instrument_nr     = 0;
+    pInstrInfo->instrument_name   = NULL;
+    pInstrInfo->load_mode         = LSCP_LOAD_DEFAULT;
+    pInstrInfo->volume            = 0.0;
+}
+
+void lscp_midi_instrument_info_free ( lscp_midi_instrument_info_t *pInstrInfo )
+{
+    if (pInstrInfo->name)
+        free(pInstrInfo->name);
+    if (pInstrInfo->engine_name)
+        free(pInstrInfo->engine_name);
+    if (pInstrInfo->instrument_file)
+        free(pInstrInfo->instrument_file);
+    if (pInstrInfo->instrument_name)
+        free(pInstrInfo->instrument_name);
+}
+
+void lscp_midi_instrument_info_reset ( lscp_midi_instrument_info_t *pInstrInfo )
+{
+    lscp_midi_instrument_info_free(pInstrInfo);
+    lscp_midi_instrument_info_init(pInstrInfo);
+}
+
+
 // end of common.c
