@@ -50,12 +50,12 @@ extern "C" {
 
 typedef enum _lscp_status_t
 {
-    LSCP_OK      =  0,
-    LSCP_FAILED  = -1,
-    LSCP_ERROR   = -2,
-    LSCP_WARNING = -3,
-    LSCP_TIMEOUT = -4,
-    LSCP_QUIT    = -5
+	LSCP_OK      =  0,
+	LSCP_FAILED  = -1,
+	LSCP_ERROR   = -2,
+	LSCP_WARNING = -3,
+	LSCP_TIMEOUT = -4,
+	LSCP_QUIT    = -5
 
 } lscp_status_t;
 

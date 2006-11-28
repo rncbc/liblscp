@@ -42,36 +42,36 @@
  */
 const char *lscp_event_to_text ( lscp_event_t event )
 {
-    const char *pszText = NULL;
+	const char *pszText = NULL;
 
-    switch (event) {
-      case LSCP_EVENT_CHANNEL_COUNT:
-        pszText = "CHANNEL_COUNT";
-        break;
-      case LSCP_EVENT_VOICE_COUNT:
-        pszText = "VOICE_COUNT";
-        break;
-      case LSCP_EVENT_STREAM_COUNT:
-        pszText = "STREAM_COUNT";
-        break;
-      case LSCP_EVENT_BUFFER_FILL:
-        pszText = "BUFFER_FILL";
-        break;
-      case LSCP_EVENT_CHANNEL_INFO:
-        pszText = "CHANNEL_INFO";
-        break;
-      case LSCP_EVENT_TOTAL_VOICE_COUNT:
-        pszText = "TOTAL_VOICE_COUNT";
-        break;
-      case LSCP_EVENT_MISCELLANEOUS:
-        pszText = "MISCELLANEOUS";
-        break;
-      case LSCP_EVENT_NONE:
-      default:
-        break;
-    }
+	switch (event) {
+	case LSCP_EVENT_CHANNEL_COUNT:
+		pszText = "CHANNEL_COUNT";
+		break;
+	case LSCP_EVENT_VOICE_COUNT:
+		pszText = "VOICE_COUNT";
+		break;
+	case LSCP_EVENT_STREAM_COUNT:
+		pszText = "STREAM_COUNT";
+		break;
+	case LSCP_EVENT_BUFFER_FILL:
+		pszText = "BUFFER_FILL";
+		break;
+	case LSCP_EVENT_CHANNEL_INFO:
+		pszText = "CHANNEL_INFO";
+		break;
+	case LSCP_EVENT_TOTAL_VOICE_COUNT:
+		pszText = "TOTAL_VOICE_COUNT";
+		break;
+	case LSCP_EVENT_MISCELLANEOUS:
+		pszText = "MISCELLANEOUS";
+		break;
+	case LSCP_EVENT_NONE:
+	default:
+		break;
+	}
 
-    return pszText;
+	return pszText;
 }
 
 
@@ -84,26 +84,26 @@ const char *lscp_event_to_text ( lscp_event_t event )
  */
 lscp_event_t lscp_event_from_text ( const char *pszText )
 {
-    lscp_event_t event = LSCP_EVENT_NONE;
+	lscp_event_t event = LSCP_EVENT_NONE;
 
-    if (pszText) {
-        if (strcasecmp(pszText, "CHANNEL_COUNT") == 0)
-            event = LSCP_EVENT_CHANNEL_COUNT;
-        else if (strcasecmp(pszText, "VOICE_COUNT") == 0)
-            event = LSCP_EVENT_VOICE_COUNT;
-        else if (strcasecmp(pszText, "STREAM_COUNT") == 0)
-            event = LSCP_EVENT_STREAM_COUNT;
-        else if (strcasecmp(pszText, "BUFFER_FILL") == 0)
-            event = LSCP_EVENT_BUFFER_FILL;
-        else if (strcasecmp(pszText, "CHANNEL_INFO") == 0)
-            event = LSCP_EVENT_CHANNEL_INFO;
-        else if (strcasecmp(pszText, "TOTAL_VOICE_COUNT") == 0)
-            event = LSCP_EVENT_TOTAL_VOICE_COUNT;
-        else if (strcasecmp(pszText, "MISCELLANEOUS") == 0)
-            event = LSCP_EVENT_MISCELLANEOUS;
-    }
+	if (pszText) {
+		if (strcasecmp(pszText, "CHANNEL_COUNT") == 0)
+			event = LSCP_EVENT_CHANNEL_COUNT;
+		else if (strcasecmp(pszText, "VOICE_COUNT") == 0)
+			event = LSCP_EVENT_VOICE_COUNT;
+		else if (strcasecmp(pszText, "STREAM_COUNT") == 0)
+			event = LSCP_EVENT_STREAM_COUNT;
+		else if (strcasecmp(pszText, "BUFFER_FILL") == 0)
+			event = LSCP_EVENT_BUFFER_FILL;
+		else if (strcasecmp(pszText, "CHANNEL_INFO") == 0)
+			event = LSCP_EVENT_CHANNEL_INFO;
+		else if (strcasecmp(pszText, "TOTAL_VOICE_COUNT") == 0)
+			event = LSCP_EVENT_TOTAL_VOICE_COUNT;
+		else if (strcasecmp(pszText, "MISCELLANEOUS") == 0)
+			event = LSCP_EVENT_MISCELLANEOUS;
+	}
 
-    return event;
+	return event;
 }
 
 

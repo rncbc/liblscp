@@ -67,10 +67,10 @@ void lscp_socket_trace   (const char *pszPrefix, struct sockaddr_in *pAddr, cons
 
 typedef struct _lscp_socket_agent_t {
 
-    lscp_socket_t       sock;
-    struct sockaddr_in  addr;
-    lscp_thread_t      *pThread;
-    int                 iState;
+	lscp_socket_t       sock;
+	struct sockaddr_in  addr;
+	lscp_thread_t      *pThread;
+	int                 iState;
 
 } lscp_socket_agent_t;
 

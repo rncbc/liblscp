@@ -38,48 +38,48 @@
 
 struct _lscp_client_t
 {
-    // Client socket stuff.
-    lscp_client_proc_t  pfnCallback;
-    void *              pvData;
-    lscp_socket_agent_t cmd;
-    lscp_socket_agent_t evt;
-    // Subscribed events.
-    lscp_event_t        events;
-    // Client struct persistent caches.
-    char **             audio_drivers;
-    char **             midi_drivers;
-    int  *              audio_devices;
-    int  *              midi_devices;
-    char **             engines;
-    int  *              channels;
-    lscp_midi_instrument_t *midi_instruments;
-    // Client struct volatile caches.
-    lscp_driver_info_t  audio_driver_info;
-    lscp_driver_info_t  midi_driver_info;
-    lscp_device_info_t  audio_device_info;
-    lscp_device_info_t  midi_device_info;
-    lscp_param_info_t   audio_param_info;
-    lscp_param_info_t   midi_param_info;
-    lscp_device_port_info_t audio_channel_info;
-    lscp_device_port_info_t midi_port_info;
-    lscp_param_info_t   audio_channel_param_info;
-    lscp_param_info_t   midi_port_param_info;
-    lscp_server_info_t  server_info;
-    lscp_engine_info_t  engine_info;
-    lscp_channel_info_t channel_info;
-    lscp_midi_instrument_info_t midi_instrument_info;
-    // Result and error status.
-    char *              pszResult;
-    int                 iErrno;
-    // Stream buffers status.
-    lscp_buffer_fill_t *buffer_fill;
-    int                 iStreamCount;
-    // Transaction call timeout (msecs).
-    int                 iTimeout;
-    lscp_mutex_t        mutex;
-    lscp_cond_t         cond;
-    // Flag last transaction timedout.
-    int                 iTimeoutCount;
+	// Client socket stuff.
+	lscp_client_proc_t  pfnCallback;
+	void *              pvData;
+	lscp_socket_agent_t cmd;
+	lscp_socket_agent_t evt;
+	// Subscribed events.
+	lscp_event_t        events;
+	// Client struct persistent caches.
+	char **             audio_drivers;
+	char **             midi_drivers;
+	int  *              audio_devices;
+	int  *              midi_devices;
+	char **             engines;
+	int  *              channels;
+	lscp_midi_instrument_t *midi_instruments;
+	// Client struct volatile caches.
+	lscp_driver_info_t  audio_driver_info;
+	lscp_driver_info_t  midi_driver_info;
+	lscp_device_info_t  audio_device_info;
+	lscp_device_info_t  midi_device_info;
+	lscp_param_info_t   audio_param_info;
+	lscp_param_info_t   midi_param_info;
+	lscp_device_port_info_t audio_channel_info;
+	lscp_device_port_info_t midi_port_info;
+	lscp_param_info_t   audio_channel_param_info;
+	lscp_param_info_t   midi_port_param_info;
+	lscp_server_info_t  server_info;
+	lscp_engine_info_t  engine_info;
+	lscp_channel_info_t channel_info;
+	lscp_midi_instrument_info_t midi_instrument_info;
+	// Result and error status.
+	char *              pszResult;
+	int                 iErrno;
+	// Stream buffers status.
+	lscp_buffer_fill_t *buffer_fill;
+	int                 iStreamCount;
+	// Transaction call timeout (msecs).
+	int                 iTimeout;
+	lscp_mutex_t        mutex;
+	lscp_cond_t         cond;
+	// Flag last transaction timedout.
+	int                 iTimeoutCount;
 };
 
 

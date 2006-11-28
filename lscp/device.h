@@ -36,11 +36,11 @@ extern "C" {
 /** Parameter value type. */
 typedef enum _lscp_type_t
 {
-    LSCP_TYPE_NONE = 0,
-    LSCP_TYPE_BOOL,
-    LSCP_TYPE_INT,
-    LSCP_TYPE_FLOAT,
-    LSCP_TYPE_STRING
+	LSCP_TYPE_NONE = 0,
+	LSCP_TYPE_BOOL,
+	LSCP_TYPE_INT,
+	LSCP_TYPE_FLOAT,
+	LSCP_TYPE_STRING
 
 } lscp_type_t;
 
@@ -48,8 +48,8 @@ typedef enum _lscp_type_t
 /** Common and simple key/value pair parameter tuple. */
 typedef struct _lscp_param_t
 {
-    char *        key;
-    char *        value;
+	char *        key;
+	char *        value;
 
 } lscp_param_t;
 
@@ -57,16 +57,16 @@ typedef struct _lscp_param_t
 /** Common parameter info cache struct. */
 typedef struct _lscp_param_info_t
 {
-    lscp_type_t   type;
-    char *        description;
-    int           mandatory;
-    int           fix;
-    int           multiplicity;
-    char **       depends;
-    char *        defaultv;
-    char *        range_min;
-    char *        range_max;
-    char **       possibilities;
+	lscp_type_t   type;
+	char *        description;
+	int           mandatory;
+	int           fix;
+	int           multiplicity;
+	char **       depends;
+	char *        defaultv;
+	char *        range_min;
+	char *        range_max;
+	char **       possibilities;
 
 } lscp_param_info_t;
 
@@ -74,9 +74,9 @@ typedef struct _lscp_param_info_t
 /** Common driver type info cache struct. */
 typedef struct _lscp_driver_info_t
 {
-    char *        description;
-    char *        version;
-    char **       parameters;
+	char *        description;
+	char *        version;
+	char **       parameters;
 
 } lscp_driver_info_t;
 
@@ -84,8 +84,8 @@ typedef struct _lscp_driver_info_t
 /** Common device info cache struct. */
 typedef struct _lscp_device_info_t
 {
-    char *        driver;
-    lscp_param_t *params;
+	char *        driver;
+	lscp_param_t *params;
 
 } lscp_device_info_t;
 
@@ -93,8 +93,8 @@ typedef struct _lscp_device_info_t
 /** Common device channel/port info cache struct. */
 typedef struct _lscp_device_port_info_t
 {
-    char *        name;
-    lscp_param_t *params;
+	char *        name;
+	lscp_param_t *params;
 
 } lscp_device_port_info_t;
 

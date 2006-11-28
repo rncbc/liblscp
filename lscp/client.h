@@ -42,8 +42,8 @@ extern "C" {
 /** Server info cache struct. */
 typedef struct _lscp_server_info_t
 {
-    char *        description;
-    char *        version;
+	char *        description;
+	char *        version;
 
 } lscp_server_info_t;
 
@@ -51,8 +51,8 @@ typedef struct _lscp_server_info_t
 /** Engine info cache struct. */
 typedef struct _lscp_engine_info_t
 {
-    char *        description;
-    char *        version;
+	char *        description;
+	char *        version;
 
 } lscp_engine_info_t;
 
@@ -60,20 +60,20 @@ typedef struct _lscp_engine_info_t
 /** Channel info cache struct. */
 typedef struct _lscp_channel_info_t
 {
-    char *        engine_name;
-    int           audio_device;
-    int           audio_channels;
-    char **       audio_routing;
-    char *        instrument_file;
-    int           instrument_nr;
-    char *        instrument_name;
-    int           instrument_status;
-    int           midi_device;
-    int           midi_port;
-    int           midi_channel;
-    float         volume;
-    int           mute;
-    int           solo;
+	char *        engine_name;
+	int           audio_device;
+	int           audio_channels;
+	char **       audio_routing;
+	char *        instrument_file;
+	int           instrument_nr;
+	char *        instrument_name;
+	int           instrument_status;
+	int           midi_device;
+	int           midi_port;
+	int           midi_channel;
+	float         volume;
+	int           mute;
+	int           solo;
 
 } lscp_channel_info_t;
 
@@ -81,8 +81,8 @@ typedef struct _lscp_channel_info_t
 /** Buffer fill cache struct. */
 typedef struct _lscp_buffer_fill_t
 {
-    unsigned int  stream_id;
-    unsigned long stream_usage;
+	unsigned int  stream_id;
+	unsigned long stream_usage;
 
 } lscp_buffer_fill_t;
 
@@ -90,8 +90,8 @@ typedef struct _lscp_buffer_fill_t
 /** Buffer fill stream usage types. */
 typedef enum _lscp_usage_t
 {
-    LSCP_USAGE_BYTES = 0,
-    LSCP_USAGE_PERCENTAGE
+	LSCP_USAGE_BYTES = 0,
+	LSCP_USAGE_PERCENTAGE
 
 } lscp_usage_t;
 
@@ -99,9 +99,9 @@ typedef enum _lscp_usage_t
 /** MIDI instrument parameter struct. */
 typedef struct _lscp_midi_instrument_t
 {
-    int bank_msb;
-    int bank_lsb;
-    int program;
+	int bank_msb;
+	int bank_lsb;
+	int program;
 
 } lscp_midi_instrument_t;
 
@@ -109,10 +109,10 @@ typedef struct _lscp_midi_instrument_t
 /** MIDI instrument load mode. */
 typedef enum _lscp_load_mode_t
 {
-    LSCP_LOAD_DEFAULT = 0,
-    LSCP_LOAD_ON_DEMAND,
-    LSCP_LOAD_ON_DEMAND_HOLD,
-    LSCP_LOAD_PERSISTENT
+	LSCP_LOAD_DEFAULT = 0,
+	LSCP_LOAD_ON_DEMAND,
+	LSCP_LOAD_ON_DEMAND_HOLD,
+	LSCP_LOAD_PERSISTENT
 
 } lscp_load_mode_t;
 
@@ -120,13 +120,13 @@ typedef enum _lscp_load_mode_t
 /** MIDI instrument info cache struct. */
 typedef struct _lscp_midi_instrument_info_t
 {
-    char *           name;
-    char *           engine_name;
-    char *           instrument_file;
-    int              instrument_nr;
-    char *           instrument_name;
-    lscp_load_mode_t load_mode;
-    float            volume;
+	char *           name;
+	char *           engine_name;
+	char *           instrument_file;
+	int              instrument_nr;
+	char *           instrument_name;
+	lscp_load_mode_t load_mode;
+	float            volume;
 
 } lscp_midi_instrument_info_t;
 
@@ -140,11 +140,11 @@ typedef struct _lscp_client_t lscp_client_t;
 /** Client event callback procedure prototype. */
 typedef lscp_status_t (*lscp_client_proc_t)
 (
-    struct _lscp_client_t *pClient,
-    lscp_event_t event,
-    const char *pchData,
-    int cchData,
-    void *pvData
+	struct _lscp_client_t *pClient,
+	lscp_event_t event,
+	const char *pchData,
+	int cchData,
+	void *pvData
 );
 
 //-------------------------------------------------------------------------
