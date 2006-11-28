@@ -63,7 +63,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
-* The Nov 28 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+* Tue Nov 28 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Bumped directly to 0.4.1 release.
 - Getting ready for the new MIDI instrument mapping features.
 
