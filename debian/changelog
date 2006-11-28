@@ -1,3 +1,11 @@
+liblscp (0.4.1-1) unstable; urgency=low
+
+  * new release
+  * fixed debian rules file to work with official tarball releases as well
+    (expected a Makefile.cvs file)
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 29 Nov 2006 00:26:32 +0100
+
 liblscp (0.3.2-1) unstable; urgency=low
 
   * new release
