@@ -3,6 +3,18 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.4.1  2006-11-28  Fixed the flush timeout operation to be issued only
+                   once, avoiding recurrent client failure after receive
+                   timeout.
+
+                   Support for very long command result sets have been
+                   introduced, with the downside of strictly obeying
+                   the LSCP draft.
+
+                   list_midi_instruments() is now being implemented.
+
+                   LGPL text is now back in COPYING.
+
 0.4.0  2006-11-27  As of the LSCP 1.2 working draft document, added
                    some missing client interface functions:
                      lscp_get_total_voice_count();

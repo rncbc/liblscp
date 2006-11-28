@@ -52,6 +52,7 @@ struct _lscp_client_t
     int  *              midi_devices;
     char **             engines;
     int  *              channels;
+    lscp_midi_instrument_t *midi_instruments;
     // Client struct volatile caches.
     lscp_driver_info_t  audio_driver_info;
     lscp_driver_info_t  midi_driver_info;
@@ -78,7 +79,7 @@ struct _lscp_client_t
     lscp_mutex_t        mutex;
     lscp_cond_t         cond;
     // Flag last transaction timedout.
-	int                 iTimeoutCount;
+    int                 iTimeoutCount;
 };
 
 
@@ -86,36 +87,36 @@ struct _lscp_client_t
 // Local client request executive.
 
 lscp_status_t   lscp_client_recv            (lscp_client_t *pClient, char *pchBuffer, int *pcchBuffer, int iTimeout);
-lscp_status_t   lscp_client_call            (lscp_client_t *pClient, const char *pszQuery);
+lscp_status_t   lscp_client_call            (lscp_client_t *pClient, const char *pszQuery, int iResult);
 void            lscp_client_set_result      (lscp_client_t *pClient, char *pszResult, int iErrno);
 
 //-------------------------------------------------------------------------
 // General utility function prototypes.
 
-char *          lscp_strtok                 (char *pchBuffer, const char *pszSeps, char **ppch);
-char *          lscp_ltrim                  (char *psz);
-char *          lscp_unquote                (char **ppsz, int dup);
-void            lscp_unquote_dup            (char **ppszDst, char **ppszSrc);
+char *          lscp_strtok            (char *pchBuffer, const char *pszSeps, char **ppch);
+char *          lscp_ltrim             (char *psz);
+char *          lscp_unquote           (char **ppsz, int dup);
+void            lscp_unquote_dup       (char **ppszDst, char **ppszSrc);
 
-char **         lscp_szsplit_create         (const char *pszCsv, const char *pszSeps);
-void            lscp_szsplit_destroy        (char **ppszSplit);
+char **         lscp_szsplit_create    (const char *pszCsv, const char *pszSeps);
+void            lscp_szsplit_destroy   (char **ppszSplit);
 #ifdef LSCP_SZSPLIT_COUNT
-int             lscp_szsplit_count          (char **ppszSplit);
-int             lscp_szsplit_size           (char **ppszSplit);
+int             lscp_szsplit_count     (char **ppszSplit);
+int             lscp_szsplit_size      (char **ppszSplit);
 #endif
 
-int *           lscp_isplit_create          (const char *pszCsv, const char *pszSeps);
-void            lscp_isplit_destroy         (int *piSplit);
+int *           lscp_isplit_create     (const char *pszCsv, const char *pszSeps);
+void            lscp_isplit_destroy    (int *piSplit);
 #ifdef LSCP_ISPLIT_COUNT
-int             lscp_isplit_count           (int *piSplit);
-int             lscp_isplit_size            (int *piSplit);
+int             lscp_isplit_count      (int *piSplit);
+int             lscp_isplit_size       (int *piSplit);
 #endif
 
-lscp_param_t *  lscp_psplit_create          (const char *pszCsv, const char *pszSep1, const char *pszSep2);
-void            lscp_psplit_destroy         (lscp_param_t *ppSplit);
+lscp_param_t *  lscp_psplit_create     (const char *pszCsv, const char *pszSep1, const char *pszSep2);
+void            lscp_psplit_destroy    (lscp_param_t *ppSplit);
 #ifdef LSCP_PSPLIT_COUNT
-int             lscp_psplit_count           (lscp_param_t *ppSplit);
-int             lscp_psplit_size            (lscp_param_t *ppSplit);
+int             lscp_psplit_count      (lscp_param_t *ppSplit);
+int             lscp_psplit_size       (lscp_param_t *ppSplit);
 #endif
 
 void            lscp_plist_alloc       (lscp_param_t **ppList);
@@ -125,6 +126,14 @@ void            lscp_plist_append      (lscp_param_t **ppList, const char *pszKe
 int             lscp_plist_count       (lscp_param_t **ppList);
 int             lscp_plist_size        (lscp_param_t **ppList);
 #endif
+
+lscp_midi_instrument_t *lscp_midi_instruments_create (const char *pszCsv);
+void            lscp_midi_instruments_destroy (lscp_midi_instrument_t *pInstrs);
+#ifdef LSCP_MIDI_INSTRUMENTS_COUNT
+int             lscp_midi_instruments_count   (lscp_midi_instrument_t *pInstrs);
+int             lscp_midi_instruments_size    (lscp_midi_instrument_t *pInstrs);
+#endif
+
 
 //-------------------------------------------------------------------------
 // Server struct helper functions.
@@ -183,9 +192,9 @@ int             lscp_param_concat           (char *pszBuffer, int cchMaxBuffer, 
 //-------------------------------------------------------------------------
 // MIDI instrument info struct helper functions.
 
-void            lscp_midi_instrument_info_init      (lscp_midi_instrument_info_t *pInstrInfo);
-void            lscp_midi_instrument_info_free      (lscp_midi_instrument_info_t *pInstrInfo);
-void            lscp_midi_instrument_info_reset     (lscp_midi_instrument_info_t *pInstrInfo);
+void            lscp_midi_instrument_info_init  (lscp_midi_instrument_info_t *pInstrInfo);
+void            lscp_midi_instrument_info_free  (lscp_midi_instrument_info_t *pInstrInfo);
+void            lscp_midi_instrument_info_reset (lscp_midi_instrument_info_t *pInstrInfo);
 
 
 #endif // __LSCP_COMMON_H

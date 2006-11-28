@@ -107,49 +107,52 @@ lscp_status_t lscp_client_recv ( lscp_client_t *pClient, char *pchBuffer, int *p
 
 
 // The main client requester call executive.
-lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
+lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery, int iResult )
 {
     int    cchQuery;
-    char   achResult[LSCP_BUFSIZ];
-    int    cchResult;
+    char   achBuffer[LSCP_BUFSIZ];
+    int    cchBuffer;
     const  char *pszSeps = ":[]";
-    char  *pszResult;
+    char  *pszBuffer;
     char  *pszToken;
     char  *pch;
     int    iErrno;
-
+    char  *pszResult;
+    int    cchResult;
+    
     lscp_status_t ret = LSCP_FAILED;
-
+    
     if (pClient == NULL)
         return ret;
-
-    pszResult = NULL;
+    
     iErrno = -1;
-
+    cchResult = 0;
+    pszResult = NULL;
+    pszBuffer = NULL;
+    
     // Check if command socket socket is still valid.
     if (pClient->cmd.sock == INVALID_SOCKET) {
         pszResult = "Connection closed or no longer valid";
         lscp_client_set_result(pClient, pszResult, iErrno);
         return ret;
     }
-
-	// Check if last transaction has timed out, in which case
-	// we'll retry wait and flush for some pending garbage...
-	if (pClient->iTimeoutCount > 0) {
-		cchResult = sizeof(achResult);
-		ret = lscp_client_recv(pClient, achResult, &cchResult, pClient->iTimeout);
-		if (ret == LSCP_OK) {
-			// We've got rid of timeout trouble (hopefully).
-			pClient->iTimeoutCount = 0;
-		} else {
-			// Things are worse than before. Fake a result message.
-			iErrno = (int) ret;
-			pszResult = "Failure during flush timeout operation";
-			lscp_client_set_result(pClient, pszResult, iErrno);
-			return ret;
-		}
-	}
-
+    
+    // Check if last transaction has timed out, in which case
+    // we'll retry wait and flush for some pending garbage...
+    if (pClient->iTimeoutCount > 0) {
+        // We'll hope to get rid of timeout trouble...
+        pClient->iTimeoutCount = 0;
+        cchBuffer = sizeof(achBuffer);
+        ret = lscp_client_recv(pClient, achBuffer, &cchBuffer, pClient->iTimeout);
+        if (ret != LSCP_OK) {
+            // Things seems to be unresolved. Fake a result message.
+            iErrno = (int) ret;
+            pszResult = "Failure during flush timeout operation";
+            lscp_client_set_result(pClient, pszResult, iErrno);
+            return ret;
+        }
+    }
+    
     // Send data, and then, wait for the result...
     cchQuery = strlen(pszQuery);
     if (send(pClient->cmd.sock, pszQuery, cchQuery, 0) < cchQuery) {
@@ -158,76 +161,113 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery )
         lscp_client_set_result(pClient, pszResult, iErrno);
         return ret;
     }
-
-    // Wait for receive event...
-    cchResult = sizeof(achResult);
-    ret = lscp_client_recv(pClient, achResult, &cchResult, pClient->iTimeout);
-
-    switch (ret) {
-
-      case LSCP_OK:
-        // Always force the result to be null terminated (and trim trailing CRLFs)!
-        while (cchResult > 0 && (achResult[cchResult - 1] == '\n' || achResult[cchResult- 1] == '\r'))
-            cchResult--;
-        achResult[cchResult] = (char) 0;
-        // Check if the response it's an error or warning message.
-        if (strncasecmp(achResult, "WRN:", 4) == 0)
-            ret = LSCP_WARNING;
-        else if (strncasecmp(achResult, "ERR:", 4) == 0)
-            ret = LSCP_ERROR;
-        // So we got a result...
-        if (ret == LSCP_OK) {
-            // Reset errno in case of success.
-            iErrno = 0;
-            // Is it a special successful response?
-            if (strncasecmp(achResult, "OK[", 3) == 0) {
-                // Parse the OK message, get the return string under brackets...
-                pszToken = lscp_strtok(achResult, pszSeps, &(pch));
-                if (pszToken)
-                    pszResult = lscp_strtok(NULL, pszSeps, &(pch));
-            }
-            else pszResult = achResult;
-            // The result string is now set to the command response, if any.
-        } else {
-            // Parse the error/warning message, skip first colon...
-            pszToken = lscp_strtok(achResult, pszSeps, &(pch));
-            if (pszToken) {
-                // Get the error number...
-                pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-                if (pszToken) {
-                    iErrno = atoi(pszToken);
-                    // And make the message text our final result.
-                    pszResult = lscp_strtok(NULL, pszSeps, &(pch));
+    
+    // Keep receiving while result is not the expected one:
+    // single-line result (iResult = 0) : one single CRLF ends the receipt;
+    // multi-line result  (iResult > 0) : one "." followed by a last CRLF;
+    
+    while (pszResult == NULL) {
+    
+        // Wait for receive event...
+        cchBuffer = sizeof(achBuffer) - 1;
+        ret = lscp_client_recv(pClient, achBuffer, &cchBuffer, pClient->iTimeout);
+    
+        switch (ret) {
+    
+          case LSCP_OK:
+            // Always force the result to be null terminated.
+            achBuffer[cchBuffer] = (char) 0;
+            // Check if the response it's an error or warning message.
+            if (strncasecmp(achBuffer, "WRN:", 4) == 0)
+                ret = LSCP_WARNING;
+            else if (strncasecmp(achBuffer, "ERR:", 4) == 0)
+                ret = LSCP_ERROR;
+            // So we got a result...
+            if (ret == LSCP_OK) {
+                // Reset errno in case of success.
+                iErrno = 0;
+                // Is it a special successful response?
+                if (iResult < 1 && strncasecmp(achBuffer, "OK[", 3) == 0) {
+                    // Parse the OK message, get the return string under brackets...
+                    pszToken = lscp_strtok(achBuffer, pszSeps, &(pch));
+                    if (pszToken)
+                        pszResult = lscp_strtok(NULL, pszSeps, &(pch));
+                } else {
+                    // It can be specially long response...
+                    cchResult += sizeof(achBuffer);
+                    pszResult  = malloc(cchResult + 1);
+                    pszResult[0] = (char) 0;
+                    if (pszBuffer) {
+                        strcat(pszResult, pszBuffer);
+                        free(pszBuffer);
+                    }
+                    strcat(pszResult, achBuffer);
+                    pszBuffer = pszResult;
+                    pszResult = NULL;
+                    // Check for correct end-of-transmission...
+                    // Depending whether its single or multi-line we'll
+                    // flag end-of-transmission...
+                    cchBuffer = strlen(pszBuffer);
+                    if (cchBuffer > 2
+                        && pszBuffer[cchBuffer - 1] == '\n'
+                        && pszBuffer[cchBuffer - 2] == '\r'
+                        && (iResult < 1 || pszBuffer[cchBuffer - 3] == '.')) {
+                        // Get rid of the trailing dot and CRLF anyway...
+                        while (cchBuffer > 0 && (
+                            pszBuffer[cchBuffer - 1] == '\r' ||
+                            pszBuffer[cchBuffer - 1] == '\n' ||
+                            pszBuffer[cchBuffer - 1] == '.'))
+                            cchBuffer--;
+                        pszBuffer[cchBuffer] = (char) 0;
+                        pszResult = pszBuffer;
+                    }
                 }
+                // The result string is now set to the command response, if any.
+            } else {
+                // Parse the error/warning message, skip first colon...
+                pszToken = lscp_strtok(achBuffer, pszSeps, &(pch));
+                if (pszToken) {
+                    // Get the error number...
+                    pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+                    if (pszToken) {
+                        iErrno = atoi(pszToken);
+                        // And make the message text our final result.
+                        pszResult = lscp_strtok(NULL, pszSeps, &(pch));
+                    }
+                }
+                // The result string is set to the error/warning message text.
             }
-            // The result string is set to the error/warning message text.
+            break;
+    
+          case LSCP_TIMEOUT:
+            // We have trouble...
+            pClient->iTimeoutCount++;
+            // Fake a result message.
+            pszResult = "Timeout during receive operation";
+            iErrno = (int) ret;
+            break;
+    
+          case LSCP_QUIT:
+            // Fake a result message.
+            pszResult = "Server terminated the connection";
+            iErrno = (int) ret;
+            break;
+    
+          case LSCP_FAILED:
+          default:
+            // What's down?
+            pszResult = "Failure during receive operation";
+            break;
         }
-        break;
-
-      case LSCP_TIMEOUT:
-		// We have trouble...
-		pClient->iTimeoutCount++;
-        // Fake a result message.
-        pszResult = "Timeout during receive operation";
-        iErrno = (int) ret;
-        break;
-
-      case LSCP_QUIT:
-        // Fake a result message.
-        pszResult = "Server terminated the connection";
-        iErrno = (int) ret;
-        break;
-
-      case LSCP_FAILED:
-      default:
-        // What's down?
-        pszResult = "Failure during receive operation";
-        break;
     }
-
+    
     // Make the result official...
     lscp_client_set_result(pClient, pszResult, iErrno);
-
+    
+    // Free long-buffer, if any...
+    if (pszBuffer)
+        free(pszBuffer);
+    
     return ret;
 }
 
@@ -676,6 +716,112 @@ int lscp_plist_size ( lscp_param_t **ppList )
 }
 
 #endif // LSCP_PLIST_COUNT
+
+
+// Split a string into an array of MIDI instrument triplets.
+lscp_midi_instrument_t *lscp_midi_instruments_create ( const char *pszCsv )
+{
+    char *pchHead, *pch;
+    int iSize, i, j, k;
+    lscp_midi_instrument_t *pInstrs;
+    lscp_midi_instrument_t *pNewInstrs;
+    
+    // Get it clean first.
+    pchHead = lscp_ltrim((char *) pszCsv);
+    if (*pchHead == (char) 0)
+        return NULL;
+    
+    // Initial size is one chunk away.
+    iSize = LSCP_SPLIT_CHUNK1;
+    // Allocate and split...
+    pInstrs = (lscp_midi_instrument_t *) malloc(iSize * sizeof(lscp_midi_instrument_t));
+    if (pInstrs == NULL)
+        return NULL;
+    
+    // Go on for it...
+    i = 0;
+    k = 0;
+    
+    while ((pch = strpbrk(pchHead, "{,}")) != NULL) {
+        // Pre-advance to next item.
+        switch (*pch) {
+        case '{':
+            pchHead = pch + 1;
+            if (k == 0) {
+                pInstrs[i].bank_msb = atoi(pchHead);
+                k++;
+            }
+            break;
+        case ',':
+            pchHead = pch + 1;
+            if (k == 1) {
+                pInstrs[i].bank_lsb = atoi(pchHead);
+                k++;
+            }
+            else 
+            if (k == 2) {
+                pInstrs[i].program = atoi(pchHead);
+                k++;
+            }
+            break;
+        case '}':
+            pchHead = pch + 1;
+            k = 0;
+            break;
+        }
+        // Do we need to grow?
+        if (k == 3 && ++i >= iSize) {
+            // Yes, but only grow in chunks.
+            iSize += LSCP_SPLIT_CHUNK1;
+            // Allocate and copy to new split array.
+            pNewInstrs = (lscp_midi_instrument_t *) malloc(iSize * sizeof(lscp_midi_instrument_t));
+            if (pNewInstrs) {
+                for (j = 0; j < i; j++) {
+                    pNewInstrs[j].bank_msb = pInstrs[j].bank_msb;
+                    pNewInstrs[j].bank_lsb = pInstrs[j].bank_lsb;
+                    pNewInstrs[j].program  = pInstrs[j].program;
+                }
+                free(pInstrs);
+                pInstrs = pNewInstrs;
+            }
+        }
+    }
+    
+    // Special terminate split array.
+    for ( ; i < iSize; i++) {
+        pInstrs[i].bank_msb = -1;
+        pInstrs[i].bank_lsb = -1;
+        pInstrs[i].program  = -1;
+    }
+    
+    return pInstrs;
+}
+
+// Destroy a MIDI instrument triplet array.
+void lscp_midi_instruments_destroy ( lscp_midi_instrument_t *pInstrs )
+{
+    if (pInstrs)
+        free(pInstrs);
+}
+
+#ifdef LSCP_MIDI_INSTRUMENTS_COUNT
+
+// Compute a MIDI instrument array item count.
+int lscp_midi_instruments_count ( lscp_midi_instrument_t *pInstrs )
+{
+    int i = 0;
+    while (pInstrs && pInstrs[i].program >= 0)
+        i++;
+    return i;
+}
+
+// Compute a MIDI instrument array size.
+int lscp_midi_instruments_size ( lscp_midi_instrument_t *pInstrs )
+{
+    return LSCP_SPLIT_SIZE(lscp_midi_instruments_count(pInstrs));
+}
+
+#endif // LSCP_MIDI_INSTRUMENTS_COUNT
 
 
 //-------------------------------------------------------------------------

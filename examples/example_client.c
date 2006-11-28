@@ -121,6 +121,21 @@ int client_test_params ( lscp_param_t *pParams )
 }
 
 
+int client_test_midi_instruments ( lscp_midi_instrument_t *pInstrs )
+{
+    int i;
+
+    printf("{");
+    for (i = 0; pInstrs && pInstrs[i].program >= 0; i++) {
+        if (i > 0)
+            printf(",");
+        printf("{%d,%d,%d}", pInstrs[i].bank_msb, pInstrs[i].bank_lsb, pInstrs[i].program);
+    }
+    printf(" }\n");
+    return 0;
+}
+
+
 int client_test_param_info ( lscp_param_info_t *pParamInfo )
 {
     const char *pszType;
@@ -315,6 +330,7 @@ typedef lscp_server_info_t *         server_info;
 typedef lscp_engine_info_t *         engine_info;
 typedef lscp_channel_info_t *        channel_info;
 typedef lscp_buffer_fill_t *         buffer_fill;
+typedef lscp_midi_instrument_t *     midi_instruments;
 typedef lscp_midi_instrument_info_t *midi_instrument_info;
 
 #define CLIENT_TEST(p, t, x) { clock_t c; void *v; g_test_count++; \
@@ -331,6 +347,7 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
 {
     int iSamplerChannel;
 	lscp_midi_instrument_t midi_instr;
+	int i, j, k;
 
     printf("\n--- pszEngine=\"%s\" pszAudioDevice=\"%s\" iAudioDevice=%d pszMidiDevice=\"%s\" iMidiDevice=%d ---\n", pszEngine, pszAudioDriver, iAudioDevice, pszMidiDriver, iMidiDevice);
     CLIENT_TEST(pClient, engine_info, lscp_get_engine_info(pClient, pszEngine));
@@ -362,14 +379,32 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
     CLIENT_TEST(pClient, status, lscp_reset_channel(pClient, iSamplerChannel));
     CLIENT_TEST(pClient, status, lscp_remove_channel(pClient, iSamplerChannel));
 
-	midi_instr.bank_msb = 0;
-	midi_instr.bank_lsb = 0;
-	midi_instr.program  = 0;
-    printf("\n--- midi_instr={%d,%d,%d} ---\n", midi_instr.bank_msb, midi_instr.bank_lsb, midi_instr.program);
-    CLIENT_TEST(pClient, status, lscp_map_midi_instrument(pClient, &midi_instr, pszEngine, "DefaultInstrument.gig", 0, 1.0f, LSCP_LOAD_ON_DEMAND, "DummyName"));
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            for (k = 0; k < 8; k++) {
+                midi_instr.bank_msb = i;
+                midi_instr.bank_lsb = j;
+                midi_instr.program  = k;
+                CLIENT_TEST(pClient, status, lscp_map_midi_instrument(pClient, &midi_instr, pszEngine, "DefaultInstrument.gig", 0, 1.0f, LSCP_LOAD_ON_DEMAND, "DummyName"));
+            }
+        }
+    }
+
     CLIENT_TEST(pClient, int, lscp_get_midi_instruments(pClient));
-    CLIENT_TEST(pClient, midi_instrument_info, lscp_get_midi_instrument_info(pClient, &midi_instr));
-    CLIENT_TEST(pClient, status, lscp_unmap_midi_instrument(pClient, &midi_instr));
+    CLIENT_TEST(pClient, midi_instruments, lscp_list_midi_instruments(pClient));
+
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            for (k = 0; k < 8; k++) {
+                midi_instr.bank_msb = i;
+                midi_instr.bank_lsb = j;
+                midi_instr.program  = k;
+                CLIENT_TEST(pClient, midi_instrument_info, lscp_get_midi_instrument_info(pClient, &midi_instr));
+                CLIENT_TEST(pClient, status, lscp_unmap_midi_instrument(pClient, &midi_instr));
+            }
+        }
+    }
+    
     CLIENT_TEST(pClient, status, lscp_clear_midi_instruments(pClient));
 }
 

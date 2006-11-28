@@ -231,6 +231,7 @@ lscp_status_t           lscp_map_midi_instrument        (lscp_client_t *pClient,
 lscp_status_t           lscp_unmap_midi_instrument      (lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr);
 
 int                     lscp_get_midi_instruments       (lscp_client_t *pClient);
+lscp_midi_instrument_t *lscp_list_midi_instruments      (lscp_client_t *pClient);
 
 lscp_midi_instrument_info_t *lscp_get_midi_instrument_info(lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr);
 

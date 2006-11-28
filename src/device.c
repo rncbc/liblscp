@@ -48,7 +48,7 @@ static lscp_driver_info_t *_lscp_driver_info_query ( lscp_client_t *pClient, lsc
     lscp_mutex_lock(pClient->mutex);
 
     lscp_driver_info_reset(pDriverInfo);
-    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, pszQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -96,7 +96,7 @@ static lscp_device_info_t *_lscp_device_info_query ( lscp_client_t *pClient, lsc
     lscp_mutex_lock(pClient->mutex);
 
     lscp_device_info_reset(pDeviceInfo);
-    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, pszQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -137,7 +137,7 @@ static lscp_device_port_info_t *_lscp_device_port_info_query ( lscp_client_t *pC
     lscp_mutex_lock(pClient->mutex);
 
     lscp_device_port_info_reset(pDevicePortInfo);
-    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, pszQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -178,7 +178,7 @@ static lscp_param_info_t *_lscp_param_info_query ( lscp_client_t *pClient, lscp_
 
     lscp_param_info_reset(pParamInfo);
     lscp_param_concat(pszQuery, cchMaxQuery, pDepList);
-    if (lscp_client_call(pClient, pszQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, pszQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -278,7 +278,7 @@ int lscp_get_available_audio_drivers ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n", 0) == LSCP_OK)
         iAudioDrivers = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -309,7 +309,7 @@ const char ** lscp_list_available_audio_drivers ( lscp_client_t *pClient )
         pClient->audio_drivers = NULL;
     }
 
-    if (lscp_client_call(pClient, "LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS\r\n", 0) == LSCP_OK)
         pClient->audio_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.
@@ -398,7 +398,7 @@ int lscp_create_audio_device ( lscp_client_t *pClient, const char *pszAudioDrive
 
     sprintf(szQuery, "CREATE AUDIO_OUTPUT_DEVICE %s", pszAudioDriver);
     lscp_param_concat(szQuery, sizeof(szQuery), pParams);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK)
+    if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
         iAudioDevice = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -448,7 +448,7 @@ int lscp_get_audio_devices ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET AUDIO_OUTPUT_DEVICES\r\n", 0) == LSCP_OK)
         iAudioDevices = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -482,7 +482,7 @@ int *lscp_list_audio_devices ( lscp_client_t *pClient )
         pClient->audio_devices = NULL;
     }
 
-    if (lscp_client_call(pClient, "LIST AUDIO_OUTPUT_DEVICES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AUDIO_OUTPUT_DEVICES\r\n", 0) == LSCP_OK)
         pClient->audio_devices = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.
@@ -647,7 +647,7 @@ int lscp_get_available_midi_drivers ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET AVAILABLE_MIDI_INPUT_DRIVERS\r\n", 0) == LSCP_OK)
         iMidiDrivers = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section up.
@@ -678,7 +678,7 @@ const char** lscp_list_available_midi_drivers ( lscp_client_t *pClient )
         pClient->midi_drivers = NULL;
     }
 
-    if (lscp_client_call(pClient, "LIST AVAILABLE_MIDI_INPUT_DRIVERS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AVAILABLE_MIDI_INPUT_DRIVERS\r\n", 0) == LSCP_OK)
         pClient->midi_drivers = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section up.
@@ -769,7 +769,7 @@ int lscp_create_midi_device ( lscp_client_t *pClient, const char *pszMidiDriver,
 
     sprintf(szQuery, "CREATE MIDI_INPUT_DEVICE %s", pszMidiDriver);
     lscp_param_concat(szQuery, sizeof(szQuery), pParams);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK)
+    if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
         iMidiDevice = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -819,7 +819,7 @@ int lscp_get_midi_devices ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET MIDI_INPUT_DEVICES\r\n", 0) == LSCP_OK)
         iMidiDevices = atoi(lscp_client_get_result(pClient));
         
     // Unlock this section down.
@@ -853,7 +853,7 @@ int *lscp_list_midi_devices ( lscp_client_t *pClient )
         pClient->midi_devices = NULL;
     }
 
-    if (lscp_client_call(pClient, "LIST MIDI_INPUT_DEVICES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST MIDI_INPUT_DEVICES\r\n", 0) == LSCP_OK)
         pClient->midi_devices = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.

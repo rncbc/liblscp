@@ -327,6 +327,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
     pClient->midi_devices = NULL;
     pClient->engines = NULL;
     pClient->channels = NULL;
+    pClient->midi_instruments = NULL;
     lscp_driver_info_init(&(pClient->audio_driver_info));
     lscp_driver_info_init(&(pClient->midi_driver_info));
     lscp_device_info_init(&(pClient->audio_device_info));
@@ -422,10 +423,15 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
     lscp_isplit_destroy(pClient->midi_devices);
     lscp_szsplit_destroy(pClient->engines);
     lscp_isplit_destroy(pClient->channels);
+    lscp_midi_instruments_destroy(pClient->midi_instruments);
     // Make them null.
     pClient->audio_drivers = NULL;
     pClient->midi_drivers = NULL;
+    pClient->audio_devices = NULL;
+    pClient->midi_devices = NULL;
     pClient->engines = NULL;
+    pClient->channels = NULL;
+    pClient->midi_instruments = NULL;
     // Free result error stuff.
     lscp_client_set_result(pClient, NULL, 0);
     // Free stream usage stuff.
@@ -510,7 +516,7 @@ lscp_status_t lscp_client_query ( lscp_client_t *pClient, const char *pszQuery )
     lscp_mutex_lock(pClient->mutex);
 
     // Just make the now guarded call.
-    ret = lscp_client_call(pClient, pszQuery);
+    ret = lscp_client_call(pClient, pszQuery, 0);
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
@@ -749,7 +755,7 @@ int lscp_get_channels ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET CHANNELS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET CHANNELS\r\n", 0) == LSCP_OK)
         iChannels = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section doen.
@@ -783,7 +789,7 @@ int *lscp_list_channels ( lscp_client_t *pClient )
         pClient->channels = NULL;
     }
 
-    if (lscp_client_call(pClient, "LIST CHANNELS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST CHANNELS\r\n", 0) == LSCP_OK)
         pClient->channels = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.
@@ -809,7 +815,7 @@ int lscp_add_channel ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "ADD CHANNEL\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "ADD CHANNEL\r\n", 0) == LSCP_OK)
         iSamplerChannel = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -856,7 +862,7 @@ int lscp_get_available_engines ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET AVAILABLE_ENGINES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET AVAILABLE_ENGINES\r\n", 0) == LSCP_OK)
         iAvailableEngines = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -887,7 +893,7 @@ const char **lscp_list_available_engines ( lscp_client_t *pClient )
         pClient->engines = NULL;
     }
 
-    if (lscp_client_call(pClient, "LIST AVAILABLE_ENGINES\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "LIST AVAILABLE_ENGINES\r\n", 0) == LSCP_OK)
         pClient->engines = lscp_szsplit_create(lscp_client_get_result(pClient), pszSeps);
 
     // Unlock this section down.
@@ -927,7 +933,7 @@ lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *p
     lscp_engine_info_reset(pEngineInfo);
 
     sprintf(szQuery, "GET ENGINE INFO %s\r\n", pszEngineName);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -983,7 +989,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
     lscp_channel_info_reset(pChannelInfo);
 
     sprintf(szQuery, "GET CHANNEL INFO %d\r\n", iSamplerChannel);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -1098,7 +1104,7 @@ int lscp_get_channel_voice_count ( lscp_client_t *pClient, int iSamplerChannel )
     lscp_mutex_lock(pClient->mutex);
 
     sprintf(szQuery, "GET CHANNEL VOICE_COUNT %d\r\n", iSamplerChannel);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK)
+    if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
         iVoiceCount = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -1129,7 +1135,7 @@ int lscp_get_channel_stream_count ( lscp_client_t *pClient, int iSamplerChannel 
     lscp_mutex_lock(pClient->mutex);
 
     sprintf(szQuery, "GET CHANNEL STREAM_COUNT %d\r\n", iSamplerChannel);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK)
+    if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
         iStreamCount = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -1167,7 +1173,7 @@ int lscp_get_channel_stream_usage ( lscp_client_t *pClient, int iSamplerChannel 
 
     iStream = 0;
     sprintf(szQuery, "GET CHANNEL BUFFER_FILL PERCENTAGE %d\r\n", iSamplerChannel);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+    if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -1244,7 +1250,7 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
         iStream = 0;
         pBufferFill = pClient->buffer_fill;
         sprintf(szQuery, "GET CHANNEL BUFFER_FILL %s %d\r\n", pszUsageType, iSamplerChannel);
-        if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+        if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK) {
             pszResult = lscp_client_get_result(pClient);
             pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
             while (pszToken && iStream < pClient->iStreamCount) {
@@ -1560,7 +1566,7 @@ lscp_server_info_t *lscp_get_server_info ( lscp_client_t *pClient )
     pServerInfo = &(pClient->server_info);
     lscp_server_info_reset(pServerInfo);
 
-    if (lscp_client_call(pClient, "GET SERVER INFO\r\n") == LSCP_OK) {
+    if (lscp_client_call(pClient, "GET SERVER INFO\r\n", 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -1602,7 +1608,7 @@ int lscp_get_total_voice_count ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET TOTAL_VOICE_COUNT\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET TOTAL_VOICE_COUNT\r\n", 0) == LSCP_OK)
         iVoiceCount = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -1628,7 +1634,7 @@ int lscp_get_total_voice_count_max ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET TOTAL_VOICE_COUNT_MAX\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET TOTAL_VOICE_COUNT_MAX\r\n", 0) == LSCP_OK)
         iVoiceCount = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
@@ -1664,7 +1670,7 @@ int lscp_get_total_voice_count_max ( lscp_client_t *pClient )
 lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName )
 {
     char szQuery[LSCP_BUFSIZ];
-
+    
     if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
         return LSCP_FAILED;
     if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
@@ -1673,34 +1679,34 @@ lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instr
         return LSCP_FAILED;
     if (pszEngineName == NULL || pszFileName == NULL)
         return LSCP_FAILED;
-
-	if (fVolume < 0.0f)
-		fVolume = 1.0f;
-
+    
+    if (fVolume < 0.0f)
+        fVolume = 1.0f;
+    
     sprintf(szQuery, "MAP MIDI_INSTRUMENT %d %d %d %s '%s' %d %g",
-		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program,
-		pszEngineName, pszFileName, iInstrIndex, fVolume);
-
-	switch (load_mode) {
-	case LSCP_LOAD_PERSISTENT:
-		strcat(szQuery, " PERSISTENT");
-		break;
-	case LSCP_LOAD_ON_DEMAND_HOLD:
-		strcat(szQuery, " ON_DEMAND_HOLD");
-		break;
-	case LSCP_LOAD_ON_DEMAND:
-		strcat(szQuery, " ON_DEMAND_HOLD");
-		break;
-	case LSCP_LOAD_DEFAULT:
-	default:
-		break;
-	}
-
-	if (pszName)
-		sprintf(szQuery + strlen(szQuery), " '%s'", pszName);
-
-	strcat(szQuery, "\r\n");
-
+        pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program,
+        pszEngineName, pszFileName, iInstrIndex, fVolume);
+    
+    switch (load_mode) {
+    case LSCP_LOAD_PERSISTENT:
+        strcat(szQuery, " PERSISTENT");
+        break;
+    case LSCP_LOAD_ON_DEMAND_HOLD:
+        strcat(szQuery, " ON_DEMAND_HOLD");
+        break;
+    case LSCP_LOAD_ON_DEMAND:
+        strcat(szQuery, " ON_DEMAND_HOLD");
+        break;
+    case LSCP_LOAD_DEFAULT:
+    default:
+        break;
+    }
+    
+    if (pszName)
+        sprintf(szQuery + strlen(szQuery), " '%s'", pszName);
+    
+    strcat(szQuery, "\r\n");
+    
     return lscp_client_query(pClient, szQuery);
 }
 
@@ -1748,13 +1754,45 @@ int lscp_get_midi_instruments ( lscp_client_t *pClient )
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
 
-    if (lscp_client_call(pClient, "GET MIDI_INSTRUMENTS\r\n") == LSCP_OK)
+    if (lscp_client_call(pClient, "GET MIDI_INSTRUMENTS\r\n", 0) == LSCP_OK)
         iInstruments = atoi(lscp_client_get_result(pClient));
 
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
 
     return iInstruments;
+}
+
+
+/**
+ *  Getting indeces of all MIDI instrument map entries:
+ *  LIST MIDI_INSTRUMENTS
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns An array of @ref lscp_midi_instrument_t, terminated with the
+ *  {-1,-1,-1} triplet, NULL otherwise.
+ */
+lscp_midi_instrument_t *lscp_list_midi_instruments ( lscp_client_t *pClient )
+{
+    if (pClient == NULL)
+        return NULL;
+
+    // Lock this section up.
+    lscp_mutex_lock(pClient->mutex);
+
+    if (pClient->midi_instruments) {
+        lscp_midi_instruments_destroy(pClient->midi_instruments);
+        pClient->midi_instruments = NULL;
+    }
+
+    if (lscp_client_call(pClient, "LIST MIDI_INSTRUMENTS\r\n", 0) == LSCP_OK)
+        pClient->midi_instruments = lscp_midi_instruments_create(lscp_client_get_result(pClient));
+
+    // Unlock this section down.
+    lscp_mutex_unlock(pClient->mutex);
+
+    return pClient->midi_instruments;
 }
 
 
@@ -1778,23 +1816,23 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
     const char *pszCrlf = "\r\n";
     char *pszToken;
     char *pch;
-
+    
     if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
         return NULL;
     if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
         return NULL;
     if (pMidiInstr->program < 0 || pMidiInstr->program > 127)
         return NULL;
-
+    
     // Lock this section up.
     lscp_mutex_lock(pClient->mutex);
-
+    
     pInstrInfo = &(pClient->midi_instrument_info);
     lscp_midi_instrument_info_reset(pInstrInfo);
-
+    
     sprintf(szQuery, "GET MIDI_INSTRUMENT INFO %d %d %d\r\n",
-		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program);
-    if (lscp_client_call(pClient, szQuery) == LSCP_OK) {
+        pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program);
+    if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
         pszResult = lscp_client_get_result(pClient);
         pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
         while (pszToken) {
@@ -1845,13 +1883,13 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
                     pInstrInfo->volume = (float) atof(lscp_ltrim(pszToken));
             }
             pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-		}
+        }
     }
     else pInstrInfo = NULL;
-
+    
     // Unlock this section down.
     lscp_mutex_unlock(pClient->mutex);
-
+    
     return pInstrInfo;
 }
 
