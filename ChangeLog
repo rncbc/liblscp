@@ -3,6 +3,14 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.4.2  2006-12-03  MIDI instrument mapping fixed, previously missing
+                   the regular ON_DEMAND load mode.
+
+                   Server error reporting is now effective; all server
+                   numerical error and warning codes are added to 100,
+                   thus giving a proper non-zero lscp_client_get_errno()
+                   return value.
+
 0.4.1  2006-11-28  Fixed the flush timeout operation to be issued only
                    once, avoiding recurrent client failure after receive
                    timeout.

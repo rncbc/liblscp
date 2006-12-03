@@ -1670,7 +1670,7 @@ int lscp_get_total_voice_count_max ( lscp_client_t *pClient )
 lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName )
 {
 	char szQuery[LSCP_BUFSIZ];
-	
+
 	if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
 		return LSCP_FAILED;
 	if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
@@ -1679,14 +1679,14 @@ lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instr
 		return LSCP_FAILED;
 	if (pszEngineName == NULL || pszFileName == NULL)
 		return LSCP_FAILED;
-	
+
 	if (fVolume < 0.0f)
 		fVolume = 1.0f;
-	
+
 	sprintf(szQuery, "MAP MIDI_INSTRUMENT %d %d %d %s '%s' %d %g",
 		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program,
 		pszEngineName, pszFileName, iInstrIndex, fVolume);
-	
+
 	switch (load_mode) {
 	case LSCP_LOAD_PERSISTENT:
 		strcat(szQuery, " PERSISTENT");
@@ -1695,18 +1695,18 @@ lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instr
 		strcat(szQuery, " ON_DEMAND_HOLD");
 		break;
 	case LSCP_LOAD_ON_DEMAND:
-		strcat(szQuery, " ON_DEMAND_HOLD");
+		strcat(szQuery, " ON_DEMAND");
 		break;
 	case LSCP_LOAD_DEFAULT:
 	default:
 		break;
 	}
-	
+
 	if (pszName)
 		sprintf(szQuery + strlen(szQuery), " '%s'", pszName);
-	
+
 	strcat(szQuery, "\r\n");
-	
+
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1816,20 +1816,20 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
 	const char *pszCrlf = "\r\n";
 	char *pszToken;
 	char *pch;
-	
+
 	if (pMidiInstr->bank_msb < 0 || pMidiInstr->bank_msb > 127)
 		return NULL;
 	if (pMidiInstr->bank_lsb < 0 || pMidiInstr->bank_lsb > 127)
 		return NULL;
 	if (pMidiInstr->program < 0 || pMidiInstr->program > 127)
 		return NULL;
-	
+
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
 	
 	pInstrInfo = &(pClient->midi_instrument_info);
 	lscp_midi_instrument_info_reset(pInstrInfo);
-	
+
 	sprintf(szQuery, "GET MIDI_INSTRUMENT INFO %d %d %d\r\n",
 		pMidiInstr->bank_msb, pMidiInstr->bank_lsb, pMidiInstr->program);
 	if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
@@ -1886,10 +1886,10 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
 		}
 	}
 	else pInstrInfo = NULL;
-	
+
 	// Unlock this section down.
 	lscp_mutex_unlock(pClient->mutex);
-	
+
 	return pInstrInfo;
 }
 

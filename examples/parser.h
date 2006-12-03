@@ -42,10 +42,10 @@ extern "C" {
 
 typedef struct _lscp_parser_t
 {
-    char       *pchBuffer;
-    int         cchBuffer;
-    const char *pszToken;
-    char       *pch;
+	char       *pchBuffer;
+	int         cchBuffer;
+	const char *pszToken;
+	char       *pch;
 
 } lscp_parser_t;
 

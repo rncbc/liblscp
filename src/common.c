@@ -231,7 +231,7 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery, i
 					// Get the error number...
 					pszToken = lscp_strtok(NULL, pszSeps, &(pch));
 					if (pszToken) {
-						iErrno = atoi(pszToken);
+						iErrno = atoi(pszToken) + 100;
 						// And make the message text our final result.
 						pszResult = lscp_strtok(NULL, pszSeps, &(pch));
 					}

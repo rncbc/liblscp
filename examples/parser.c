@@ -33,103 +33,103 @@
 
 const char *lscp_parser_strtok ( char *pchBuffer, const char *pszDelim, char **ppch )
 {
-    const char *pszToken;
+	const char *pszToken;
 
-    if (pchBuffer == NULL)
-        pchBuffer = *ppch;
+	if (pchBuffer == NULL)
+		pchBuffer = *ppch;
 
-    pchBuffer += strspn(pchBuffer, pszDelim);
-    if (*pchBuffer == '\0')
-        return NULL;
+	pchBuffer += strspn(pchBuffer, pszDelim);
+	if (*pchBuffer == '\0')
+		return NULL;
 
-    pszToken  = pchBuffer;
-    pchBuffer = strpbrk(pszToken, pszDelim);
-    if (pchBuffer == NULL) {
-        *ppch = strchr(pszToken, '\0');
-    } else {
-        *pchBuffer = '\0';
-        *ppch = pchBuffer + 1;
-        while (strchr(pszDelim, **ppch))
-            (*ppch)++;
-    }
+	pszToken  = pchBuffer;
+	pchBuffer = strpbrk(pszToken, pszDelim);
+	if (pchBuffer == NULL) {
+		*ppch = strchr(pszToken, '\0');
+	} else {
+		*pchBuffer = '\0';
+		*ppch = pchBuffer + 1;
+		while (strchr(pszDelim, **ppch))
+			(*ppch)++;
+	}
 
-    return pszToken;
+	return pszToken;
 }
 
 
 void lscp_parser_init ( lscp_parser_t *pParser, const char *pchBuffer, int cchBuffer )
 {
-    memset(pParser, 0, sizeof(lscp_parser_t));
+	memset(pParser, 0, sizeof(lscp_parser_t));
 
-    pParser->pchBuffer = (char *) malloc(cchBuffer + 1);
-    if (pParser->pchBuffer) {
-        memcpy(pParser->pchBuffer, pchBuffer, cchBuffer);
-        pParser->pchBuffer[cchBuffer] = (char) 0;
-        pParser->pszToken = lscp_parser_strtok(pParser->pchBuffer, " \t\r\n", &(pParser->pch));
-    }
+	pParser->pchBuffer = (char *) malloc(cchBuffer + 1);
+	if (pParser->pchBuffer) {
+		memcpy(pParser->pchBuffer, pchBuffer, cchBuffer);
+		pParser->pchBuffer[cchBuffer] = (char) 0;
+		pParser->pszToken = lscp_parser_strtok(pParser->pchBuffer, " \t\r\n", &(pParser->pch));
+	}
 
 }
 
 
 const char *lscp_parser_next ( lscp_parser_t *pParser )
 {
-    const char *pszToken = pParser->pszToken;
+	const char *pszToken = pParser->pszToken;
 
-    if (pParser->pszToken)
-        pParser->pszToken = lscp_parser_strtok(NULL, " \t\r\n", &(pParser->pch));
+	if (pParser->pszToken)
+		pParser->pszToken = lscp_parser_strtok(NULL, " \t\r\n", &(pParser->pch));
 
-    return pszToken;
+	return pszToken;
 }
 
 int lscp_parser_nextint ( lscp_parser_t *pParser )
 {
-    int ret = 0;
+	int ret = 0;
 
-    if (pParser->pszToken) {
-        ret = atoi(pParser->pszToken);
-        lscp_parser_next(pParser);
-    }
+	if (pParser->pszToken) {
+		ret = atoi(pParser->pszToken);
+		lscp_parser_next(pParser);
+	}
 
-    return ret;
+	return ret;
 }
 
 float lscp_parser_nextnum ( lscp_parser_t *pParser )
 {
-    float ret = 0;
+	float ret = 0;
 
-    if (pParser->pszToken) {
-        ret = (float) atof(pParser->pszToken);
-        lscp_parser_next(pParser);
-    }
+	if (pParser->pszToken) {
+		ret = (float) atof(pParser->pszToken);
+		lscp_parser_next(pParser);
+	}
 
-    return ret;
+	return ret;
 }
 
 int lscp_parser_test ( lscp_parser_t *pParser, const char *pszToken )
 {
-    int ret = (pParser->pszToken != NULL);
-    if (ret)
-        ret = (strcasecmp(pParser->pszToken, pszToken) == 0);
-    if (ret)
-        lscp_parser_next(pParser);
+	int ret = (pParser->pszToken != NULL);
+	if (ret)
+		ret = (strcasecmp(pParser->pszToken, pszToken) == 0);
+	if (ret)
+		lscp_parser_next(pParser);
 
-    return ret;
+	return ret;
 }
 
 int lscp_parser_test2 ( lscp_parser_t *pParser, const char *pszToken, const char *pszToken2 )
 {
-    int ret = lscp_parser_test(pParser, pszToken);
-    if (ret)
-        ret = lscp_parser_test(pParser, pszToken2);
+	int ret = lscp_parser_test(pParser, pszToken);
+	if (ret)
+		ret = lscp_parser_test(pParser, pszToken2);
 
-    return ret;
+	return ret;
 }
 
 void lscp_parser_free ( lscp_parser_t *pParser )
 {
-    if (pParser->pchBuffer)
-        free(pParser->pchBuffer);
-    pParser->pchBuffer = NULL;
+	if (pParser->pchBuffer)
+		free(pParser->pchBuffer);
+	pParser->pchBuffer = NULL;
 }
 
 
