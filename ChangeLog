@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.4.2  2006-12-03  MIDI instrument mapping fixed, previously missing
+0.4.2  2006-12-04  MIDI instrument mapping fixed, previously missing
                    the regular ON_DEMAND load mode.
 
                    Server error reporting is now effective; all server

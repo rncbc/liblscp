@@ -63,7 +63,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
-* Sun Dec  3 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+* Mon Dec  4 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Going up to 0.4.2 fast.
 
 * Tue Nov 28 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>

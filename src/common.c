@@ -213,7 +213,7 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery, i
 						&& pszBuffer[cchBuffer - 2] == '\r'
 						&& (iResult < 1 || (cchBuffer >= 3
 								&& pszBuffer[cchBuffer - 3] == '.'))) {
-						// Get rid of the trailing dot and CRLF anyway...
+						// Get rid of the trailling dot and CRLF anyway...
 						while (cchBuffer > 0 && (
 							pszBuffer[cchBuffer - 1] == '\r' ||
 							pszBuffer[cchBuffer - 1] == '\n' ||
@@ -225,6 +225,11 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery, i
 				}
 				// The result string is now set to the command response, if any.
 			} else {
+				// Get rid of the CRLF anyway...
+				while (cchBuffer > 0 && (
+					achBuffer[cchBuffer - 1] == '\r' ||
+					achBuffer[cchBuffer - 1] == '\n'))
+					achBuffer[--cchBuffer] = (char) 0;
 				// Parse the error/warning message, skip first colon...
 				pszToken = lscp_strtok(achBuffer, pszSeps, &(pch));
 				if (pszToken) {
