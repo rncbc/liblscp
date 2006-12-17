@@ -1892,7 +1892,7 @@ const char *lscp_get_midi_instrument_map_name ( lscp_client_t *pClient, int iMid
 	}
 
 	sprintf(szQuery, "GET MIDI_INSTRUMENT_MAP INFO %d\r\n", iMidiMap);
-	if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
+	if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK) {
 		pszResult = lscp_client_get_result(pClient);
 		pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
 		while (pszToken) {
