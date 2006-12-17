@@ -3,6 +3,19 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.5.0  2006-12-17  MIDI instrument mapping, second round, according to
+                   LSCP 1.2 draft document as of December 15, 2006.
+
+                   New client interface functions:
+                     lscp_set_channel_midi_map();
+                     lscp_add_midi_instrument_map();
+                     lscp_remove_midi_instrument_map();
+                     lscp_get_midi_instrument_maps();
+                     lscp_list_midi_instrument_maps();
+                     lscp_get_midi_instrument_map_name();
+                     lscp_set_midi_instrument_map_name();
+
+
 0.4.2  2006-12-04  MIDI instrument mapping fixed, previously missing
                    the regular ON_DEMAND load mode.
 

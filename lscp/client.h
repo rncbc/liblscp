@@ -71,6 +71,7 @@ typedef struct _lscp_channel_info_t
 	int           midi_device;
 	int           midi_port;
 	int           midi_channel;
+	int           midi_map;
 	float         volume;
 	int           mute;
 	int           solo;
@@ -99,9 +100,9 @@ typedef enum _lscp_usage_t
 /** MIDI instrument parameter struct. */
 typedef struct _lscp_midi_instrument_t
 {
-	int bank_msb;
-	int bank_lsb;
-	int program;
+	int map;
+	int bank;
+	int prog;
 
 } lscp_midi_instrument_t;
 
@@ -129,6 +130,16 @@ typedef struct _lscp_midi_instrument_info_t
 	float            volume;
 
 } lscp_midi_instrument_info_t;
+
+
+/** MIDI instrument map mode. */
+typedef enum _lscp_midi_map_mode_t
+{
+	LSCP_MIDI_MAP_NONE = -1,
+	LSCP_MIDI_MAP_DEFAULT = -2,
+	LSCP_MIDI_MAP_ALL = -3
+
+} lscp_midi_map_mode_t;
 
 
 //-------------------------------------------------------------------------
@@ -210,6 +221,8 @@ lscp_status_t           lscp_set_channel_midi_type      (lscp_client_t *pClient,
 lscp_status_t           lscp_set_channel_midi_device    (lscp_client_t *pClient, int iSamplerChannel, int iMidiDevice);
 lscp_status_t           lscp_set_channel_midi_port      (lscp_client_t *pClient, int iSamplerChannel, int iMidiPort);
 lscp_status_t           lscp_set_channel_midi_channel   (lscp_client_t *pClient, int iSamplerChannel, int iMidiChannel);
+lscp_status_t           lscp_set_channel_midi_map       (lscp_client_t *pClient, int iSamplerChannel, int iMidiMap);
+
 lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient, int iSamplerChannel, float fVolume);
 
 lscp_status_t           lscp_set_channel_mute           (lscp_client_t *pClient, int iSamplerChannel, int iMute);
@@ -227,15 +240,24 @@ int                     lscp_get_total_voice_count_max  (lscp_client_t *pClient)
 //-------------------------------------------------------------------------
 // MIDI instrument mapping control functions.
 
+int                     lscp_add_midi_instrument_map    (lscp_client_t *pClient, const char *pszMapName);
+lscp_status_t           lscp_remove_midi_instrument_map (lscp_client_t *pClient, int iMidiMap);
+
+int                     lscp_get_midi_instrument_maps   (lscp_client_t *pClient);
+int *                   lscp_list_midi_instrument_maps  (lscp_client_t *pClient);
+
+const char *            lscp_get_midi_instrument_map_name (lscp_client_t *pClient, int iMidiMap);
+lscp_status_t           lscp_set_midi_instrument_map_name (lscp_client_t *pClient, int iMidiMap, const char *pszMapName);
+
 lscp_status_t           lscp_map_midi_instrument        (lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName);
 lscp_status_t           lscp_unmap_midi_instrument      (lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr);
 
-int                     lscp_get_midi_instruments       (lscp_client_t *pClient);
-lscp_midi_instrument_t *lscp_list_midi_instruments      (lscp_client_t *pClient);
+int                     lscp_get_midi_instruments       (lscp_client_t *pClient, int iMidiMap);
+lscp_midi_instrument_t *lscp_list_midi_instruments      (lscp_client_t *pClient, int iMidiMap);
 
 lscp_midi_instrument_info_t *lscp_get_midi_instrument_info(lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr);
 
-lscp_status_t           lscp_clear_midi_instruments     (lscp_client_t *pClient);
+lscp_status_t           lscp_clear_midi_instruments     (lscp_client_t *pClient, int iMidiMap);
 
 
 #if defined(__cplusplus)

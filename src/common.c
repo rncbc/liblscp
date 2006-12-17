@@ -754,19 +754,19 @@ lscp_midi_instrument_t *lscp_midi_instruments_create ( const char *pszCsv )
 		case '{':
 			pchHead = pch + 1;
 			if (k == 0) {
-				pInstrs[i].bank_msb = atoi(pchHead);
+				pInstrs[i].map = atoi(pchHead);
 				k++;
 			}
 			break;
 		case ',':
 			pchHead = pch + 1;
 			if (k == 1) {
-				pInstrs[i].bank_lsb = atoi(pchHead);
+				pInstrs[i].bank = atoi(pchHead);
 				k++;
 			}
 			else 
 			if (k == 2) {
-				pInstrs[i].program = atoi(pchHead);
+				pInstrs[i].prog = atoi(pchHead);
 				k++;
 			}
 			break;
@@ -783,9 +783,9 @@ lscp_midi_instrument_t *lscp_midi_instruments_create ( const char *pszCsv )
 			pNewInstrs = (lscp_midi_instrument_t *) malloc(iSize * sizeof(lscp_midi_instrument_t));
 			if (pNewInstrs) {
 				for (j = 0; j < i; j++) {
-					pNewInstrs[j].bank_msb = pInstrs[j].bank_msb;
-					pNewInstrs[j].bank_lsb = pInstrs[j].bank_lsb;
-					pNewInstrs[j].program  = pInstrs[j].program;
+					pNewInstrs[j].map  = pInstrs[j].map;
+					pNewInstrs[j].bank = pInstrs[j].bank;
+					pNewInstrs[j].prog = pInstrs[j].prog;
 				}
 				free(pInstrs);
 				pInstrs = pNewInstrs;
@@ -795,9 +795,9 @@ lscp_midi_instrument_t *lscp_midi_instruments_create ( const char *pszCsv )
 	
 	// Special terminate split array.
 	for ( ; i < iSize; i++) {
-		pInstrs[i].bank_msb = -1;
-		pInstrs[i].bank_lsb = -1;
-		pInstrs[i].program  = -1;
+		pInstrs[i].map  = -1;
+		pInstrs[i].bank = -1;
+		pInstrs[i].prog = -1;
 	}
 	
 	return pInstrs;
@@ -894,6 +894,7 @@ void lscp_channel_info_init ( lscp_channel_info_t *pChannelInfo )
 	pChannelInfo->midi_device       = 0;
 	pChannelInfo->midi_port         = 0;
 	pChannelInfo->midi_channel      = 0;
+	pChannelInfo->midi_map          = 0;
 	pChannelInfo->volume            = 0.0;
 	pChannelInfo->mute              = 0;
 	pChannelInfo->solo              = 0;

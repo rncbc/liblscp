@@ -275,6 +275,9 @@ int lscp_get_available_audio_drivers ( lscp_client_t *pClient )
 {
 	int iAudioDrivers = -1;
 
+	if (pClient == NULL)
+		return -1;
+
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
 
@@ -300,6 +303,9 @@ int lscp_get_available_audio_drivers ( lscp_client_t *pClient )
 const char ** lscp_list_available_audio_drivers ( lscp_client_t *pClient )
 {
 	const char *pszSeps = ",";
+
+	if (pClient == NULL)
+		return NULL;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
@@ -389,9 +395,9 @@ int lscp_create_audio_device ( lscp_client_t *pClient, const char *pszAudioDrive
 	int iAudioDevice = -1;
 
 	if (pClient == NULL)
-		return iAudioDevice;
+		return -1;
 	if (pszAudioDriver == NULL)
-		return iAudioDevice;
+		return -1;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
@@ -444,6 +450,9 @@ lscp_status_t lscp_destroy_audio_device ( lscp_client_t *pClient, int iAudioDevi
 int lscp_get_audio_devices ( lscp_client_t *pClient )
 {
 	int iAudioDevices = -1;
+
+	if (pClient == NULL)
+		return -1;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
@@ -644,6 +653,9 @@ int lscp_get_available_midi_drivers ( lscp_client_t *pClient )
 {
 	int iMidiDrivers = -1;
 
+	if (pClient == NULL)
+		return -1;
+
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
 
@@ -669,6 +681,9 @@ int lscp_get_available_midi_drivers ( lscp_client_t *pClient )
 const char** lscp_list_available_midi_drivers ( lscp_client_t *pClient )
 {
 	const char *pszSeps = ",";
+
+	if (pClient == NULL)
+		return NULL;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
@@ -760,9 +775,9 @@ int lscp_create_midi_device ( lscp_client_t *pClient, const char *pszMidiDriver,
 	int iMidiDevice = -1;
 
 	if (pClient == NULL)
-		return iMidiDevice;
+		return -1;
 	if (pszMidiDriver == NULL)
-		return iMidiDevice;
+		return -1;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
@@ -815,6 +830,9 @@ lscp_status_t lscp_destroy_midi_device ( lscp_client_t *pClient, int iMidiDevice
 int lscp_get_midi_devices ( lscp_client_t *pClient )
 {
 	int iMidiDevices = -1;
+
+	if (pClient == NULL)
+		return -1;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);

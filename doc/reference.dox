@@ -125,6 +125,7 @@ LSCP comand, and regarding the sampler channel space:<pre>
     @ref lscp_set_channel_midi_type (client, channel, midi_type);
     @ref lscp_set_channel_midi_port (client, channel, midi_port);
     @ref lscp_set_channel_midi_channel (client, channel, midi_channel);
+    @ref lscp_set_channel_midi_map (client, channel, midi_map);
     @ref lscp_set_channel_mute (client, channel, mute);
     @ref lscp_set_channel_solo (client, channel, solo);
     @ref lscp_set_channel_volume (client, channel, volume);
@@ -144,12 +145,18 @@ LSCP comand, and regarding the sampler channel space:<pre>
 
 </pre>Specific to MIDI instrument mapping interface:<pre>
 
+    @ref lscp_add_midi_instrument_map (client, map_name);
+    @ref lscp_remove_midi_instrument_map (client, midi_map);
+    @ref lscp_get_midi_instrument_maps (client);
+    @ref lscp_list_midi_instrument_maps (client);
+    @ref lscp_get_midi_instrument_map_name (client, midi_map);
+    @ref lscp_set_midi_instrument_map_name (client, midi_map, map_name);
     @ref lscp_map_midi_instrument (client, midi_instr, engine_name, file_name, instr_index, volume, load_mode, name);
     @ref lscp_unmap_midi_instrument (client, midi_instr);
-    @ref lscp_get_midi_instruments (client);
-    @ref lscp_list_midi_instruments (client);
+    @ref lscp_get_midi_instruments (client, midi_map);
+    @ref lscp_list_midi_instruments (client, midi_map);
     @ref lscp_get_midi_instrument_info (client, midi_instr);
-    @ref lscp_clear_midi_instruments (client);
+    @ref lscp_clear_midi_instruments (client, midi_map);
 
 </pre>For the audio output and MIDI input device configuration interface,
 the following functions are respectively defined in <lscp/@ref:device.h>:<pre>

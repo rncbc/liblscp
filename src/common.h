@@ -53,6 +53,8 @@ struct _lscp_client_t
 	char **             engines;
 	int  *              channels;
 	lscp_midi_instrument_t *midi_instruments;
+	int  *              midi_maps;
+	char *              midi_map_name;
 	// Client struct volatile caches.
 	lscp_driver_info_t  audio_driver_info;
 	lscp_driver_info_t  midi_driver_info;

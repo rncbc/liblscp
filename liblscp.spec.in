@@ -1,7 +1,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	12
+%define release	13
 %define prefix	@prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -63,6 +63,10 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Sun Dec 17 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Multi MIDI instrument maps introduced, sampler channel assignable.
+- Moved on up to a brand new 0.5.0 release.
+
 * Mon Dec  4 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Going up to 0.4.2 fast.
 
