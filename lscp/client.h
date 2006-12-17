@@ -44,6 +44,7 @@ typedef struct _lscp_server_info_t
 {
 	char *        description;
 	char *        version;
+	char *        protocol_version;
 
 } lscp_server_info_t;
 
@@ -159,7 +160,7 @@ typedef lscp_status_t (*lscp_client_proc_t)
 );
 
 //-------------------------------------------------------------------------
-// Client versioning teller fuunction.
+// Client versioning teller function.
 
 const char *            lscp_client_package             (void);
 const char *            lscp_client_version             (void);

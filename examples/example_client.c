@@ -217,8 +217,9 @@ int client_test_server_info ( lscp_server_info_t *pServerInfo )
 		return 1;
 	}
 	printf("{\n");
-	printf("    server_info.description = %s\n", pServerInfo->description);
-	printf("    server_info.version     = %s\n", pServerInfo->version);
+	printf("    server_info.description      = %s\n", pServerInfo->description);
+	printf("    server_info.version          = %s\n", pServerInfo->version);
+	printf("    server_info.protocol_version = %s\n", pServerInfo->protocol_version);
 	printf("  }\n");
 	return 0;
 }

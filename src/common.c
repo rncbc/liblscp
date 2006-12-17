@@ -835,8 +835,9 @@ int lscp_midi_instruments_size ( lscp_midi_instrument_t *pInstrs )
 
 void lscp_server_info_init ( lscp_server_info_t *pServerInfo )
 {
-	pServerInfo->description = NULL;
-	pServerInfo->version     = NULL;
+	pServerInfo->description      = NULL;
+	pServerInfo->version          = NULL;
+	pServerInfo->protocol_version = NULL;
 }
 
 void lscp_server_info_free ( lscp_server_info_t *pServerInfo )
@@ -845,6 +846,8 @@ void lscp_server_info_free ( lscp_server_info_t *pServerInfo )
 		free(pServerInfo->description);
 	if (pServerInfo->version)
 		free(pServerInfo->version);
+	if (pServerInfo->protocol_version)
+		free(pServerInfo->protocol_version);
 }
 
 void lscp_server_info_reset ( lscp_server_info_t *pServerInfo )

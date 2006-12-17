@@ -1662,6 +1662,11 @@ lscp_server_info_t *lscp_get_server_info ( lscp_client_t *pClient )
 				if (pszToken)
 					lscp_unquote_dup(&(pServerInfo->version), &pszToken);
 			}
+			else if (strcasecmp(pszToken, "PROTOCOL_VERSION") == 0) {
+				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+				if (pszToken)
+					lscp_unquote_dup(&(pServerInfo->protocol_version), &pszToken);
+			}
 			pszToken = lscp_strtok(NULL, pszSeps, &(pch));
 		}
 	}
