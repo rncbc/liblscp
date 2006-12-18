@@ -43,6 +43,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 	static int iSamplerChannel = 0;
 	static int iAudioDevice = 0;
 	static int iMidiDevice  = 0;
+	static int iMidiMaps = 0;
 	static int iMidiInstruments = 0;
 
 	if (pchBuffer == NULL) {
@@ -417,9 +418,21 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			sprintf(szTemp, "%d\r\n", iMidiInstruments);
 			pszResult = szTemp;
 		}
-		if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT", "INFO")) {
+		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENT_MAPS")) {
+			// Get the total count of MIDI instrument maps:
+			// GET MIDI_INSTRUMENT_MAPS
+			sprintf(szTemp, "%d\r\n", iMidiMaps);
+			pszResult = szTemp;
+		}
+		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT_MAP", "INFO")) {
 			// Getting information about a MIDI instrument map entry:
-			// GET MIDI_INSTRUMENT INFO <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+			// GET MIDI_INSTRUMENT_MAP INFO <midi-map>
+			pszResult = "NAME: DummyMapName\r\n"
+						".\r\n";
+		}
+		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT", "INFO")) {
+			// Getting information about a MIDI instrument map entry:
+			// GET MIDI_INSTRUMENT INFO <midi-map> <midi-bank> <midi-prog>
 			pszResult = "NAME: DummyName\r\n"
 						"ENGINE_NAME: DummyEngine\r\n"
 						"INSTRUMENT_FILE: DummyInstrument.gig\r\n"
@@ -435,6 +448,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		if (lscp_parser_test(&tok, "CHANNELS")) {
 			// Getting all created sampler channel list.
 			// LIST CHANNELS
+			szTemp[0] = (char) 0;
 			for (i = 0; i < iSamplerChannel && strlen(szTemp) < sizeof(szTemp) - 8; i++) {
 				if (i > 0)
 					strcat(szTemp, ",");
@@ -461,6 +475,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICES")) {
 			// Getting all created audio output device list.
 			// LIST AUDIO_OUTPUT_DEVICES
+			szTemp[0] = (char) 0;
 			for (i = 0; i < iAudioDevice && strlen(szTemp) < sizeof(szTemp) - 8; i++) {
 				if (i > 0)
 					strcat(szTemp, ",");
@@ -472,6 +487,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICES")) {
 			// Getting all created MID input device list.
 			// LIST MIDI_INPUT_DEVICES
+			szTemp[0] = (char) 0;
 			for (i = 0; i < iMidiDevice && strlen(szTemp) < sizeof(szTemp) - 8; i++) {
 				if (i > 0)
 					strcat(szTemp, ",");
@@ -483,10 +499,23 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENTS")) {
 			// Getting indeces of all MIDI instrument map entries:
 			// LIST MIDI_INSTRUMENTS
+			szTemp[0] = (char) 0;
 			for (i = 0; i < iMidiInstruments && strlen(szTemp) < sizeof(szTemp) - 16; i++) {
 				if (i > 0)
 					strcat(szTemp, ",");
 				sprintf(szTemp + strlen(szTemp), "{0,%d,%d}", i / 128, i % 128);
+			}
+			strcat(szTemp, "\r\n");
+			pszResult = szTemp;
+		}
+		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENT_MAPS")) {
+			// Getting indeces of all MIDI instrument map entries:
+			// LIST MIDI_INSTRUMENT_MAPS
+			szTemp[0] = (char) 0;
+			for (i = 0; i < iMidiMaps && strlen(szTemp) < sizeof(szTemp) - 8; i++) {
+				if (i > 0)
+					strcat(szTemp, ",");
+				sprintf(szTemp + strlen(szTemp), "%d", i);
 			}
 			strcat(szTemp, "\r\n");
 			pszResult = szTemp;
@@ -537,6 +566,10 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			}
 			else ret = LSCP_FAILED;
 		}
+		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT_MAP", "NAME")) {
+			// Setting MIDI instrument map name:
+			// SET MIDI_INSTRUMENT_MAP NAME <midi-map> <map-name>
+		}
 		else ret = LSCP_FAILED;
 	}
 	else if (lscp_parser_test(&tok, "LOAD")) {
@@ -550,24 +583,47 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		}
 		else ret = LSCP_FAILED;
 	}
-	else if (lscp_parser_test2(&tok, "ADD", "CHANNEL")) {
-		// Adding a new sampler channel:
-		// ADD CHANNEL
-		if (iSamplerChannel < 16) {
-			sprintf(szTemp, "OK[%d]\r\n", iSamplerChannel++);
-			pszResult = szTemp;
-		} else {
-			iSamplerChannel = 0;
-			ret = LSCP_FAILED;
+	else if (lscp_parser_test(&tok, "ADD")) {
+		if (lscp_parser_test(&tok, "CHANNEL")) {
+			// Adding a new sampler channel:
+			// ADD CHANNEL
+			if (iSamplerChannel < 16) {
+				sprintf(szTemp, "OK[%d]\r\n", iSamplerChannel++);
+				pszResult = szTemp;
+			} else {
+				iSamplerChannel = 0;
+				ret = LSCP_FAILED;
+			}
+		}
+		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENT_MAP")) {
+			// Adding a new MIDI instrument map:
+			// ADD MIDI_INSTRUMENT_MAP <map-name>
+			if (iMidiMaps < 2) {
+				sprintf(szTemp, "OK[%d]\r\n", iMidiMaps++);
+				pszResult = szTemp;
+			} else {
+				iMidiMaps = 0;
+				ret = LSCP_FAILED;
+			}
 		}
 	}
-	else if (lscp_parser_test2(&tok, "REMOVE", "CHANNEL")) {
-		// Removing a sampler channel:
-		// REMOVE CHANNEL <sampler-channel>
-		if (lscp_parser_nextint(&tok) < iSamplerChannel)
-			iSamplerChannel--;
-		else
-			ret = LSCP_FAILED;
+	else if (lscp_parser_test(&tok, "REMOVE")) {
+		if (lscp_parser_test(&tok, "CHANNEL")) {
+			// Removing a sampler channel:
+			// REMOVE CHANNEL <sampler-channel>
+			if (lscp_parser_nextint(&tok) >= 0)
+				iSamplerChannel--;
+			else
+				ret = LSCP_FAILED;
+		}
+		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENT_MAP")) {
+			// Removing a MIDI instrument map:
+			// REMOVE MIDI_INSTRUMENT_MAP <midi-map>
+			if (lscp_parser_nextint(&tok) >= 0)
+				iMidiMaps--;
+			else
+				ret = LSCP_FAILED;
+		}
 	}
 	else if (lscp_parser_test(&tok, "RESET")) {
 		if (lscp_parser_test(&tok, "CHANNEL")) {
@@ -629,13 +685,13 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 	}
 	else if (lscp_parser_test2(&tok, "MAP", "MIDI_INSTRUMENT")) {
 		// Create or replace a MIDI instrumnet map entry:
-		// MAP MIDI_INSTRUMENT <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+		// MAP MIDI_INSTRUMENT <midi-map> <midi-bank> <midi-prog>
 		// <engine-name> <filename> <instr-index> <volume> <load-mode> [<name>]
 		iMidiInstruments++;
 	}
 	else if (lscp_parser_test2(&tok, "UNMAP", "MIDI_INSTRUMENT")) {
 		// Remove an entry from the MIDI instrument map:
-		// UNMAP MIDI_INSTRUMENT <midi-bank-msb> <midi-bank-lsb> <midi-prog>
+		// UNMAP MIDI_INSTRUMENT <midi-map> <midi-bank> <midi-prog>
 		if (iMidiInstruments > 0)
 			iMidiInstruments--;
 		else

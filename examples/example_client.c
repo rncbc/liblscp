@@ -257,6 +257,7 @@ int client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
 	printf("    channel_info.midi_device       = %d\n", pChannelInfo->midi_device);
 	printf("    channel_info.midi_port         = %d\n", pChannelInfo->midi_port);
 	printf("    channel_info.midi_channel      = %d\n", pChannelInfo->midi_channel);
+	printf("    channel_info.midi_map          = %d\n", pChannelInfo->midi_map);
 	printf("    channel_info.volume            = %g\n", pChannelInfo->volume);
 	printf("    channel_info.mute              = %d\n", pChannelInfo->mute);
 	printf("    channel_info.solo              = %d\n", pChannelInfo->solo);
@@ -381,6 +382,7 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
 	CLIENT_TEST(pClient, status, lscp_remove_channel(pClient, iSamplerChannel));
 
 	for (i = 0; i < 2; i++) {
+		CLIENT_TEST(pClient, int, lscp_add_midi_instrument_map(pClient, NULL));
 		for (j = 0; j < 4; j++) {
 			for (k = 0; k < 8; k++) {
 				midi_instr.map  = i;
@@ -389,6 +391,7 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
 				CLIENT_TEST(pClient, status, lscp_map_midi_instrument(pClient, &midi_instr, pszEngine, "DefaultInstrument.gig", 0, 1.0f, LSCP_LOAD_ON_DEMAND, "DummyName"));
 			}
 		}
+		CLIENT_TEST(pClient, status, lscp_set_midi_instrument_map_name(pClient, i, "DummyMapName"));
 	}
 
 	CLIENT_TEST(pClient, int, lscp_get_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
@@ -404,6 +407,7 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
 				CLIENT_TEST(pClient, status, lscp_unmap_midi_instrument(pClient, &midi_instr));
 			}
 		}
+		CLIENT_TEST(pClient, int, lscp_remove_midi_instrument_map(pClient, i));
 	}
 	
 	CLIENT_TEST(pClient, status, lscp_clear_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
