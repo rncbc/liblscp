@@ -31,6 +31,7 @@
 static WSADATA _wsaData;
 #endif
 
+
 ////////////////////////////////////////////////////////////////////////
 
 lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer, int cchBuffer, void *pvData )
@@ -427,8 +428,17 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT_MAP", "INFO")) {
 			// Getting information about a MIDI instrument map entry:
 			// GET MIDI_INSTRUMENT_MAP INFO <midi-map>
-			pszResult = "NAME: DummyMapName\r\n"
-						".\r\n";
+			strcpy(szTemp, "NAME: ");
+			switch (lscp_parser_nextint(&tok)) {
+			case 0:
+				strcat(szTemp, "Chromatic\r\n");
+				break;
+			case 1:
+				strcat(szTemp, "Drum Kits\r\n");
+				break;
+			}
+			strcat(szTemp, ".\r\n");
+			pszResult = szTemp;
 		}
 		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT", "INFO")) {
 			// Getting information about a MIDI instrument map entry:
@@ -563,6 +573,10 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			else if (lscp_parser_test(&tok, "MIDI_INPUT_CHANNEL")) {
 				// Setting MIDI input channel:
 				// SET CHANNEL MIDI_INPUT_CHANNEL <sampler-channel> <midi-input-chan>
+			}
+			else if (lscp_parser_test(&tok, "MIDI_INSTRUMENT_MAP")) {
+				// Setting MIDI instrument mapl:
+				// SET CHANNEL MIDI_INSTRUMENT_MAP <sampler-channel> <midi-map>
 			}
 			else ret = LSCP_FAILED;
 		}
@@ -728,6 +742,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 
 	return lscp_server_result(pConnect, pszResult, strlen(pszResult));
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 
