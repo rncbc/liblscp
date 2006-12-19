@@ -651,6 +651,8 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			iSamplerChannel = 0;
 			iAudioDevice = 0;
 			iMidiDevice = 0;
+			iMidiMaps = 0;
+			iMidiInstruments = 0;
 		}
 	}
 	else if (lscp_parser_test(&tok, "CREATE")) {
@@ -714,6 +716,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 	else if (lscp_parser_test2(&tok, "CLEAR", "MIDI_INSTRUMENTS")) {
 		// Clear the MIDI instrumnet map:
 		// CLEAR MIDI_INSTRUMENTS
+		iMidiInstruments = 0;
 	}
 	else if (lscp_parser_test(&tok, "SUBSCRIBE")) {
 		// Register frontend for receiving event notification messages:

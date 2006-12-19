@@ -63,6 +63,10 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Tue Dec 19 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Examples update.
+- Prepared for 0.5.1 maintenance release.
+
 * Sun Dec 17 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Multi MIDI instrument maps introduced, sampler channel assignable.
 - Moved on up to a brand new 0.5.0 release.
