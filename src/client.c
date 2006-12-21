@@ -574,8 +574,13 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
 
 /**
  *  Register frontend for receiving event messages:
- *  SUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
- *      | CHANNEL_INFO | MISCELLANEOUS
+ *  SUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT
+ *      | BUFFER_FILL | CHANNEL_INFO | TOTAL_VOICE_COUNT
+ *      | AUDIO_OUTPUT_DEVICE_COUNT | AUDIO_OUTPUT_DEVICE_INFO
+ *      | MIDI_INPUT_DEVICE_COUNT | MIDI_INPUT_DEVICE_INFO
+ *      | MIDI_INSTRUMENT_MAP_COUNT | MIDI_INSTRUMENT_MAP_INFO
+ *      | MIDI_INSTRUMENT_COUNT | MIDI_INSTRUMENT_INFO
+ *      | MISCELLANEOUS
  *
  *  @param pClient  Pointer to client instance structure.
  *  @param events   Bit-wise OR'ed event flags to subscribe.
@@ -607,6 +612,24 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_BUFFER_FILL);
 	if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNEL_INFO))
 		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNEL_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_TOTAL_VOICE_COUNT))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_TOTAL_VOICE_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INPUT_DEVICE_INFO))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INPUT_DEVICE_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_COUNT))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INSTRUMENT_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_INFO))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INSTRUMENT_INFO);
 	if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
 		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MISCELLANEOUS);
 
@@ -619,8 +642,13 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 
 /**
  *  Deregister frontend from receiving UDP event messages anymore:
- *  SUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT | BUFFER_FILL
- *      | CHANNEL_INFO | MISCELLANEOUS
+ *  UNSUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT
+ *      | BUFFER_FILL | CHANNEL_INFO | TOTAL_VOICE_COUNT
+ *      | AUDIO_OUTPUT_DEVICE_COUNT | AUDIO_OUTPUT_DEVICE_INFO
+ *      | MIDI_INPUT_DEVICE_COUNT | MIDI_INPUT_DEVICE_INFO
+ *      | MIDI_INSTRUMENT_MAP_COUNT | MIDI_INSTRUMENT_MAP_INFO
+ *      | MIDI_INSTRUMENT_COUNT | MIDI_INSTRUMENT_INFO
+ *      | MISCELLANEOUS
  *
  *  @param pClient  Pointer to client instance structure.
  *  @param events   Bit-wise OR'ed event flags to unsubscribe.
@@ -648,6 +676,24 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t eve
 		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_BUFFER_FILL);
 	if (ret == LSCP_OK && (events & LSCP_EVENT_CHANNEL_INFO))
 		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNEL_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_TOTAL_VOICE_COUNT))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_TOTAL_VOICE_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INPUT_DEVICE_INFO))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INPUT_DEVICE_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_COUNT))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INSTRUMENT_COUNT);
+	if (ret == LSCP_OK && (events & LSCP_EVENT_MIDI_INSTRUMENT_INFO))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INSTRUMENT_INFO);
 	if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
 		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MISCELLANEOUS);
 
@@ -1617,6 +1663,7 @@ lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
  */
 lscp_status_t lscp_reset_sampler ( lscp_client_t *pClient )
 {
+	// Do actual whole sampler reset... 
 	return lscp_client_query(pClient, "RESET\r\n");
 }
 

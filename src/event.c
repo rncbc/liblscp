@@ -63,6 +63,30 @@ const char *lscp_event_to_text ( lscp_event_t event )
 	case LSCP_EVENT_TOTAL_VOICE_COUNT:
 		pszText = "TOTAL_VOICE_COUNT";
 		break;
+	case LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT:
+		pszText = "AUDIO_OUTPUT_DEVICE_COUNT";
+		break;
+	case LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO:
+		pszText = "AUDIO_OUTPUT_DEVICE_INFO";
+		break;
+	case LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT:
+		pszText = "MIDI_INPUT_DEVICE_COUNT";
+		break;
+	case LSCP_EVENT_MIDI_INPUT_DEVICE_INFO:
+		pszText = "MIDI_INPUT_DEVICE_INFO";
+		break;
+	case LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT:
+		pszText = "MIDI_INSTRUMENT_MAP_COUNT";
+		break;
+	case LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO:
+		pszText = "MIDI_INSTRUMENT_MAP_INFO";
+		break;
+	case LSCP_EVENT_MIDI_INSTRUMENT_COUNT:
+		pszText = "MIDI_INSTRUMENT_COUNT";
+		break;
+	case LSCP_EVENT_MIDI_INSTRUMENT_INFO:
+		pszText = "MIDI_INSTRUMENT_INFO";
+		break;
 	case LSCP_EVENT_MISCELLANEOUS:
 		pszText = "MISCELLANEOUS";
 		break;
@@ -99,6 +123,22 @@ lscp_event_t lscp_event_from_text ( const char *pszText )
 			event = LSCP_EVENT_CHANNEL_INFO;
 		else if (strcasecmp(pszText, "TOTAL_VOICE_COUNT") == 0)
 			event = LSCP_EVENT_TOTAL_VOICE_COUNT;
+		else if (strcasecmp(pszText, "AUDIO_OUTPUT_DEVICE_COUNT") == 0)
+			event = LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT;
+		else if (strcasecmp(pszText, "AUDIO_OUTPUT_DEVICE_INFO") == 0)
+			event = LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO;
+		else if (strcasecmp(pszText, "MIDI_INPUT_DEVICE_COUNT") == 0)
+			event = LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT;
+		else if (strcasecmp(pszText, "MIDI_INPUT_DEVICE_INFO") == 0)
+			event = LSCP_EVENT_MIDI_INPUT_DEVICE_INFO;
+		else if (strcasecmp(pszText, "MIDI_INSTRUMENT_MAP_COUNT") == 0)
+			event = LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT;
+		else if (strcasecmp(pszText, "MIDI_INSTRUMENT_MAP_INFO") == 0)
+			event = LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO;
+		else if (strcasecmp(pszText, "MIDI_INSTRUMENT_COUNT") == 0)
+			event = LSCP_EVENT_MIDI_INSTRUMENT_COUNT;
+		else if (strcasecmp(pszText, "MIDI_INSTRUMENT_INFO") == 0)
+			event = LSCP_EVENT_MIDI_INSTRUMENT_INFO;
 		else if (strcasecmp(pszText, "MISCELLANEOUS") == 0)
 			event = LSCP_EVENT_MISCELLANEOUS;
 	}

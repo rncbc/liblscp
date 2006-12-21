@@ -63,7 +63,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
-* Tue Dec 19 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+* Thu Dec 21 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Added support for new (un)subscribable events.
 - Examples update.
 - Prepared for 0.5.1 maintenance release.
 
