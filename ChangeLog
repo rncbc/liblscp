@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.5.1  2006-12-21  Added support for new (un)subscribable events:
+0.5.1  2006-12-22  Added support for new (un)subscribable events:
                      LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT,
                      LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO,
                      LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT,
