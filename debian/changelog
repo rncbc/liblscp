@@ -1,3 +1,9 @@
+liblscp (0.5.2-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Fri, 11 Jan 2007 11:15:03 GMT
+
 liblscp (0.5.1-1) unstable; urgency=low
 
   * new release

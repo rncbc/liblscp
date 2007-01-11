@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -46,6 +46,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 	static int iMidiDevice  = 0;
 	static int iMidiMaps = 0;
 	static int iMidiInstruments = 0;
+	static float fVolume = 1.0f;
 
 	if (pchBuffer == NULL) {
 		fprintf(stderr, "server_callback: addr=%s port=%d: ",
@@ -413,6 +414,12 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			sprintf(szTemp, "%d\r\n", rand() % 100);
 			pszResult = szTemp;
 		}
+		else if (lscp_parser_test(&tok, "VOLUME")) {
+			// Get global volume attenuation:
+			// GET VOLUME
+			sprintf(szTemp, "%g\r\n", fVolume);
+			pszResult = szTemp;
+		}
 		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENTS")) {
 			// Get the total count of MIDI instrument map entries:
 			// GET MIDI_INSTRUMENTS
@@ -579,6 +586,11 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 				// SET CHANNEL MIDI_INSTRUMENT_MAP <sampler-channel> <midi-map>
 			}
 			else ret = LSCP_FAILED;
+		}
+		else if (lscp_parser_test(&tok, "VOLUME")) {
+			// Setting global volume attenuation:
+			// SET VOLUME <volume>
+			fVolume = lscp_parser_nextnum(&tok);
 		}
 		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT_MAP", "NAME")) {
 			// Setting MIDI instrument map name:

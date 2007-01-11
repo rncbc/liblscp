@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1059,6 +1059,31 @@ int lscp_param_concat ( char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams
 	}
 	
 	return cchBuffer;
+}
+
+
+//-------------------------------------------------------------------------
+// Effect struct helper functions.
+
+void lscp_fxsend_info_init ( lscp_fxsend_info_t *pFxSendInfo )
+{
+	pFxSendInfo->name            = NULL;
+	pFxSendInfo->midi_controller = 0;
+	pFxSendInfo->audio_routing   = NULL;
+}
+
+void lscp_fxsend_info_free ( lscp_fxsend_info_t *pFxSendInfo )
+{
+	if (pFxSendInfo->name)
+		free(pFxSendInfo->name);
+	if (pFxSendInfo->audio_routing)
+		lscp_szsplit_destroy(pFxSendInfo->audio_routing);
+}
+
+void lscp_fxsend_info_reset (lscp_fxsend_info_t *pFxSendInfo )
+{
+	lscp_fxsend_info_free(pFxSendInfo);
+	lscp_fxsend_info_init(pFxSendInfo);
 }
 
 

@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,6 +52,7 @@ struct _lscp_client_t
 	int  *              midi_devices;
 	char **             engines;
 	int  *              channels;
+	int  *              fxsends;
 	lscp_midi_instrument_t *midi_instruments;
 	int  *              midi_maps;
 	char *              midi_map_name;
@@ -69,6 +70,7 @@ struct _lscp_client_t
 	lscp_server_info_t  server_info;
 	lscp_engine_info_t  engine_info;
 	lscp_channel_info_t channel_info;
+	lscp_fxsend_info_t  fxsend_info;
 	lscp_midi_instrument_info_t midi_instrument_info;
 	// Result and error status.
 	char *              pszResult;
@@ -190,6 +192,13 @@ void            lscp_param_info_reset       (lscp_param_info_t *pParamInfo);
 // Concatenate a parameter list (key='value'...) into a string.
 
 int             lscp_param_concat           (char *pszBuffer, int cchMaxBuffer, lscp_param_t *pParams);
+
+//-------------------------------------------------------------------------
+// Effect struct helper functions.
+
+void            lscp_fxsend_info_init       (lscp_fxsend_info_t *pFxSendInfo);
+void            lscp_fxsend_info_free       (lscp_fxsend_info_t *pFxSendInfo);
+void            lscp_fxsend_info_reset      (lscp_fxsend_info_t *pFxSendInfo);
 
 //-------------------------------------------------------------------------
 // MIDI instrument info struct helper functions.

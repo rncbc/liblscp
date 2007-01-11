@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -96,6 +96,16 @@ typedef enum _lscp_usage_t
 	LSCP_USAGE_PERCENTAGE
 
 } lscp_usage_t;
+
+
+/** Effect send info cache struct. */
+typedef struct _lscp_fxsend_info_t
+{
+	char * name;
+	int    midi_controller;
+	char **audio_routing;
+
+} lscp_fxsend_info_t;
 
 
 /** MIDI instrument parameter struct. */
@@ -237,6 +247,22 @@ lscp_server_info_t *    lscp_get_server_info            (lscp_client_t *pClient)
 
 int                     lscp_get_total_voice_count      (lscp_client_t *pClient);
 int                     lscp_get_total_voice_count_max  (lscp_client_t *pClient);
+
+float                   lscp_get_volume                 (lscp_client_t *pClient );
+lscp_status_t           lscp_set_volume                 (lscp_client_t *pClient, float fVolume);
+
+//-------------------------------------------------------------------------
+// Effect sends control functions.
+
+int                     lscp_create_fxsend              (lscp_client_t *pClient, int iSamplerChannel, int iMidiController, const char *pszFxName);
+lscp_status_t           lscp_destroy_fxsend             (lscp_client_t *pClient, int iSamplerChannel, int iFxSend);
+
+int                     lscp_get_fxsends                (lscp_client_t *pClient, int iSamplerChannel);
+int *                   lscp_list_fxsends               (lscp_client_t *pClient, int iSamplerChannel);
+
+lscp_fxsend_info_t *    lscp_get_fxsend_info            (lscp_client_t *pClient, int iSamplerChannel, int iFxSend);
+
+lscp_status_t           lscp_set_fxsend_audio_channel   (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iAudioSrc, int iAudioDst);
 
 //-------------------------------------------------------------------------
 // MIDI instrument mapping control functions.

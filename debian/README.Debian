@@ -1,13 +1,14 @@
 #commands used to package liblscp
-MINORVERSION=cvs20050602
+MAJORVERSION=5
+MINORVERSION=2
 cd ~/debian/debRelease/ls/liblscp
 rm -rf liblscp*
 cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co liblscp
 find . -name 'CVS' | xargs rm -rf
-tar zcpf liblscp-0.2.$MINORVERSION.tar.gz liblscp
+tar zcpf liblscp-0.$MAJORVERSION.$MINORVERSION.tar.gz liblscp
 
-#cp -a /tmp/liblscp-0.2.$MINORVERSION.tar.gz .
-#tar zxpvf liblscp-0.2.$MINORVERSION.tar.gz
+#cp -a /tmp/liblscp-0.$MAJORVERSION.$MINORVERSION.tar.gz .
+#tar zxpvf liblscp-0.$MAJORVERSION.$MINORVERSION.tar.gz
 #rm -rf liblscp/debian
 cp -a debian liblscp
 rm liblscp/debian/*~
@@ -15,12 +16,12 @@ rm liblscp/debian/*~
 #cd liblscp
 #gzip changelog
 #cd ..
-mv liblscp liblscp-0.2.$MINORVERSION
-cd liblscp-0.2.$MINORVERSION
-dh_make -e flatmax@Matt.Flax -f ../liblscp-0.2.$MINORVERSION.tar.gz
+mv liblscp liblscp-0.$MAJORVERSION.$MINORVERSION
+cd liblscp-0.$MAJORVERSION.$MINORVERSION
+dh_make -e flatmax@Matt.Flax -f ../liblscp-0.$MAJORVERSION.$MINORVERSION.tar.gz
 m
 
 dpkg-buildpackage -rfakeroot
 cd ..
-lintian liblscp_0.2.1-1_i386.changes
-linda liblscp_0.2.1-1_i386.changes
+lintian liblscp_0.$MAJORVERSION.$MINORVERSION-1_i386.changes
+linda liblscp_0.$MAJORVERSION.$MINORVERSION-1_i386.changes

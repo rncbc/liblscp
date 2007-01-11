@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -95,7 +95,7 @@ int lscp_parser_nextint ( lscp_parser_t *pParser )
 
 float lscp_parser_nextnum ( lscp_parser_t *pParser )
 {
-	float ret = 0;
+	float ret = 0.0f;
 
 	if (pParser->pszToken) {
 		ret = (float) atof(pParser->pszToken);

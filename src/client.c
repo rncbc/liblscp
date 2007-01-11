@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2006, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -327,6 +327,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 	pClient->midi_devices = NULL;
 	pClient->engines = NULL;
 	pClient->channels = NULL;
+	pClient->fxsends = NULL;
 	pClient->midi_instruments = NULL;
 	pClient->midi_maps = NULL;
 	pClient->midi_map_name = NULL;
@@ -343,6 +344,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 	lscp_server_info_init(&(pClient->server_info));
 	lscp_engine_info_init(&(pClient->engine_info));
 	lscp_channel_info_init(&(pClient->channel_info));
+	lscp_fxsend_info_init(&(pClient->fxsend_info));
 	lscp_midi_instrument_info_init(&(pClient->midi_instrument_info));
 	// Initialize error stuff.
 	pClient->pszResult = NULL;
@@ -405,6 +407,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 
 	// Free up all cached members.
 	lscp_midi_instrument_info_free(&(pClient->midi_instrument_info));
+	lscp_fxsend_info_free(&(pClient->fxsend_info));
 	lscp_channel_info_free(&(pClient->channel_info));
 	lscp_engine_info_free(&(pClient->engine_info));
 	lscp_server_info_free(&(pClient->server_info));
@@ -425,6 +428,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 	lscp_isplit_destroy(pClient->midi_devices);
 	lscp_szsplit_destroy(pClient->engines);
 	lscp_isplit_destroy(pClient->channels);
+	lscp_isplit_destroy(pClient->fxsends);
 	lscp_midi_instruments_destroy(pClient->midi_instruments);
 	lscp_isplit_destroy(pClient->midi_maps);
 	if (pClient->midi_map_name)
@@ -436,6 +440,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 	pClient->midi_devices = NULL;
 	pClient->engines = NULL;
 	pClient->channels = NULL;
+	pClient->fxsends = NULL;
 	pClient->midi_instruments = NULL;
 	pClient->midi_maps = NULL;
 	pClient->midi_map_name = NULL;
@@ -1576,7 +1581,7 @@ lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChan
 {
 	char szQuery[LSCP_BUFSIZ];
 
-	if (iSamplerChannel < 0 || fVolume < 0.0)
+	if (iSamplerChannel < 0 || fVolume < 0.0f)
 		return LSCP_FAILED;
 
 	sprintf(szQuery, "SET CHANNEL VOLUME %d %g\r\n", iSamplerChannel, fVolume);
@@ -1785,6 +1790,289 @@ int lscp_get_total_voice_count_max ( lscp_client_t *pClient )
 
 
 /**
+ *  Get global volume attenuation:
+ *  GET VOLUME
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The global volume as positive floating point value usually in
+ *  the range between 0.0 and 1.0; in case of failure 0.0 is returned.
+ */
+float lscp_get_volume ( lscp_client_t *pClient )
+{
+	float fVolume = 0.0f;
+
+	if (pClient == NULL)
+		return 0.0f;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	if (lscp_client_call(pClient, "GET VOLUME\r\n", 0) == LSCP_OK)
+		fVolume = (float) atof(lscp_client_get_result(pClient));
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return fVolume;
+}
+
+
+/**
+ *  Setting global volume attenuation:
+ *  SET VOLUME <volume>
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *  @param fVolume  Global volume parameter as positive floating point
+ *                  value usually be in the range between 0.0 and 1.0,
+ *                  that is for attenuating the overall volume.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_volume ( lscp_client_t *pClient, float fVolume )
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (fVolume < 0.0f)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET VOLUME %g\r\n", fVolume);
+	return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Add an effect send to a sampler channel:
+ *  CREATE FX_SEND <sampler-channel> <midi-ctrl> [<name>]
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iMidiController  MIDI controller used to alter the effect,
+ *                          usually a number between 0 and 127.
+ *  @param pszName          Optional name for the effect send entity,
+ *                          does not have to be unique.
+ *
+ *  @returns The new effect send number identifier, or -1 in case of failure.
+ */
+int lscp_create_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iMidiController, const char *pszFxName )
+{
+	int iFxSend = -1;
+	char szQuery[LSCP_BUFSIZ];
+
+	if (pClient == NULL)
+		return -1;
+	if (iSamplerChannel < 0 || iMidiController < 0 || iMidiController > 127)
+		return -1;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	sprintf(szQuery, "CREATE FX_SEND %d %d", iSamplerChannel, iMidiController);
+	
+	if (pszFxName)
+		sprintf(szQuery + strlen(szQuery), " '%s'", pszFxName);
+
+	strcat(szQuery, "\r\n");
+
+	if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
+		iFxSend = atoi(lscp_client_get_result(pClient));
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return iFxSend;
+}
+
+
+/**
+ *  Remove an effect send from a sampler channel:
+ *  DESTROY FX_SEND <sampler-channel> <fx-send-id>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iFxSend          Effect send number.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_destroy_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend )
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iSamplerChannel < 0 || iFxSend < 0)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "DESTROY FX_SEND %d %d\r\n", iSamplerChannel, iFxSend);
+
+	return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Get amount of effect sends on a sampler channel:
+ *  GET FX_SENDS <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns The current total number of effect sends of the sampler channel
+ *  on success, -1 otherwise.
+ */
+int lscp_get_fxsends ( lscp_client_t *pClient, int iSamplerChannel )
+{
+	int iFxSends = -1;
+	char szQuery[LSCP_BUFSIZ];
+
+	if (pClient == NULL)
+		return -1;
+	if (iSamplerChannel < 0)
+		return -1;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	sprintf(szQuery, "GET FX_SENDS %d\r\n", iSamplerChannel);
+
+	if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
+		iFxSends = atoi(lscp_client_get_result(pClient));
+
+	// Unlock this section doen.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return iFxSends;
+}
+
+
+/**
+ *  List all effect sends on a sampler channel:
+ *  LIST FX_SENDS <sampler-channel>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *
+ *  @returns An array of the effect sends identifiers as positive integers,
+ *  terminated with -1 on success, NULL otherwise.
+ */
+int *lscp_list_fxsends ( lscp_client_t *pClient, int iSamplerChannel )
+{
+	const char *pszSeps = ",";
+	char szQuery[LSCP_BUFSIZ];
+
+	if (pClient == NULL)
+		return NULL;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	if (pClient->fxsends) {
+		lscp_isplit_destroy(pClient->fxsends);
+		pClient->fxsends = NULL;
+	}
+
+	sprintf(szQuery, "LIST FX_SENDS %d\r\n", iSamplerChannel);
+
+	if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
+		pClient->fxsends = lscp_isplit_create(lscp_client_get_result(pClient), pszSeps);
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return pClient->fxsends;
+}
+
+
+/**
+ *  Getting effect send information
+ *  GET FX_SEND INFO <sampler-channel> <fx-send-id>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iFxSend          Effect send number.
+ *
+ *  @returns A pointer to a @ref lscp_fxsend_info_t structure, with the
+ *  information of the given FX send, or NULL in case of failure.
+ */
+lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend )
+{
+	lscp_fxsend_info_t *pFxSendInfo;
+	char szQuery[LSCP_BUFSIZ];
+	const char *pszResult;
+	const char *pszSeps = ":";
+	const char *pszCrlf = "\r\n";
+	char *pszToken;
+	char *pch;
+
+	if (pClient == NULL)
+		return NULL;
+	if (iSamplerChannel < 0 || iFxSend < 0)
+		return NULL;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	pFxSendInfo = &(pClient->fxsend_info);
+	lscp_fxsend_info_reset(pFxSendInfo);
+
+	sprintf(szQuery, "GET FX_SEND INFO %d %d\r\n", iSamplerChannel, iFxSend);
+	if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
+		pszResult = lscp_client_get_result(pClient);
+		pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
+		while (pszToken) {
+			if (strcasecmp(pszToken, "NAME") == 0) {
+				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+				if (pszToken)
+					lscp_unquote_dup(&(pFxSendInfo->name), &pszToken);
+			}
+			else if (strcasecmp(pszToken, "MIDI_CONTROLLER") == 0) {
+				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+				if (pszToken)
+					pFxSendInfo->midi_controller = atoi(lscp_ltrim(pszToken));
+			}
+			else if (strcasecmp(pszToken, "AUDIO_OUTPUT_ROUTING") == 0) {
+				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+				if (pszToken) {
+					if (pFxSendInfo->audio_routing)
+						lscp_szsplit_destroy(pFxSendInfo->audio_routing);
+					pFxSendInfo->audio_routing = lscp_szsplit_create(pszToken, ",");
+				}
+			}
+			pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+		}
+	}
+	else pFxSendInfo = NULL;
+
+	// Unlock this section up.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return pFxSendInfo;
+}
+
+
+/**
+ *  Alter effect send's audio routing:
+ *  SET FX_SEND AUDIO_OUTPUT_CHANNEL <sampler-chan> <fx-send-id>
+ *    <audio-src> <audio-dst>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iFxSend          Effect send number.
+ *  @param iAudioSrc        Audio output device channel to be routed from.
+ *  @param iAudioDst        Audio output device channel to be routed into.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_fxsend_audio_channel ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iAudioSrc, int iAudioDst )
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iSamplerChannel < 0 || iFxSend < 0 || iAudioSrc < 0 || iAudioDst < 0)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET FX_SEND AUDIO_OUTPUT_CHANNEL %d %d %d %d\r\n", iSamplerChannel, iFxSend, iAudioSrc, iAudioDst);
+	return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
  *  Create a new MIDI instrument map:
  *  ADD MIDI_INSTRUMENT_MAP [<name>]
  *
@@ -1939,7 +2227,7 @@ const char *lscp_get_midi_instrument_map_name ( lscp_client_t *pClient, int iMid
 	}
 
 	sprintf(szQuery, "GET MIDI_INSTRUMENT_MAP INFO %d\r\n", iMidiMap);
-	if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK) {
+	if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
 		pszResult = lscp_client_get_result(pClient);
 		pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
 		while (pszToken) {
