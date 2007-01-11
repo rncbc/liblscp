@@ -1089,8 +1089,8 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
 				if (pszToken) {
 					if (pChannelInfo->audio_routing)
-						lscp_szsplit_destroy(pChannelInfo->audio_routing);
-					pChannelInfo->audio_routing = lscp_szsplit_create(pszToken, ",");
+						lscp_isplit_destroy(pChannelInfo->audio_routing);
+					pChannelInfo->audio_routing = lscp_isplit_create(pszToken, ",");
 				}
 			}
 			else if (strcasecmp(pszToken, "INSTRUMENT_FILE") == 0) {
@@ -2031,8 +2031,8 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
 				if (pszToken) {
 					if (pFxSendInfo->audio_routing)
-						lscp_szsplit_destroy(pFxSendInfo->audio_routing);
-					pFxSendInfo->audio_routing = lscp_szsplit_create(pszToken, ",");
+						lscp_isplit_destroy(pFxSendInfo->audio_routing);
+					pFxSendInfo->audio_routing = lscp_isplit_create(pszToken, ",");
 				}
 			}
 			pszToken = lscp_strtok(NULL, pszSeps, &(pch));

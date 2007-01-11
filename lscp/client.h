@@ -64,7 +64,7 @@ typedef struct _lscp_channel_info_t
 	char *        engine_name;
 	int           audio_device;
 	int           audio_channels;
-	char **       audio_routing;
+	int  *        audio_routing;
 	char *        instrument_file;
 	int           instrument_nr;
 	char *        instrument_name;
@@ -101,9 +101,9 @@ typedef enum _lscp_usage_t
 /** Effect send info cache struct. */
 typedef struct _lscp_fxsend_info_t
 {
-	char * name;
-	int    midi_controller;
-	char **audio_routing;
+	char *        name;
+	int           midi_controller;
+	int *         audio_routing;
 
 } lscp_fxsend_info_t;
 

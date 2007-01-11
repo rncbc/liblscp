@@ -20,7 +20,7 @@ AM_INIT_AUTOMAKE(liblscp, 0.5.2)
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-SHARED_VERSION_INFO="2:1:1"
+SHARED_VERSION_INFO="3:0:0"
 
 AC_SUBST(SHARED_VERSION_INFO)
 

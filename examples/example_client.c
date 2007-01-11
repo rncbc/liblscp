@@ -249,7 +249,7 @@ int client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
 	printf("    channel_info.engine_name       = %s\n", pChannelInfo->engine_name);
 	printf("    channel_info.audio_device      = %d\n", pChannelInfo->audio_device);
 	printf("    channel_info.audio_channels    = %d\n", pChannelInfo->audio_channels);
-	printf("    channel_info.audio_routing     = "); client_test_szsplit(pChannelInfo->audio_routing);
+	printf("    channel_info.audio_routing     = "); client_test_isplit(pChannelInfo->audio_routing);
 	printf("    channel_info.instrument_file   = %s\n", pChannelInfo->instrument_file);
 	printf("    channel_info.instrument_nr     = %d\n", pChannelInfo->instrument_nr);
 	printf("    channel_info.instrument_name   = %s\n", pChannelInfo->instrument_name);
@@ -261,6 +261,21 @@ int client_test_channel_info ( lscp_channel_info_t *pChannelInfo )
 	printf("    channel_info.volume            = %g\n", pChannelInfo->volume);
 	printf("    channel_info.mute              = %d\n", pChannelInfo->mute);
 	printf("    channel_info.solo              = %d\n", pChannelInfo->solo);
+	printf("  }\n");
+	return 0;
+}
+
+
+int client_test_fxsend_info ( lscp_fxsend_info_t *pFxSendInfo )
+{
+	if (pFxSendInfo == NULL) {
+		printf("(nil)\n");
+		return 1;
+	}
+	printf("{\n");
+	printf("    fxsend_info.engine_name       = %s\n", pFxSendInfo->name);
+	printf("    fxsend_info.midi_controller   = %d\n", pFxSendInfo->midi_controller);
+	printf("    fxsend_info.audio_routing     = "); client_test_isplit(pFxSendInfo->audio_routing);
 	printf("  }\n");
 	return 0;
 }

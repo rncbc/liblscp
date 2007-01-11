@@ -908,7 +908,7 @@ void lscp_channel_info_free ( lscp_channel_info_t *pChannelInfo )
 	if (pChannelInfo->engine_name)
 		free(pChannelInfo->engine_name);
 	if (pChannelInfo->audio_routing)
-		lscp_szsplit_destroy(pChannelInfo->audio_routing);
+		lscp_isplit_destroy(pChannelInfo->audio_routing);
 	if (pChannelInfo->instrument_file)
 		free(pChannelInfo->instrument_file);
 	if (pChannelInfo->instrument_name)
@@ -1077,7 +1077,7 @@ void lscp_fxsend_info_free ( lscp_fxsend_info_t *pFxSendInfo )
 	if (pFxSendInfo->name)
 		free(pFxSendInfo->name);
 	if (pFxSendInfo->audio_routing)
-		lscp_szsplit_destroy(pFxSendInfo->audio_routing);
+		lscp_isplit_destroy(pFxSendInfo->audio_routing);
 }
 
 void lscp_fxsend_info_reset (lscp_fxsend_info_t *pFxSendInfo )
