@@ -44,6 +44,7 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 	static int iSamplerChannel = 0;
 	static int iAudioDevice = 0;
 	static int iMidiDevice  = 0;
+	static int iFxSend = 0;
 	static int iMidiMaps = 0;
 	static int iMidiInstruments = 0;
 	static float fVolume = 1.0f;
@@ -420,6 +421,21 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			sprintf(szTemp, "%g\r\n", fVolume);
 			pszResult = szTemp;
 		}
+		else if (lscp_parser_test2(&tok, "FX_SEND", "INFO")) {
+			// Getting effect send informations:
+			// GET FX_SEND INFO <sampler-channel> <fx-send-id>
+			pszResult = "NAME: DummyFxSend\r\n"
+						"MIDI_CONTROLLER: 99\r\n"
+						"AUDIO_OUTPUT_ROUTING: 0,1\r\n"
+						"LEVEL: 0.15\r\n"
+						".\r\n";
+		}
+		else if (lscp_parser_test(&tok, "FX_SENDS")) {
+			// Get ammount of effect sends on a sampler channel:
+			// GET FX_SENDS <sampler-channel>
+			sprintf(szTemp, "%d\r\n", iFxSend);
+			pszResult = szTemp;
+		}
 		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENTS")) {
 			// Get the total count of MIDI instrument map entries:
 			// GET MIDI_INSTRUMENTS
@@ -513,6 +529,18 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			strcat(szTemp, "\r\n");
 			pszResult = szTemp;
 		}
+		else if (lscp_parser_test(&tok, "FX_SENDS")) {
+			// Listing all effect sends on a sampler channel:
+			// LIST FX_SENDS <sampler-channel>
+			szTemp[0] = (char) 0;
+			for (i = 0; i < iFxSend && strlen(szTemp) < sizeof(szTemp) - 8; i++) {
+				if (i > 0)
+					strcat(szTemp, ",");
+				sprintf(szTemp + strlen(szTemp), "%d", i);
+			}
+			strcat(szTemp, "\r\n");
+			pszResult = szTemp;
+		}
 		else if (lscp_parser_test(&tok, "MIDI_INSTRUMENTS")) {
 			// Getting indeces of all MIDI instrument map entries:
 			// LIST MIDI_INSTRUMENTS
@@ -591,6 +619,21 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 			// Setting global volume attenuation:
 			// SET VOLUME <volume>
 			fVolume = lscp_parser_nextnum(&tok);
+		}
+		else if (lscp_parser_test(&tok, "FX_SEND")) {
+			if (lscp_parser_test(&tok, "MIDI_CONTROLLER")) {
+				// Altering effect send MIDI controller:
+				// SET FX_SEND MIDI_CONTROLLER <sampler-channel> <fx-send-id> <midi-ctrl>
+			}
+			else if (lscp_parser_test(&tok, "AUDIO_OUTPUT_CHANNEL")) {
+				// Altering effect send audio routing:
+				// SET FX_SEND AUDIO_OUTPUT_CHANNEL <sampler-channel> <fx-send-id> <midi-ctrl> <audio-src> <audio-dst>
+			}
+			else if (lscp_parser_test(&tok, "LEVEL")) {
+				// Altering effect send audio level:
+				// SET FX_SEND LEVEL <sampler-channel> <fx-send-id> <midi-ctrl> <volume>
+			}
+			else ret = LSCP_FAILED;
 		}
 		else if (lscp_parser_test2(&tok, "MIDI_INSTRUMENT_MAP", "NAME")) {
 			// Setting MIDI instrument map name:
@@ -690,13 +733,24 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 				ret = LSCP_FAILED;
 			}
 		}
+		else if (lscp_parser_test(&tok, "FX_SEND")) {
+			// Adding an effect send to a sampler channel:
+			// CREATE FX_SEND <sampler-channel> <midi-ctrl> [<name>]
+			if (iFxSend < 8) {
+				sprintf(szTemp, "OK[%d]\r\n", iFxSend++);
+				pszResult = szTemp;
+			} else {
+				iFxSend = 0;
+				ret = LSCP_FAILED;
+			}
+		}
 		else ret = LSCP_FAILED;
 	}
 	else if (lscp_parser_test(&tok, "DESTROY")) {
 		if (lscp_parser_test(&tok, "AUDIO_OUTPUT_DEVICE")) {
 			// Destroying an audio output device.
 			// DESTROY AUDIO_OUTPUT_DEVICE <audio-device-id>
-			if (lscp_parser_nextint(&tok) < iAudioDevice)
+			if (lscp_parser_nextint(&tok) >= 0 && iAudioDevice > 0)
 				iAudioDevice--;
 			else
 				ret = LSCP_FAILED;
@@ -704,8 +758,16 @@ lscp_status_t server_callback ( lscp_connect_t *pConnect, const char *pchBuffer,
 		else if (lscp_parser_test(&tok, "MIDI_INPUT_DEVICE")) {
 			// Destroying an MIDI intput device.
 			// DESTROY MIDI_INPUT_DEVICE <midi-device-id>
-			if (lscp_parser_nextint(&tok) < iMidiDevice)
+			if (lscp_parser_nextint(&tok) >= 0 && iMidiDevice > 0)
 				iMidiDevice--;
+			else
+				ret = LSCP_FAILED;
+		}
+		else if (lscp_parser_test(&tok, "FX_SEND")) {
+			// Removing an effect send from a sampler channel:
+			// CREATE FX_SEND <sampler-channel> <fx-send-id>
+			if (lscp_parser_nextint(&tok) >= 0 && iFxSend > 0)
+				iFxSend--;
 			else
 				ret = LSCP_FAILED;
 		}

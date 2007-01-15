@@ -273,9 +273,10 @@ int client_test_fxsend_info ( lscp_fxsend_info_t *pFxSendInfo )
 		return 1;
 	}
 	printf("{\n");
-	printf("    fxsend_info.engine_name       = %s\n", pFxSendInfo->name);
-	printf("    fxsend_info.midi_controller   = %d\n", pFxSendInfo->midi_controller);
-	printf("    fxsend_info.audio_routing     = "); client_test_isplit(pFxSendInfo->audio_routing);
+	printf("    fxsend_info.engine_name     = %s\n", pFxSendInfo->name);
+	printf("    fxsend_info.midi_controller = %d\n", pFxSendInfo->midi_controller);
+	printf("    fxsend_info.audio_routing   = "); client_test_isplit(pFxSendInfo->audio_routing);
+	printf("    fxsend_info.level           = %g\n", pFxSendInfo->level);
 	printf("  }\n");
 	return 0;
 }
@@ -347,6 +348,7 @@ typedef lscp_server_info_t *         server_info;
 typedef lscp_engine_info_t *         engine_info;
 typedef lscp_channel_info_t *        channel_info;
 typedef lscp_buffer_fill_t *         buffer_fill;
+typedef lscp_fxsend_info_t *         fxsend_info;
 typedef lscp_midi_instrument_t *     midi_instruments;
 typedef lscp_midi_instrument_info_t *midi_instrument_info;
 
@@ -363,8 +365,7 @@ typedef lscp_midi_instrument_info_t *midi_instrument_info;
 void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const char *pszAudioDriver, int iAudioDevice, const char *pszMidiDriver, int iMidiDevice )
 {
 	int iSamplerChannel;
-	lscp_midi_instrument_t midi_instr;
-	int i, j, k;
+	int iFxSend;
 
 	printf("\n--- pszEngine=\"%s\" pszAudioDevice=\"%s\" iAudioDevice=%d pszMidiDevice=\"%s\" iMidiDevice=%d ---\n", pszEngine, pszAudioDriver, iAudioDevice, pszMidiDriver, iMidiDevice);
 	CLIENT_TEST(pClient, engine_info, lscp_get_engine_info(pClient, pszEngine));
@@ -392,40 +393,17 @@ void client_test_engine ( lscp_client_t *pClient, const char *pszEngine, const c
 	CLIENT_TEST(pClient, status, lscp_set_channel_volume(pClient, iSamplerChannel, 0.5));
 	CLIENT_TEST(pClient, status, lscp_set_channel_mute(pClient, iSamplerChannel, 1));
 	CLIENT_TEST(pClient, status, lscp_set_channel_solo(pClient, iSamplerChannel, 1));
+	CLIENT_TEST(pClient, int, iFxSend = lscp_create_fxsend(pClient, iSamplerChannel, 90, "DummyFxSend"));
+	CLIENT_TEST(pClient, int, lscp_get_fxsends(pClient, iSamplerChannel));
+	CLIENT_TEST(pClient, isplit, lscp_list_fxsends(pClient, iSamplerChannel));
+	CLIENT_TEST(pClient, fxsend_info, lscp_get_fxsend_info(pClient, iSamplerChannel, iFxSend));
+	CLIENT_TEST(pClient, status, lscp_set_fxsend_midi_controller(pClient, iSamplerChannel, iFxSend, 99));
+	CLIENT_TEST(pClient, status, lscp_set_fxsend_audio_channel(pClient, iSamplerChannel, iFxSend, 0, 1));
+	CLIENT_TEST(pClient, status, lscp_set_fxsend_level(pClient, iSamplerChannel, iFxSend, 0.12f));
+	CLIENT_TEST(pClient, status, lscp_destroy_fxsend(pClient, iSamplerChannel, iFxSend));
 	CLIENT_TEST(pClient, channel_info, lscp_get_channel_info(pClient, iSamplerChannel));
 	CLIENT_TEST(pClient, status, lscp_reset_channel(pClient, iSamplerChannel));
 	CLIENT_TEST(pClient, status, lscp_remove_channel(pClient, iSamplerChannel));
-
-	for (i = 0; i < 2; i++) {
-		CLIENT_TEST(pClient, int, lscp_add_midi_instrument_map(pClient, NULL));
-		for (j = 0; j < 4; j++) {
-			for (k = 0; k < 8; k++) {
-				midi_instr.map  = i;
-				midi_instr.bank = j;
-				midi_instr.prog = k;
-				CLIENT_TEST(pClient, status, lscp_map_midi_instrument(pClient, &midi_instr, pszEngine, "DefaultInstrument.gig", 0, 1.0f, LSCP_LOAD_ON_DEMAND, "DummyName"));
-			}
-		}
-		CLIENT_TEST(pClient, status, lscp_set_midi_instrument_map_name(pClient, i, "DummyMapName"));
-	}
-
-	CLIENT_TEST(pClient, int, lscp_get_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
-	CLIENT_TEST(pClient, midi_instruments, lscp_list_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
-
-	for (i = 0; i < 2; i++) {
-		for (j = 0; j < 4; j++) {
-			for (k = 0; k < 8; k++) {
-				midi_instr.map  = i;
-				midi_instr.bank = j;
-				midi_instr.prog = k;
-				CLIENT_TEST(pClient, midi_instrument_info, lscp_get_midi_instrument_info(pClient, &midi_instr));
-				CLIENT_TEST(pClient, status, lscp_unmap_midi_instrument(pClient, &midi_instr));
-			}
-		}
-		CLIENT_TEST(pClient, int, lscp_remove_midi_instrument_map(pClient, i));
-	}
-	
-	CLIENT_TEST(pClient, status, lscp_clear_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
 }
 
 
@@ -547,6 +525,8 @@ void client_test_all ( lscp_client_t *pClient, int step )
 	int iAudio, iAudioDevice, iMidi, iMidiDevice;
 	int iNewAudioDevice, iNewMidiDevice;
 	int *piAudioDevices, *piMidiDevices;
+	lscp_midi_instrument_t midi_instr;
+	int i, j, k;
 
 	g_test_step  = step;
 	g_test_count = 0;
@@ -604,6 +584,34 @@ void client_test_all ( lscp_client_t *pClient, int step )
 		CLIENT_TEST(pClient, status, lscp_destroy_audio_device(pClient, iNewAudioDevice));
 	}
 
+	for (i = 0; i < 2; i++) {
+		CLIENT_TEST(pClient, int, lscp_add_midi_instrument_map(pClient, NULL));
+		for (j = 0; j < 4; j++) {
+			for (k = 0; k < 8; k++) {
+				midi_instr.map  = i;
+				midi_instr.bank = j;
+				midi_instr.prog = k;
+				CLIENT_TEST(pClient, status, lscp_map_midi_instrument(pClient, &midi_instr, pszEngine, "DefaultInstrument.gig", 0, 1.0f, LSCP_LOAD_ON_DEMAND, "DummyName"));
+			}
+		}
+		CLIENT_TEST(pClient, status, lscp_set_midi_instrument_map_name(pClient, i, "DummyMapName"));
+	}
+	CLIENT_TEST(pClient, int, lscp_get_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
+	CLIENT_TEST(pClient, midi_instruments, lscp_list_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
+	for (i = 0; i < 2; i++) {
+		for (j = 0; j < 4; j++) {
+			for (k = 0; k < 8; k++) {
+				midi_instr.map  = i;
+				midi_instr.bank = j;
+				midi_instr.prog = k;
+				CLIENT_TEST(pClient, midi_instrument_info, lscp_get_midi_instrument_info(pClient, &midi_instr));
+				CLIENT_TEST(pClient, status, lscp_unmap_midi_instrument(pClient, &midi_instr));
+			}
+		}
+		CLIENT_TEST(pClient, int, lscp_remove_midi_instrument_map(pClient, i));
+	}	
+	CLIENT_TEST(pClient, status, lscp_clear_midi_instruments(pClient, LSCP_MIDI_MAP_ALL));
+	
 	CLIENT_TEST(pClient, status, lscp_set_volume(pClient, 0.123f));
 	CLIENT_TEST(pClient, int, (int) (100.0f * lscp_get_volume(pClient)));
 

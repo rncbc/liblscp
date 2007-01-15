@@ -2035,6 +2035,11 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 					pFxSendInfo->audio_routing = lscp_isplit_create(pszToken, ",");
 				}
 			}
+			else if (strcasecmp(pszToken, "LEVEL") == 0) {
+				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+				if (pszToken)
+					pFxSendInfo->level = (float) atof(lscp_ltrim(pszToken));
+			}
 			pszToken = lscp_strtok(NULL, pszSeps, &(pch));
 		}
 	}
@@ -2068,6 +2073,53 @@ lscp_status_t lscp_set_fxsend_audio_channel ( lscp_client_t *pClient, int iSampl
 		return LSCP_FAILED;
 
 	sprintf(szQuery, "SET FX_SEND AUDIO_OUTPUT_CHANNEL %d %d %d %d\r\n", iSamplerChannel, iFxSend, iAudioSrc, iAudioDst);
+	return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Alter effect send's MIDI controller:
+ *  SET FX_SEND MIDI_CONTROLLER <sampler-chan> <fx-send-id> <midi-ctrl>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iFxSend          Effect send number.
+ *  @param iMidiController  MIDI controller used to alter the effect,
+ *                          usually a number between 0 and 127.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_fxsend_midi_controller ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iMidiController )
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iSamplerChannel < 0 || iFxSend < 0 || iMidiController < 0 || iMidiController > 127)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET FX_SEND MIDI_CONTROLLER %d %d %d %d\r\n", iSamplerChannel, iFxSend, iMidiController);
+	return lscp_client_query(pClient, szQuery);
+}
+
+
+/**
+ *  Alter effect send's audio level:
+ *  SET FX_SEND LEVEL <sampler-chan> <fx-send-id> <level>
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iFxSend          Effect send number.
+ *  @param fLevel           Effect send volume level.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_fxsend_level ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, float fLevel )
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iSamplerChannel < 0 || iFxSend < 0 || fLevel < 0.0f)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET FX_SEND LEVEL %d %d %d %g\r\n", iSamplerChannel, iFxSend, fLevel);
 	return lscp_client_query(pClient, szQuery);
 }
 

@@ -1,7 +1,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	13
+%define release	14
 %define prefix	@prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -63,6 +63,14 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Mon Jan 15 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- New 0.5.3 release.
+
+* Thu Jan 11 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Sampler channel effect sends control and global volume support.
+- Audio routing representation changed to integer array.
+- New 0.5.2 release.
+
 * Fri Dec 22 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Added support for new (un)subscribable events.
 - Examples update.

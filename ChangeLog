@@ -3,6 +3,13 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.5.3  2007-01-15  Added new client interface functions, for sampler
+                   channel effect sends control:
+                     lscp_set_fxsend_midi_controller();
+                     lscp_set_fxsend_level();
+
+                   Added new field member to lscp_fxsend_info_t (level).
+
 0.5.2  2007-01-11  Added new client interface functions, for sampler
                    channel effect sends control:
                      lscp_create_fxsend();
@@ -15,7 +22,7 @@ ChangeLog
                      lscp_get_volume();
                      lscp_set_volume();
 
-                   Audio routing representation changed integer array.
+                   Audio routing representation changed to integer array.
 
 0.5.1  2006-12-22  Added support for new (un)subscribable events:
                      LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT,

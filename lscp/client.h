@@ -104,6 +104,7 @@ typedef struct _lscp_fxsend_info_t
 	char *        name;
 	int           midi_controller;
 	int *         audio_routing;
+	float         level;
 
 } lscp_fxsend_info_t;
 
@@ -111,9 +112,9 @@ typedef struct _lscp_fxsend_info_t
 /** MIDI instrument parameter struct. */
 typedef struct _lscp_midi_instrument_t
 {
-	int map;
-	int bank;
-	int prog;
+	int           map;
+	int           bank;
+	int           prog;
 
 } lscp_midi_instrument_t;
 
@@ -263,6 +264,8 @@ int *                   lscp_list_fxsends               (lscp_client_t *pClient,
 lscp_fxsend_info_t *    lscp_get_fxsend_info            (lscp_client_t *pClient, int iSamplerChannel, int iFxSend);
 
 lscp_status_t           lscp_set_fxsend_audio_channel   (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iAudioSrc, int iAudioDst);
+lscp_status_t           lscp_set_fxsend_midi_controller (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iMidiController);
+lscp_status_t           lscp_set_fxsend_level           (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, float fLevel);
 
 //-------------------------------------------------------------------------
 // MIDI instrument mapping control functions.

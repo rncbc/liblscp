@@ -2,7 +2,7 @@
 AC_INIT(src/client.c)
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(liblscp, 0.5.2)
+AM_INIT_AUTOMAKE(liblscp, 0.5.3)
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:
@@ -20,7 +20,7 @@ AM_INIT_AUTOMAKE(liblscp, 0.5.2)
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-SHARED_VERSION_INFO="3:0:0"
+SHARED_VERSION_INFO="3:0:1"
 
 AC_SUBST(SHARED_VERSION_INFO)
 

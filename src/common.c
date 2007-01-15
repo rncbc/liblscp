@@ -1070,6 +1070,7 @@ void lscp_fxsend_info_init ( lscp_fxsend_info_t *pFxSendInfo )
 	pFxSendInfo->name            = NULL;
 	pFxSendInfo->midi_controller = 0;
 	pFxSendInfo->audio_routing   = NULL;
+	pFxSendInfo->level           = 0.0f;
 }
 
 void lscp_fxsend_info_free ( lscp_fxsend_info_t *pFxSendInfo )
