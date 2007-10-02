@@ -289,6 +289,10 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info(lscp_client_t *pClien
 
 lscp_status_t           lscp_clear_midi_instruments     (lscp_client_t *pClient, int iMidiMap);
 
+//-------------------------------------------------------------------------
+// Instrument editor functions.
+
+lscp_status_t           lscp_edit_instrument            (lscp_client_t *pClient, int iSamplerChannel);
 
 #if defined(__cplusplus)
 }

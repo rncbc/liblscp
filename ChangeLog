@@ -3,6 +3,14 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+CVS HEAD           Added new client interface function, for editing
+                   instrument:
+                     lscp_edit_instrument();
+
+                   Fixed some minor bugs in:
+                     lscp_set_fxsend_midi_controller();
+                     lscp_set_fxsend_level();
+
 0.5.3  2007-01-15  Added new client interface functions, for sampler
                    channel effect sends control:
                      lscp_set_fxsend_midi_controller();

@@ -202,6 +202,10 @@ the following functions are respectively defined in <lscp/@ref:device.h>:<pre>
     @ref lscp_get_midi_port_param_info (client, midi_device, midi_port, param);
     @ref lscp_set_midi_port_param (client, midi_device, midi_port, param);
 
+</pre>For editing instruments while playing them with the sampler:<pre>
+
+    @ref lscp_edit_instrument (client, channel);
+
 </pre>Most of these functions are wrappers to @ref lscp_client_query, and some will handle
 and change the result string accordingly.
 

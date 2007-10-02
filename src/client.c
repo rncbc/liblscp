@@ -2096,7 +2096,7 @@ lscp_status_t lscp_set_fxsend_midi_controller ( lscp_client_t *pClient, int iSam
 	if (iSamplerChannel < 0 || iFxSend < 0 || iMidiController < 0 || iMidiController > 127)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET FX_SEND MIDI_CONTROLLER %d %d %d %d\r\n", iSamplerChannel, iFxSend, iMidiController);
+	sprintf(szQuery, "SET FX_SEND MIDI_CONTROLLER %d %d %d\r\n", iSamplerChannel, iFxSend, iMidiController);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -2119,7 +2119,7 @@ lscp_status_t lscp_set_fxsend_level ( lscp_client_t *pClient, int iSamplerChanne
 	if (iSamplerChannel < 0 || iFxSend < 0 || fLevel < 0.0f)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET FX_SEND LEVEL %d %d %d %g\r\n", iSamplerChannel, iFxSend, fLevel);
+	sprintf(szQuery, "SET FX_SEND LEVEL %d %d %f\r\n", iSamplerChannel, iFxSend, fLevel);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -2625,6 +2625,23 @@ lscp_status_t lscp_clear_midi_instruments  ( lscp_client_t *pClient, int iMidiMa
 
 	strcat(szQuery, "\r\n");
 
+	return lscp_client_query(pClient, szQuery);
+}
+
+/**
+ * Open an instrument editor application for the instrument on the given
+ * sampler channel:
+ * EDIT INSTRUMENT <sampler-channel>
+ *
+ * @param pClient         Pointer to client instance structure.
+ * @param iSamplerChannel Sampler Channel.
+ *
+ * @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_edit_instrument (lscp_client_t *pClient, int iSamplerChannel)
+{
+	char szQuery[LSCP_BUFSIZ];
+	snprintf(szQuery, LSCP_BUFSIZ, "EDIT INSTRUMENT %d\r\n", iSamplerChannel);
 	return lscp_client_query(pClient, szQuery);
 }
 
