@@ -2629,8 +2629,8 @@ lscp_status_t lscp_clear_midi_instruments  ( lscp_client_t *pClient, int iMidiMa
 }
 
 /**
- * Open an instrument editor application for the instrument on the given
- * sampler channel:
+ * Open an instrument editor application for the instrument
+ * on the given sampler channel:
  * EDIT INSTRUMENT <sampler-channel>
  *
  * @param pClient         Pointer to client instance structure.
@@ -2638,10 +2638,15 @@ lscp_status_t lscp_clear_midi_instruments  ( lscp_client_t *pClient, int iMidiMa
  *
  * @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_edit_instrument (lscp_client_t *pClient, int iSamplerChannel)
+lscp_status_t lscp_edit_instrument ( lscp_client_t *pClient, int iSamplerChannel )
 {
 	char szQuery[LSCP_BUFSIZ];
-	snprintf(szQuery, LSCP_BUFSIZ, "EDIT INSTRUMENT %d\r\n", iSamplerChannel);
+
+	if (iSamplerChannel < 0)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "EDIT INSTRUMENT %d\r\n", iSamplerChannel);
+
 	return lscp_client_query(pClient, szQuery);
 }
 

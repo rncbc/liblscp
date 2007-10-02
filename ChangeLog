@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           Added new client interface function, for editing
+0.5.4  2007-10-02  Added new client interface function, for editing
                    instrument:
                      lscp_edit_instrument();
 
