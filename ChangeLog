@@ -26,7 +26,7 @@ ChangeLog
                      lscp_list_fxsends();
                      lscp_get_fxsend_info();
                      lscp_set_fxsend_audio_channel();
-				   and for global volume:
+                   and for global volume:
                      lscp_get_volume();
                      lscp_set_volume();
 
