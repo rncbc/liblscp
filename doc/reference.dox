@@ -204,7 +204,7 @@ the following functions are respectively defined in <lscp/@ref:device.h>:<pre>
 
 </pre>For editing instruments while playing them with the sampler:<pre>
 
-    @ref lscp_edit_instrument (client, channel);
+    @ref lscp_edit_channel_instrument (client, channel);
 
 </pre>Most of these functions are wrappers to @ref lscp_client_query, and some will handle
 and change the result string accordingly.

@@ -3,6 +3,12 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.5.5  2007-10-12  Changed client interface function, for editing
+                   instrument, from:
+                     lscp_edit_instrument();
+                   to:
+                     lscp_edit_channel_instrument();
+
 0.5.4  2007-10-02  Added new client interface function, for editing
                    instrument:
                      lscp_edit_instrument();

@@ -292,7 +292,7 @@ lscp_status_t           lscp_clear_midi_instruments     (lscp_client_t *pClient,
 //-------------------------------------------------------------------------
 // Instrument editor functions.
 
-lscp_status_t           lscp_edit_instrument            (lscp_client_t *pClient, int iSamplerChannel);
+lscp_status_t           lscp_edit_channel_instrument    (lscp_client_t *pClient, int iSamplerChannel);
 
 #if defined(__cplusplus)
 }
