@@ -3,6 +3,10 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+CVS HEAD           Added new client interface function, for renaming
+                   effect send entities:
+                     lscp_set_fxsend_name();
+
 0.5.5  2007-10-12  Changed client interface function, for editing
                    instrument, from:
                      lscp_edit_instrument();

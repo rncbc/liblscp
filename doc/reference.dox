@@ -152,6 +152,7 @@ LSCP comand, and regarding the sampler channel space:<pre>
     @ref lscp_get_fxsends (client, channel);
     @ref lscp_list_fxsends (client, channel);
     @ref lscp_get_fxsend_info (client, channel, fxsend);
+    @ref lscp_set_fxsend_name (client, channel, fxsend, name);
     @ref lscp_set_fxsend_midi_controller (client, channel, fxsend, midi_controller);
     @ref lscp_set_fxsend_audio_channel (client, channel, fxsend, audio_src, audio_dst);
     @ref lscp_set_fxsend_level (client, channel, fxsend, level);

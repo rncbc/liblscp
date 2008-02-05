@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2008, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -2051,6 +2051,29 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 	return pFxSendInfo;
 }
 
+/**
+ *  Alter effect send's name:
+ *  @code
+ *  SET FX_SEND NAME <sampler-chan> <fx-send-id> <name>
+ *  @endcode
+ *
+ *  @param pClient          Pointer to client instance structure.
+ *  @param iSamplerChannel  Sampler channel number.
+ *  @param iFxSend          Effect send number.
+ *  @param pszFxName        Effect send's new name.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_fxsend_name ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, const char *pszFxName )
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (!pClient || iSamplerChannel < 0 || iFxSend < 0 || !pszFxName)
+		return LSCP_FAILED;
+
+	snprintf(szQuery, LSCP_BUFSIZ, "SET FX_SEND NAME %d %d '%s'\r\n", iSamplerChannel, iFxSend, pszFxName);
+	return lscp_client_query(pClient, szQuery);
+}
 
 /**
  *  Alter effect send's audio routing:

@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2008, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -263,6 +263,7 @@ int *                   lscp_list_fxsends               (lscp_client_t *pClient,
 
 lscp_fxsend_info_t *    lscp_get_fxsend_info            (lscp_client_t *pClient, int iSamplerChannel, int iFxSend);
 
+lscp_status_t           lscp_set_fxsend_name            (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, const char *pszFxName);
 lscp_status_t           lscp_set_fxsend_audio_channel   (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iAudioSrc, int iAudioDst);
 lscp_status_t           lscp_set_fxsend_midi_controller (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iMidiController);
 lscp_status_t           lscp_set_fxsend_level           (lscp_client_t *pClient, int iSamplerChannel, int iFxSend, float fLevel);
