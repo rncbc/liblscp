@@ -1,0 +1,57 @@
+# Makefile.mingw - liblscp.a
+# For MinGW.
+#
+# Usage: make -f Makefile.mingw
+#
+
+CC = gcc
+LD = ld
+AR = ar -r
+RM = rm -f
+
+LIBNAME = liblscp
+
+INCDIR = ../lscp
+SRCDIR = ../src
+
+CCFLAGS = -O2 -I..
+
+#
+# Static library build rules.
+#
+
+$(LIBNAME).a:
+	$(RM) $(LIBNAME).a
+	$(CC) $(CCFLAGS) -c $(SRCDIR)/thread.c
+	$(CC) $(CCFLAGS) -c $(SRCDIR)/socket.c
+	$(CC) $(CCFLAGS) -c $(SRCDIR)/client.c
+	$(CC) $(CCFLAGS) -c $(SRCDIR)/device.c
+	$(CC) $(CCFLAGS) -c $(SRCDIR)/common.c
+	$(CC) $(CCFLAGS) -c $(SRCDIR)/event.c
+	$(AR) $(LIBNAME).a thread.o socket.o client.o device.o common.o event.o
+
+#
+# Examples build rules.
+#
+
+EXDIR = ../examples
+
+LDFLAGS = -L.
+LDLIBS  = -llscp -lws2_32
+
+examples:	$(LIBNAME).a
+	$(CC) $(CCFLAGS) -c $(EXDIR)/server.c
+	$(CC) $(CCFLAGS) -c $(EXDIR)/parser.c
+	$(CC) -o example_server $(CCFLAGS) -I$(EXDIR) $(EXDIR)/example_client.c $(LDFLAGS) $(LDLIBS)
+	$(CC) -o example_server $(CCFLAGS) -I$(EXDIR) $(EXDIR)/example_server.c server.o parser.o $(LDFLAGS) $(LDLIBS)
+
+#
+# Common rules.
+#
+
+all:	$(LIBNAME).a examples
+
+clean:
+	- $(RM) *.o
+	- $(RM) *.a
+	- $(RM) *.exe
