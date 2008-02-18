@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2008, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 
-/** Subscribable event notification bit-wise flags. */
+/** Subscribable event notification types. */
 typedef enum _lscp_event_t
 {
 	LSCP_EVENT_NONE                      = 0x0000,
@@ -48,8 +48,11 @@ typedef enum _lscp_event_t
 	LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO  = 0x1000,
 	LSCP_EVENT_MIDI_INSTRUMENT_COUNT     = 0x2000,
 	LSCP_EVENT_MIDI_INSTRUMENT_INFO      = 0x4000,
-	LSCP_EVENT_MISCELLANEOUS             = 0x8000
-
+	LSCP_EVENT_MISCELLANEOUS             = 0x8000,
+	// from these new events on, we simply enumerate them,
+	// no dedicated bit flags anymore ...
+	LSCP_EVENT_CHANNEL_MIDI              = 0x00010000,
+	LSCP_EVENT_DEVICE_MIDI               = 0x00020000
 } lscp_event_t;
 
 

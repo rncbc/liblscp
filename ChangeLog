@@ -3,7 +3,24 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           Added new client interface function, for renaming
+CVS HEAD           Bugfix: _lscp_client_evt_proc() dropped LSCP events.
+
+                   Bugfix in lscp_client_subscribe(): only the first
+                   lscp_client_subscribe() call succeeded (per client),
+                   all subsequent ones failed.
+
+                   Added support for new (un)subscribable events:
+                     LSCP_EVENT_CHANNEL_MIDI
+                     LSCP_EVENT_DEVICE_MIDI
+                   Caution: the bitflag approach for the event variable
+                   is now abondoned, since otherwise we would soon hit the
+                   limit of the bit range. The bitflag approach will
+                   remain for events older at this point (that is all
+                   events which occupy the lower 16 bits), but this new
+                   and all following events will simply be enumared along
+                   the upper 16 bits.
+
+                   Added new client interface function, for renaming
                    effect send entities:
                      lscp_set_fxsend_name();
 
