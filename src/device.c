@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2008, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -132,6 +132,7 @@ static lscp_device_port_info_t *_lscp_device_port_info_query ( lscp_client_t *pC
 	char *pszToken;
 	char *pch;
 	char *pszKey;
+	char *pszVal;
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
@@ -141,16 +142,19 @@ static lscp_device_port_info_t *_lscp_device_port_info_query ( lscp_client_t *pC
 		pszResult = lscp_client_get_result(pClient);
 		pszToken = lscp_strtok((char *) pszResult, pszSeps, &(pch));
 		while (pszToken) {
-			if (strcasecmp(pszToken, "NAME") == 0) {
-				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-				if (pszToken)
-					lscp_unquote_dup(&(pDevicePortInfo->name), &pszToken);
-			}
-			else {
-				pszKey = pszToken;
-				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
-				if (pszToken)
-					lscp_plist_append(&(pDevicePortInfo->params), pszKey, lscp_unquote(&pszToken, 0));
+			pszKey = pszToken;
+			pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
+			if (pszKey && pszToken) {
+				pszVal = lscp_unquote(&pszToken, 0); 
+				lscp_plist_append(&(pDevicePortInfo->params), pszKey, pszVal);
+				if (strcasecmp(pszKey, "NAME") == 0) {
+					// Free desteny string, if already there.
+					if (pDevicePortInfo->name)
+						free(pDevicePortInfo->name);
+					pDevicePortInfo->name = NULL;
+					if (pszVal)
+						pDevicePortInfo->name = strdup(pszVal);
+				}
 			}
 			pszToken = lscp_strtok(NULL, pszSeps, &(pch));
 		}
