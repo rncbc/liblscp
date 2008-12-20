@@ -249,8 +249,14 @@ lscp_server_info_t *    lscp_get_server_info            (lscp_client_t *pClient)
 int                     lscp_get_total_voice_count      (lscp_client_t *pClient);
 int                     lscp_get_total_voice_count_max  (lscp_client_t *pClient);
 
-float                   lscp_get_volume                 (lscp_client_t *pClient );
+float                   lscp_get_volume                 (lscp_client_t *pClient);
 lscp_status_t           lscp_set_volume                 (lscp_client_t *pClient, float fVolume);
+
+int                     lscp_get_voices                 (lscp_client_t *pClient);
+lscp_status_t           lscp_set_voices                 (lscp_client_t *pClient, int iMaxVoices);
+
+int                     lscp_get_streams                (lscp_client_t *pClient);
+lscp_status_t           lscp_set_streams                (lscp_client_t *pClient, int iMaxStreams);
 
 //-------------------------------------------------------------------------
 // Effect sends control functions.

@@ -42,7 +42,7 @@ LDLIBS  = -llscp -lws2_32
 examples:	$(LIBNAME).a
 	$(CC) $(CCFLAGS) -c $(EXDIR)/server.c
 	$(CC) $(CCFLAGS) -c $(EXDIR)/parser.c
-	$(CC) -o example_server $(CCFLAGS) -I$(EXDIR) $(EXDIR)/example_client.c $(LDFLAGS) $(LDLIBS)
+	$(CC) -o example_client $(CCFLAGS) -I$(EXDIR) $(EXDIR)/example_client.c $(LDFLAGS) $(LDLIBS)
 	$(CC) -o example_server $(CCFLAGS) -I$(EXDIR) $(EXDIR)/example_server.c server.o parser.o $(LDFLAGS) $(LDLIBS)
 
 #

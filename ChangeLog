@@ -3,7 +3,14 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           _lscp_device_port_info_query(): take port parameter
+CVS HERAD          Fixed locale related parser bug (fixes #59). 
+
+                   Added new client interface functions, for managing
+                   the global limit of maximum voices and disk streams:
+                   lscp_get_voices(), lscp_set_voices(), lscp_get_streams(),
+                   lscp_set_streams().
+
+                   _lscp_device_port_info_query(): take port parameter
                    "NAME" into the result list.
 
                    Bugfix: _lscp_client_evt_proc() dropped LSCP events.
@@ -26,6 +33,16 @@ CVS HEAD           _lscp_device_port_info_query(): take port parameter
                    Added new client interface function, for renaming
                    effect send entities:
                      lscp_set_fxsend_name();
+
+                   Added new client interface functions, for managing the
+                   global limit of maximum voices and disk streams:
+                     lscp_get_voices();
+                     lscp_set_voices();
+                     lscp_get_streams();
+                     lscp_set_streams();
+
+                   Bugfix: fixed buggy behavior on different locale
+                   settings (e.g. when parsing floating point numbers).
 
 0.5.5  2007-10-12  Changed client interface function, for editing
                    instrument, from:
@@ -71,7 +88,7 @@ CVS HEAD           _lscp_device_port_info_query(): take port parameter
                      LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO,
                      LSCP_EVENT_MIDI_INSTRUMENT_COUNT,
                      LSCP_EVENT_MIDI_INSTRUMENT_INFO.
- 
+
                    Updated examples.
 
 0.5.0  2006-12-17  MIDI instrument mapping, second round, according to
@@ -160,15 +177,15 @@ CVS HEAD           _lscp_device_port_info_query(): take port parameter
                    as to be more meaningful. Added support for the newest
                    LSCP command: GET SERVER INFO; lscp_get_server_info().
 
-0.2.8  2005-05-08  [bug #9] Fixed for a LSCP command syntax convention 
-                   consistency, regarding the enumeration of available 
-                   sampler engines, Audio and MIDI drivers; this has 
+0.2.8  2005-05-08  [bug #9] Fixed for a LSCP command syntax convention
+                   consistency, regarding the enumeration of available
+                   sampler engines, Audio and MIDI drivers; this has
                    affected the signature of the following functions:
                      lscp_get_available_engines();
                      lscp_get_available_audio_drivers();
                      lscp_get_available_midi_drivers();
                    which are now returning an integer count of engines
-                   and drivers, respectively, while the following 
+                   and drivers, respectively, while the following
                    functions are now being introduced:
                      lscp_list_available_engines();
                      lscp_list_available_audio_drivers();

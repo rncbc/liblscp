@@ -20,6 +20,7 @@
 
 *****************************************************************************/
 
+#include <locale.h>
 #include "common.h"
 
 // Default timeout value (in milliseconds).
@@ -32,6 +33,41 @@ static void             _lscp_client_evt_proc       (void *pvClient);
 
 static lscp_status_t    _lscp_client_evt_connect    (lscp_client_t *pClient);
 static lscp_status_t    _lscp_client_evt_request    (lscp_client_t *pClient, int iSubscribe, lscp_event_t event);
+
+
+//-------------------------------------------------------------------------
+// General helper functions.
+
+struct _locale_t {
+	char numeric[32];
+	char ctype[32];
+};
+
+// we need to ensure a constant locale setting e.g. for parsing
+// floating point numbers with atof(), as the floating point separator
+// character varies by the invidual locale settings
+static void _save_and_set_c_locale(struct _locale_t* locale)
+{
+	strncpy(locale->numeric, setlocale(LC_NUMERIC, NULL), 32);
+	strncpy(locale->ctype, setlocale(LC_CTYPE, NULL), 32);
+	setlocale(LC_NUMERIC, "C");
+	setlocale(LC_CTYPE, "C");
+}
+
+// restore the original locale setting as nothing happened
+static void _restore_locale(struct _locale_t* locale)
+{
+	setlocale(LC_NUMERIC, locale->numeric);
+	setlocale(LC_CTYPE, locale->ctype);
+}
+
+// seems the standard atof() function doesnt care much about locale
+// runtime modifications, so we use this workaround
+static float _atof(const char* txt) {
+	float f;
+	sscanf(txt, "%f", &f); // yeah, you're a good boy sscanf()
+	return f;
+}
 
 
 //-------------------------------------------------------------------------
@@ -1111,6 +1147,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 	const char *pszCrlf = "\r\n";
 	char *pszToken;
 	char *pch;
+	struct _locale_t locale;
 
 	if (pClient == NULL)
 		return NULL;
@@ -1122,6 +1159,8 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 
 	pChannelInfo = &(pClient->channel_info);
 	lscp_channel_info_reset(pChannelInfo);
+
+	_save_and_set_c_locale(&locale);
 
 	sprintf(szQuery, "GET CHANNEL INFO %d\r\n", iSamplerChannel);
 	if (lscp_client_call(pClient, szQuery, 1) == LSCP_OK) {
@@ -1207,7 +1246,7 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 			else if (strcasecmp(pszToken, "VOLUME") == 0) {
 				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
 				if (pszToken)
-					pChannelInfo->volume = (float) atof(lscp_ltrim(pszToken));
+					pChannelInfo->volume = _atof(lscp_ltrim(pszToken));
 			}
 			else if (strcasecmp(pszToken, "MUTE") == 0) {
 				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
@@ -1223,6 +1262,8 @@ lscp_channel_info_t *lscp_get_channel_info ( lscp_client_t *pClient, int iSample
 		}
 	}
 	else pChannelInfo = NULL;
+
+	_restore_locale(&locale);
 
 	// Unlock this section up.
 	lscp_mutex_unlock(pClient->mutex);
@@ -1638,11 +1679,15 @@ lscp_status_t lscp_set_channel_midi_map ( lscp_client_t *pClient, int iSamplerCh
 lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChannel, float fVolume )
 {
 	char szQuery[LSCP_BUFSIZ];
+	struct _locale_t locale;
 
 	if (iSamplerChannel < 0 || fVolume < 0.0f)
 		return LSCP_FAILED;
 
+	_save_and_set_c_locale(&locale);
 	sprintf(szQuery, "SET CHANNEL VOLUME %d %g\r\n", iSamplerChannel, fVolume);
+	_restore_locale(&locale);
+
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1726,7 +1771,7 @@ lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
  */
 lscp_status_t lscp_reset_sampler ( lscp_client_t *pClient )
 {
-	// Do actual whole sampler reset... 
+	// Do actual whole sampler reset...
 	return lscp_client_query(pClient, "RESET\r\n");
 }
 
@@ -1859,6 +1904,7 @@ int lscp_get_total_voice_count_max ( lscp_client_t *pClient )
 float lscp_get_volume ( lscp_client_t *pClient )
 {
 	float fVolume = 0.0f;
+	struct _locale_t locale;
 
 	if (pClient == NULL)
 		return 0.0f;
@@ -1866,8 +1912,12 @@ float lscp_get_volume ( lscp_client_t *pClient )
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
 
+	_save_and_set_c_locale(&locale);
+
 	if (lscp_client_call(pClient, "GET VOLUME\r\n", 0) == LSCP_OK)
-		fVolume = (float) atof(lscp_client_get_result(pClient));
+		fVolume = _atof(lscp_client_get_result(pClient));
+
+	_restore_locale(&locale);
 
 	// Unlock this section down.
 	lscp_mutex_unlock(pClient->mutex);
@@ -1890,14 +1940,141 @@ float lscp_get_volume ( lscp_client_t *pClient )
 lscp_status_t lscp_set_volume ( lscp_client_t *pClient, float fVolume )
 {
 	char szQuery[LSCP_BUFSIZ];
+	struct _locale_t locale;
 
 	if (fVolume < 0.0f)
 		return LSCP_FAILED;
 
+	_save_and_set_c_locale(&locale);
 	sprintf(szQuery, "SET VOLUME %g\r\n", fVolume);
+	_restore_locale(&locale);
+
 	return lscp_client_query(pClient, szQuery);
 }
 
+/**
+ *  Get global voice limit setting:
+ *  @code
+ *  GET VOICES
+ *  @endcode
+ *  This value reflects the maximum amount of voices a sampler engine
+ *  processes simultaniously before voice stealing kicks in.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current global maximum amount of voices limit or a
+ *           negative value on error (e.g. if sampler doesn't support
+ *           this command).
+ */
+int lscp_get_voices(lscp_client_t *pClient)
+{
+	int iVoices = -1;
+
+	if (pClient == NULL)
+		return -1;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	if (lscp_client_call(pClient, "GET VOICES\r\n", 0) == LSCP_OK)
+		iVoices = atoi(lscp_client_get_result(pClient));
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return iVoices;
+}
+
+/**
+ *  Setting global voice limit setting:
+ *  @code
+ *  SET VOICES <max-voices>
+ *  @endcode
+ *  This value reflects the maximum amount of voices a sampler engine
+ *  processes simultaniously before voice stealing kicks in. Note that
+ *  this value will be passed to all sampler engine instances, that is
+ *  the total amount of maximum voices on the running system is thus
+ *  @param iMaxVoices multiplied with the current amount of sampler
+ *  engine instances.
+ *
+ *  @param pClient     Pointer to client instance structure.
+ *  @param iMaxVoices  Global voice limit setting as integer value larger
+ *                     or equal to 1.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_voices(lscp_client_t *pClient, int iMaxVoices)
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iMaxVoices < 1)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET VOICES %d\r\n", iMaxVoices);
+	return lscp_client_query(pClient, szQuery);
+}
+
+/**
+ *  Get global disk streams limit setting:
+ *  @code
+ *  GET STREAMS
+ *  @endcode
+ *  This value reflects the maximum amount of disk streams a sampler
+ *  engine processes simultaniously.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current global maximum amount of disk streams limit
+ *           or a negative value on error (e.g. if sampler doesn't
+ *           support this command).
+ */
+int lscp_get_streams(lscp_client_t *pClient)
+{
+	int iStreams = -1;
+
+	if (pClient == NULL)
+		return -1;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	if (lscp_client_call(pClient, "GET STREAMS\r\n", 0) == LSCP_OK)
+		iStreams = atoi(lscp_client_get_result(pClient));
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return iStreams;
+}
+
+/**
+ *  Setting global disk streams limit setting:
+ *  @code
+ *  SET STREAMS <max-streams>
+ *  @endcode
+ *  This value reflects the maximum amount of dist streams a sampler
+ *  engine instance processes simultaniously. Note that this value will
+ *  be passed to all sampler engine instances, that is the total amount
+ *  of maximum disk streams on the running system is thus
+ *  @param iMaxStreams multiplied with the current amount of sampler
+ *  engine instances.
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param iMaxStreams  Global streams limit setting as positive integer
+ *                      value (larger or equal to 0).
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_streams(lscp_client_t *pClient, int iMaxStreams)
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iMaxStreams < 0)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET STREAMS %d\r\n", iMaxStreams);
+	return lscp_client_query(pClient, szQuery);
+}
 
 /**
  *  Add an effect send to a sampler channel:
@@ -1926,7 +2103,7 @@ int lscp_create_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iMidiC
 	lscp_mutex_lock(pClient->mutex);
 
 	sprintf(szQuery, "CREATE FX_SEND %d %d", iSamplerChannel, iMidiController);
-	
+
 	if (pszFxName)
 		sprintf(szQuery + strlen(szQuery), " '%s'", pszFxName);
 
@@ -2058,6 +2235,7 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 	const char *pszCrlf = "\r\n";
 	char *pszToken;
 	char *pch;
+	struct _locale_t locale;
 
 	if (pClient == NULL)
 		return NULL;
@@ -2066,6 +2244,8 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
+
+	_save_and_set_c_locale(&locale);
 
 	pFxSendInfo = &(pClient->fxsend_info);
 	lscp_fxsend_info_reset(pFxSendInfo);
@@ -2096,12 +2276,14 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 			else if (strcasecmp(pszToken, "LEVEL") == 0) {
 				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
 				if (pszToken)
-					pFxSendInfo->level = (float) atof(lscp_ltrim(pszToken));
+					pFxSendInfo->level = _atof(lscp_ltrim(pszToken));
 			}
 			pszToken = lscp_strtok(NULL, pszSeps, &(pch));
 		}
 	}
 	else pFxSendInfo = NULL;
+
+	_restore_locale(&locale);
 
 	// Unlock this section up.
 	lscp_mutex_unlock(pClient->mutex);
@@ -2196,11 +2378,15 @@ lscp_status_t lscp_set_fxsend_midi_controller ( lscp_client_t *pClient, int iSam
 lscp_status_t lscp_set_fxsend_level ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, float fLevel )
 {
 	char szQuery[LSCP_BUFSIZ];
+	struct _locale_t locale;
 
 	if (iSamplerChannel < 0 || iFxSend < 0 || fLevel < 0.0f)
 		return LSCP_FAILED;
 
+	_save_and_set_c_locale(&locale);
 	sprintf(szQuery, "SET FX_SEND LEVEL %d %d %f\r\n", iSamplerChannel, iFxSend, fLevel);
+	_restore_locale(&locale);
+
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -2227,7 +2413,7 @@ int lscp_add_midi_instrument_map ( lscp_client_t *pClient, const char *pszMapNam
 	lscp_mutex_lock(pClient->mutex);
 
 	strcpy(szQuery, "ADD MIDI_INSTRUMENT_MAP");
-	
+
 	if (pszMapName)
 		sprintf(szQuery + strlen(szQuery), " '%s'", pszMapName);
 
@@ -2353,7 +2539,7 @@ const char *lscp_get_midi_instrument_map_name ( lscp_client_t *pClient, int iMid
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
-	
+
 	if (pClient->midi_map_name) {
 		free(pClient->midi_map_name);
 		pClient->midi_map_name = NULL;
@@ -2417,7 +2603,7 @@ lscp_status_t lscp_set_midi_instrument_map_name ( lscp_client_t *pClient, int iM
  *  @param pszFileName      Instrument file name.
  *  @param iInstrIndex      Instrument index number.
  *  @param fVolume          Reflects the master volume of the instrument as
- *                          a positive floating point number, where a value 
+ *                          a positive floating point number, where a value
  *                          less than 1.0 for attenuation, and greater than
  *                          1.0 for amplification.
  *  @param load_mode        Instrument load life-time strategy, either
@@ -2432,6 +2618,7 @@ lscp_status_t lscp_set_midi_instrument_map_name ( lscp_client_t *pClient, int iM
 lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName )
 {
 	char szQuery[LSCP_BUFSIZ];
+	struct _locale_t locale;
 
 	if (pMidiInstr->map < 0)
 		return LSCP_FAILED;
@@ -2445,9 +2632,11 @@ lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instr
 	if (fVolume < 0.0f)
 		fVolume = 1.0f;
 
+	_save_and_set_c_locale(&locale);
 	sprintf(szQuery, "MAP MIDI_INSTRUMENT %d %d %d %s '%s' %d %g",
 		pMidiInstr->map, pMidiInstr->bank, pMidiInstr->prog,
 		pszEngineName, pszFileName, iInstrIndex, fVolume);
+	_restore_locale(&locale);
 
 	switch (load_mode) {
 	case LSCP_LOAD_PERSISTENT:
@@ -2604,6 +2793,7 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
 	const char *pszCrlf = "\r\n";
 	char *pszToken;
 	char *pch;
+	struct _locale_t locale;
 
 	if (pClient == NULL)
 		return NULL;
@@ -2616,7 +2806,9 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
-	
+
+	_save_and_set_c_locale(&locale);
+
 	pInstrInfo = &(pClient->midi_instrument_info);
 	lscp_midi_instrument_info_reset(pInstrInfo);
 
@@ -2670,12 +2862,14 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
 			else if (strcasecmp(pszToken, "VOLUME") == 0) {
 				pszToken = lscp_strtok(NULL, pszCrlf, &(pch));
 				if (pszToken)
-					pInstrInfo->volume = (float) atof(lscp_ltrim(pszToken));
+					pInstrInfo->volume = _atof(lscp_ltrim(pszToken));
 			}
 			pszToken = lscp_strtok(NULL, pszSeps, &(pch));
 		}
 	}
 	else pInstrInfo = NULL;
+
+	_restore_locale(&locale);
 
 	// Unlock this section down.
 	lscp_mutex_unlock(pClient->mutex);
