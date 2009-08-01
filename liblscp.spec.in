@@ -32,7 +32,7 @@ LinuxSampler control protocol API libraries and include files.
 if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
 
 %build
-./configure --prefix=%{prefix}
+./configure --prefix=%{prefix} --libdir=%{_libdir}
 make
 
 %install
@@ -60,7 +60,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{_libdir}/liblscp.a
 %{_libdir}/liblscp.la
 %{_libdir}/pkgconfig/lscp.pc
-%{_includedir}/lscp
+%dir %{_includedir}/lscp
+%{_includedir}/lscp/*.h
 
 %changelog
 * Sat Aug  1 2009 Rui Nuno Capela <rncbc@users.sourceforge.net>
