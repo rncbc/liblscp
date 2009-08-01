@@ -1,7 +1,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	16
+%define release	17
 %define prefix	@prefix@
 
 Summary:	LinuxSampler control protocol API.
@@ -63,6 +63,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/lscp
 
 %changelog
+* Sat Aug  1 2009 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- New 0.5.6 release.
+
 * Fri Oct 12 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Changed client interface function, for editing channel instrument.
 - New 0.5.5 release.

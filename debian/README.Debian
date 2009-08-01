@@ -1,6 +1,6 @@
 #commands used to package liblscp
 MAJORVERSION=5
-MINORVERSION=3
+MINORVERSION=6
 cd ~/debian/debRelease/ls/liblscp
 rm -rf liblscp*
 cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co liblscp
