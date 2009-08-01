@@ -52,15 +52,15 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %files
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
-%{prefix}/lib/liblscp.so*
+%{_libdir}/liblscp.so*
 
 %files devel
 %defattr(-,root,root)
 %doc doc/html/*
-%{prefix}/lib/liblscp.a
-%{prefix}/lib/liblscp.la
-%{prefix}/lib/pkgconfig/lscp.pc
-%{prefix}/include/lscp
+%{_libdir}/liblscp.a
+%{_libdir}/liblscp.la
+%{_libdir}/pkgconfig/lscp.pc
+%{_includedir}/lscp
 
 %changelog
 * Sat Aug  1 2009 Rui Nuno Capela <rncbc@users.sourceforge.net>
