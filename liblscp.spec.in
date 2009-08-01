@@ -13,7 +13,7 @@ License:	LGPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.gz
 URL:		http://www.linuxsampler.org/
-BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
+BuildRoot:	%{_tmppath}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 LinuxSampler control protocol API.
@@ -32,13 +32,12 @@ LinuxSampler control protocol API libraries and include files.
 if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
 
 %build
-./configure --prefix=%{prefix} --libdir=%{_libdir}
+%configure
 make
 
 %install
-if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
-mkdir -p $RPM_BUILD_ROOT
-make prefix=$RPM_BUILD_ROOT%{prefix} install
+%{__rm} -rf %{buildroot}
+%makeinstall
 
 %post
 /sbin/ldconfig
@@ -47,7 +46,7 @@ make prefix=$RPM_BUILD_ROOT%{prefix} install
 /sbin/ldconfig
 
 %clean
-if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+%{__rm} -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
