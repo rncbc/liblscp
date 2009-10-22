@@ -29,7 +29,7 @@ LinuxSampler control protocol API libraries and include files.
 %prep
 
 %setup
-if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
+if [ -f Makefile.svn ]; then make -f Makefile.svn; fi
 
 %build
 %configure
