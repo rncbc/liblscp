@@ -2,8 +2,8 @@ Source: liblscp
 Section: sound
 Priority: optional
 Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
-Build-Depends: debhelper (>= 4.0.0)
-Standards-Version: 3.6.1
+Build-Depends: debhelper (>= 4.0.0), doxygen
+Standards-Version: 3.7.2
 
 Package: liblscp-dev
 Section: libdevel
