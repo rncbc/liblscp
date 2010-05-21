@@ -22,7 +22,7 @@ Summary:	LinuxSampler control protocol API
 Group:		Sound/Libraries
 Provides:	%{name}
 
-%description
+%description -n %{name}6
 LinuxSampler control protocol API.
 
 
