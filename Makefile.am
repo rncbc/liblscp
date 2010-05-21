@@ -1,4 +1,4 @@
-SUBDIRS = src lscp examples debian @ac_doxygen@
+SUBDIRS = src lscp examples @ac_doxygen@
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = lscp.pc
