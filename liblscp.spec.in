@@ -16,7 +16,7 @@ Source0:	%{name}-%{version}.tar.gz
 URL:		http://www.linuxsampler.org/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
-BuildRequires:	doxygen
+BuildRequires:	doxygen, pkg-config
 
 %description
 LinuxSampler control protocol API.
@@ -53,11 +53,12 @@ LinuxSampler control protocol API libraries and include files.
 %files
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
-%{_libdir}/liblscp.so*
+%{_libdir}/liblscp.so.*
 
 %files devel
 %defattr(-,root,root)
 %doc doc/html/*
+%{_libdir}/liblscp.so
 %{_libdir}/liblscp.a
 %{_libdir}/liblscp.la
 %{_libdir}/pkgconfig/lscp.pc
