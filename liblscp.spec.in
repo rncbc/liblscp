@@ -5,6 +5,7 @@
 
 %define _prefix	@prefix@
 
+Summary:	LinuxSampler control protocol API
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -26,12 +27,12 @@ LinuxSampler control protocol API.
 
 
 %package devel
-Summary:	LinuxSampler control protocol API development libraries and include files
+Summary:	LinuxSampler control protocol API libraries and include files
 Group:		Development/Libraries
 Requires:	%{name} = %{version}
 
 %description devel
-LinuxSampler control protocol API development libraries and include files.
+LinuxSampler control protocol API libraries and include files.
 
 
 %prep
