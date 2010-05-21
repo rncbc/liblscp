@@ -5,7 +5,7 @@
 
 %define _prefix	@prefix@
 
-Summary:	LinuxSampler control protocol API.
+Summary:	LinuxSampler control protocol API
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -50,7 +50,7 @@ LinuxSampler control protocol API libraries and include files.
 %postun
 /sbin/ldconfig
 
-%files
+%files -n %{name}6
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
 %{_libdir}/liblscp.so.*
