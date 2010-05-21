@@ -5,29 +5,34 @@
 
 %define _prefix	@prefix@
 
-Summary:	LinuxSampler control protocol API
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
-Prefix:		%{prefix}
 License:	LGPL
-Group:		Sound
 Source0:	%{name}-%{version}.tar.gz
 URL:		http://www.linuxsampler.org/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:	doxygen, pkg-config
 
+
+%package -n %{name}6
+Summary:	LinuxSampler control protocol API
+Group:		Sound/Libraries
+Provides:	%{name}
+
 %description
 LinuxSampler control protocol API.
 
+
 %package devel
-Summary:	LinuxSampler control protocol API libraries and include files.
+Summary:	LinuxSampler control protocol API development libraries and include files
 Group:		Development/Libraries
 Requires:	%{name} = %{version}
 
 %description devel
-LinuxSampler control protocol API libraries and include files.
+LinuxSampler control protocol API development libraries and include files.
+
 
 %prep
 
