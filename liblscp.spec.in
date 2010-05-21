@@ -2,7 +2,8 @@
 %define name	@PACKAGE@
 %define version	@VERSION@
 %define release	17
-%define prefix	@prefix@
+
+%define _prefix	@prefix@
 
 Summary:	LinuxSampler control protocol API.
 Name:		%{name}
@@ -13,7 +14,9 @@ License:	LGPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.gz
 URL:		http://www.linuxsampler.org/
-BuildRoot:	%{_tmppath}/%{name}-%{version}-root-%(id -u -n)
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
+
+BuildRequires:	doxygen
 
 %description
 LinuxSampler control protocol API.
@@ -29,24 +32,23 @@ LinuxSampler control protocol API libraries and include files.
 %prep
 
 %setup
-if [ -f Makefile.svn ]; then make -f Makefile.svn; fi
+[ -f Makefile.svn ] && %__make -f Makefile.svn
 
 %build
 %configure
-make
+%__make
 
 %install
-%{__rm} -rf %{buildroot}
 %makeinstall
+
+%clean
+[ -d %{buildroot} -a "%{buildroot}" != "" ] && %__rm -rf %{buildroot}
 
 %post
 /sbin/ldconfig
 
 %postun
 /sbin/ldconfig
-
-%clean
-%{__rm} -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
