@@ -16,14 +16,17 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:	doxygen, pkg-config
 
+%description
+LinuxSampler control protocol API.
+
 
 %package -n %{name}6
-Summary:	LinuxSampler control protocol API
+Summary:	LinuxSampler control protocol API library
 Group:		Sound/Libraries
 Provides:	%{name}
 
 %description -n %{name}6
-LinuxSampler control protocol API.
+LinuxSampler control protocol API library.
 
 
 %package devel
