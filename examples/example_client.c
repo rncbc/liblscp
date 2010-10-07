@@ -520,7 +520,7 @@ void client_test_audio_driver ( lscp_client_t *pClient, const char *pszAudioDriv
 void client_test_all ( lscp_client_t *pClient, int step )
 {
 	const char **ppszAudioDrivers, **ppszMidiDrivers, **ppszEngines;
-	const char *pszAudioDriver, *pszMidiDriver, *pszEngine;
+	const char *pszAudioDriver, *pszMidiDriver, *pszEngine = 0;
 	int iAudioDriver, iMidiDriver, iEngine;
 	int iAudio, iAudioDevice, iMidi, iMidiDevice;
 	int iNewAudioDevice, iNewMidiDevice;

@@ -26,6 +26,7 @@ AC_SUBST(SHARED_VERSION_INFO)
 
 # Checks for programs.
 AC_PROG_CC
+AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AM_PROG_LIBTOOL
 
@@ -39,6 +40,12 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_CHECK_FUNCS(strdup strtok_r memset memmove socket connect bind listen setsockopt getsockopt getsockname gethostbyname)
+
+case $host in
+    *mingw*|*cygwin*) windows=yes ;;
+    *)                windows=no ;;
+esac
+AM_CONDITIONAL(WINDOWS, test "$windows" = "yes")
 
 # Checks for pthread library.
 AC_CHECK_LIB(pthread, pthread_create)

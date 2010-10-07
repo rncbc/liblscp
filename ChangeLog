@@ -3,7 +3,11 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.5.6  2009-08-01  Fixed locale related parser bug (fixes #59). 
+CVS HEAD           Fixes for building for Windows with configure and make.
+
+                   Makefile fixes for building in separate directory.
+
+0.5.6  2009-08-01  Fixed locale related parser bug (fixes #59).
 
                    Added new client interface functions, for managing
                    the global limit of maximum voices and disk streams:

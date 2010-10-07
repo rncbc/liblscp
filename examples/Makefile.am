@@ -1,5 +1,5 @@
 
-AM_CFLAGS = -Wall -I..
+AM_CFLAGS = -Wall -I.. -I$(srcdir)/..
 
 noinst_PROGRAMS = example_server example_client
 noinst_HEADERS = server.h parser.h
