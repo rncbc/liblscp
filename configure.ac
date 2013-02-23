@@ -1,8 +1,9 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(src/client.c)
-AM_CONFIG_HEADER(src/config.h)
+AC_CONFIG_HEADERS(src/config.h)
+AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE(liblscp, 0.5.6.3)
+AM_INIT_AUTOMAKE(liblscp, 0.5.6.4)
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:

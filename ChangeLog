@@ -3,7 +3,9 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           Fixes for building for Windows with configure and make.
+SVN TRUNK          Update on newer autoconf macros (m4).
+
+                   Fixes for building for Windows with configure and make.
 
                    Makefile fixes for building in separate directory.
 
