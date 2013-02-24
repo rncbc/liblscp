@@ -78,7 +78,7 @@ LinuxSampler control protocol API libraries and include files.
 
 %changelog
 * Sun Feb 24 2013 Rui Nuno Capela <rncbc@rncbc.org>
-- Use getaddrinffo() instead of deprecated gethostbyname().
+- Use getaddrinfo() instead of deprecated gethostbyname().
 * Sat Aug  1 2009 Rui Nuno Capela <rncbc@rncbc.org> - 0.5.6
 - New 0.5.6 release.
 * Fri Oct 12 2007 Rui Nuno Capela <rncbc@rncbc.org> - 0.5.5

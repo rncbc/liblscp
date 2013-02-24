@@ -29,7 +29,9 @@
 
 // Whether to use getaddrinfo() instead
 // of deprecated gethostbyname()
+#if !defined(WIN32)
 #define USE_GETADDRINFO 1
+#endif
 
 
 // Local prototypes.
