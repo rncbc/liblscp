@@ -1,4 +1,4 @@
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I .m4
 
 SUBDIRS = src lscp examples @ac_doxygen@
 

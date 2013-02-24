@@ -9,7 +9,7 @@ configure:	 configure.ac Makefile.am src/Makefile.am lscp/Makefile.am doc/Makefi
 
 clean:
 	@if [ -f Makefile ]; then make distclean; fi || true
-	@rm -rvf *.cache *.log *.status *.m4 m4
+	@rm -rvf *.cache *.log *.status *.m4 .m4
 	@rm -rvf examples/Makefile.in
 	@rm -rvf doc/Makefile.in
 	@rm -rvf lscp/Makefile.in

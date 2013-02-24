@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2008, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2013, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,12 +27,18 @@
 #define LSCP_TIMEOUT_MSECS  500
 
 
+// Whether to use getaddrinfo() instead
+// of deprecated gethostbyname()
+#define USE_GETADDRINFO 1
+
+
 // Local prototypes.
 
-static void             _lscp_client_evt_proc       (void *pvClient);
+static void _lscp_client_evt_proc (void *pvClient);
 
-static lscp_status_t    _lscp_client_evt_connect    (lscp_client_t *pClient);
-static lscp_status_t    _lscp_client_evt_request    (lscp_client_t *pClient, int iSubscribe, lscp_event_t event);
+static lscp_status_t _lscp_client_evt_connect (lscp_client_t *pClient);
+static lscp_status_t _lscp_client_evt_request (lscp_client_t *pClient,
+	int iSubscribe, lscp_event_t event);
 
 
 //-------------------------------------------------------------------------
@@ -86,9 +92,10 @@ static void _lscp_client_evt_proc ( void *pvClient )
 	char   achBuffer[LSCP_BUFSIZ];
 	int    cchBuffer;
 	const char *pszSeps = ":\r\n";
-	char * pszToken;
-	char * pch;
-	int     cchToken;
+	char  *pszToken;
+	char  *pch;
+	int    cchToken;
+
 	lscp_event_t event;
 
 #ifdef DEBUG
@@ -185,7 +192,8 @@ static lscp_status_t _lscp_client_evt_connect ( lscp_client_t *pClient )
 	}
 
 #if defined(WIN32)
-	if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
+	if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER,
+			(char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
 		lscp_socket_perror("lscp_client_evt_connect: setsockopt(SO_DONTLINGER)");
 #endif
 
@@ -213,7 +221,8 @@ static lscp_status_t _lscp_client_evt_connect ( lscp_client_t *pClient )
 
 
 // Subscribe to a single event.
-static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSubscribe, lscp_event_t event )
+static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient,
+	int iSubscribe, lscp_event_t event )
 {
 	const char *pszEvent;
 	char  szQuery[LSCP_BUFSIZ];
@@ -228,7 +237,8 @@ static lscp_status_t _lscp_client_evt_request ( lscp_client_t *pClient, int iSub
 		return LSCP_FAILED;
 
 	// Build the query string...
-	cchQuery = sprintf(szQuery, "%sSUBSCRIBE %s\n\n", (iSubscribe == 0 ? "UN" : ""), pszEvent);
+	cchQuery = sprintf(szQuery, "%sSUBSCRIBE %s\n\n",
+		(iSubscribe == 0 ? "UN" : ""), pszEvent);
 	// Just send data, forget result...
 	if (send(pClient->evt.sock, szQuery, cchQuery, 0) < cchQuery) {
 		lscp_socket_perror("_lscp_client_evt_request: send");
@@ -279,13 +289,20 @@ const char* lscp_client_build   (void) { return __DATE__ " " __TIME__; }
  *  @returns The new client instance pointer if successfull, which shall be
  *  used on all subsequent client calls, NULL otherwise.
  */
-lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_proc_t pfnCallback, void *pvData )
+lscp_client_t* lscp_client_create ( const char *pszHost, int iPort,
+	lscp_client_proc_t pfnCallback, void *pvData )
 {
 	lscp_client_t  *pClient;
+#if defined(USE_GETADDRINFO)
+	char szPort[33];
+	struct addrinfo hints;
+	struct addrinfo *result, *res;
+#else
 	struct hostent *pHost;
-	lscp_socket_t sock;
 	struct sockaddr_in addr;
 	int cAddr;
+#endif	/* !USE_GETADDRINFO */
+	lscp_socket_t sock;
 #if defined(WIN32)
 	int iSockOpt = (-1);
 #endif
@@ -295,11 +312,33 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 		return NULL;
 	}
 
+#if defined(USE_GETADDRINFO)
+
+	// Convert port number to string/name...
+	snprintf(szPort, sizeof(szPort), "%d", iPort);
+
+	// Obtain address(es) matching host/port...
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+
+	result = NULL;
+
+	if (getaddrinfo(pszHost, szPort, &hints, &result)) {
+		lscp_socket_herror("lscp_client_create: getaddrinfo");
+		return NULL;
+	}
+
+#else
+
+	// Obtain host matching name...
 	pHost = gethostbyname(pszHost);
 	if (pHost == NULL) {
 		lscp_socket_herror("lscp_client_create: gethostbyname");
 		return NULL;
 	}
+
+#endif	/* !USE_GETADDRINFO */
 
 	// Allocate client descriptor...
 
@@ -314,10 +353,58 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 	pClient->pvData = pvData;
 
 #ifdef DEBUG
-	fprintf(stderr, "lscp_client_create: pClient=%p: pszHost=%s iPort=%d.\n", pClient, pszHost, iPort);
+	fprintf(stderr,
+		"lscp_client_create: pClient=%p: pszHost=%s iPort=%d.\n",
+		 pClient, pszHost, iPort);
 #endif
 
 	// Prepare the command connection socket...
+
+#if defined(USE_GETADDRINFO)
+
+	// getaddrinfo() returns a list of address structures;
+	// try each address until we successfully connect(2);
+	// if socket or connect fails, we close the socket and
+	// try the next address...
+	sock = INVALID_SOCKET;
+
+	for (res = result; res; res = res->ai_next) {
+		sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (sock == INVALID_SOCKET)
+			continue;
+	#if defined(WIN32)
+		if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER,
+				(char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
+			lscp_socket_perror("lscp_client_create: cmd: setsockopt(SO_DONTLINGER)");
+	#endif
+	#ifdef DEBUG
+		lscp_socket_getopts("lscp_client_create: cmd", sock);
+	#endif
+		if (connect(sock, res->ai_addr, res->ai_addrlen) != SOCKET_ERROR)
+			break;
+		closesocket(sock);
+	}
+
+	if (sock == INVALID_SOCKET) {
+		lscp_socket_perror("lscp_client_create: cmd: socket");
+		free(pClient);
+		return NULL;
+	}
+
+	if (res == NULL) {
+		lscp_socket_perror("lscp_client_create: cmd: connect");
+		free(pClient);
+		return NULL;
+	}
+
+	// Initialize the command socket agent struct...
+	lscp_socket_agent_init(&(pClient->cmd), sock,
+		(struct sockaddr_in *) res->ai_addr, res->ai_addrlen);
+
+	// No longer needed...
+	freeaddrinfo(result);
+
+#else
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) {
@@ -327,7 +414,8 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 	}
 
 #if defined(WIN32)
-	if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER, (char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
+	if (setsockopt(sock, SOL_SOCKET, SO_DONTLINGER,
+			(char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
 		lscp_socket_perror("lscp_client_create: cmd: setsockopt(SO_DONTLINGER)");
 #endif
 
@@ -351,8 +439,14 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort, lscp_client_
 	// Initialize the command socket agent struct...
 	lscp_socket_agent_init(&(pClient->cmd), sock, &addr, cAddr);
 
+#endif	/* !USE_GETADDRINFO */
+
 #ifdef DEBUG
-	fprintf(stderr, "lscp_client_create: cmd: pClient=%p: sock=%d addr=%s port=%d.\n", pClient, pClient->cmd.sock, inet_ntoa(pClient->cmd.addr.sin_addr), ntohs(pClient->cmd.addr.sin_port));
+	fprintf(stderr,
+		"lscp_client_create: cmd: pClient=%p: sock=%d addr=%s port=%d.\n",
+		pClient, pClient->cmd.sock,
+		inet_ntoa(pClient->cmd.addr.sin_addr),
+		ntohs(pClient->cmd.addr.sin_port));
 #endif
 
 	// Initialize the event service socket struct...
@@ -837,14 +931,16 @@ lscp_event_t lscp_client_get_events ( lscp_client_t *pClient )
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel )
+lscp_status_t lscp_load_instrument ( lscp_client_t *pClient,
+	const char *pszFileName, int iInstrIndex, int iSamplerChannel )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (pszFileName == NULL || iSamplerChannel < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "LOAD INSTRUMENT '%s' %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
+	sprintf(szQuery, "LOAD INSTRUMENT '%s' %d %d\r\n",
+		pszFileName, iInstrIndex, iSamplerChannel);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -860,14 +956,16 @@ lscp_status_t lscp_load_instrument ( lscp_client_t *pClient, const char *pszFile
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_load_instrument_non_modal ( lscp_client_t *pClient, const char *pszFileName, int iInstrIndex, int iSamplerChannel )
+lscp_status_t lscp_load_instrument_non_modal ( lscp_client_t *pClient,
+	const char *pszFileName, int iInstrIndex, int iSamplerChannel )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (pszFileName == NULL || iSamplerChannel < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "LOAD INSTRUMENT NON_MODAL '%s' %d %d\r\n", pszFileName, iInstrIndex, iSamplerChannel);
+	sprintf(szQuery, "LOAD INSTRUMENT NON_MODAL '%s' %d %d\r\n",
+		pszFileName, iInstrIndex, iSamplerChannel);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -889,7 +987,8 @@ lscp_status_t lscp_load_engine ( lscp_client_t *pClient, const char *pszEngineNa
 	if (pszEngineName == NULL || iSamplerChannel < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "LOAD ENGINE %s %d\r\n", pszEngineName, iSamplerChannel);
+	sprintf(szQuery, "LOAD ENGINE %s %d\r\n",
+		pszEngineName, iSamplerChannel);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1080,7 +1179,8 @@ const char **lscp_list_available_engines ( lscp_client_t *pClient )
  *  @returns A pointer to a @ref lscp_engine_info_t structure, with all the
  *  information of the given sampler engine, or NULL in case of failure.
  */
-lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient, const char *pszEngineName )
+lscp_engine_info_t *lscp_get_engine_info ( lscp_client_t *pClient,
+	const char *pszEngineName )
 {
 	lscp_engine_info_t *pEngineInfo;
 	char szQuery[LSCP_BUFSIZ];
@@ -1408,7 +1508,8 @@ int lscp_get_channel_stream_usage ( lscp_client_t *pClient, int iSamplerChannel 
  *  information of the current disk stream buffer fill usage, for the given
  *  sampler channel, or NULL in case of failure.
  */
-lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_usage_t usage_type, int iSamplerChannel )
+lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient,
+	lscp_usage_t usage_type, int iSamplerChannel )
 {
 	lscp_buffer_fill_t *pBufferFill;
 	char szQuery[LSCP_BUFSIZ];
@@ -1481,14 +1582,16 @@ lscp_buffer_fill_t *lscp_get_channel_buffer_fill ( lscp_client_t *pClient, lscp_
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszAudioDriver )
+lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient,
+	int iSamplerChannel, const char *pszAudioDriver )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || pszAudioDriver == NULL)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n", iSamplerChannel, pszAudioDriver);
+	sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_TYPE %d %s\r\n",
+		iSamplerChannel, pszAudioDriver);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1503,14 +1606,16 @@ lscp_status_t lscp_set_channel_audio_type ( lscp_client_t *pClient, int iSampler
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_audio_device ( lscp_client_t *pClient, int iSamplerChannel, int iAudioDevice )
+lscp_status_t lscp_set_channel_audio_device ( lscp_client_t *pClient,
+	int iSamplerChannel, int iAudioDevice )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iAudioDevice < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_DEVICE %d %d\r\n", iSamplerChannel, iAudioDevice);
+	sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_DEVICE %d %d\r\n",
+		iSamplerChannel, iAudioDevice);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1526,14 +1631,16 @@ lscp_status_t lscp_set_channel_audio_device ( lscp_client_t *pClient, int iSampl
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamplerChannel, int iAudioOut, int iAudioIn )
+lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient,
+	int iSamplerChannel, int iAudioOut, int iAudioIn )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iAudioOut < 0 || iAudioIn < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNEL %d %d %d\r\n", iSamplerChannel, iAudioOut, iAudioIn);
+	sprintf(szQuery, "SET CHANNEL AUDIO_OUTPUT_CHANNEL %d %d %d\r\n",
+		iSamplerChannel, iAudioOut, iAudioIn);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1548,14 +1655,16 @@ lscp_status_t lscp_set_channel_audio_channel ( lscp_client_t *pClient, int iSamp
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerChannel, const char *pszMidiDriver )
+lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient,
+	int iSamplerChannel, const char *pszMidiDriver )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || pszMidiDriver == NULL)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n", iSamplerChannel, pszMidiDriver);
+	sprintf(szQuery, "SET CHANNEL MIDI_INPUT_TYPE %d %s\r\n",
+		iSamplerChannel, pszMidiDriver);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1570,14 +1679,16 @@ lscp_status_t lscp_set_channel_midi_type ( lscp_client_t *pClient, int iSamplerC
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_device ( lscp_client_t *pClient, int iSamplerChannel, int iMidiDevice )
+lscp_status_t lscp_set_channel_midi_device ( lscp_client_t *pClient,
+	int iSamplerChannel, int iMidiDevice )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iMidiDevice < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL MIDI_INPUT_DEVICE %d %d\r\n", iSamplerChannel, iMidiDevice);
+	sprintf(szQuery, "SET CHANNEL MIDI_INPUT_DEVICE %d %d\r\n",
+		iSamplerChannel, iMidiDevice);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1592,14 +1703,16 @@ lscp_status_t lscp_set_channel_midi_device ( lscp_client_t *pClient, int iSample
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerChannel, int iMidiPort )
+lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient,
+	int iSamplerChannel, int iMidiPort )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iMidiPort < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL MIDI_INPUT_PORT %d %d\r\n", iSamplerChannel, iMidiPort);
+	sprintf(szQuery, "SET CHANNEL MIDI_INPUT_PORT %d %d\r\n",
+		iSamplerChannel, iMidiPort);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1615,7 +1728,8 @@ lscp_status_t lscp_set_channel_midi_port ( lscp_client_t *pClient, int iSamplerC
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSamplerChannel, int iMidiChannel )
+lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient,
+	int iSamplerChannel, int iMidiChannel )
 {
 	char szQuery[LSCP_BUFSIZ];
 
@@ -1623,9 +1737,11 @@ lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSampl
 		return LSCP_FAILED;
 
 	if (iMidiChannel == LSCP_MIDI_CHANNEL_ALL)
-		sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d ALL\r\n", iSamplerChannel);
+		sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d ALL\r\n",
+			iSamplerChannel);
 	else
-		sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n", iSamplerChannel, iMidiChannel);
+		sprintf(szQuery, "SET CHANNEL MIDI_INPUT_CHANNEL %d %d\r\n",
+			iSamplerChannel, iMidiChannel);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1642,7 +1758,8 @@ lscp_status_t lscp_set_channel_midi_channel ( lscp_client_t *pClient, int iSampl
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_midi_map ( lscp_client_t *pClient, int iSamplerChannel, int iMidiMap )
+lscp_status_t lscp_set_channel_midi_map ( lscp_client_t *pClient,
+	int iSamplerChannel, int iMidiMap )
 {
 	char szQuery[LSCP_BUFSIZ];
 
@@ -1676,7 +1793,8 @@ lscp_status_t lscp_set_channel_midi_map ( lscp_client_t *pClient, int iSamplerCh
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChannel, float fVolume )
+lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient,
+	int iSamplerChannel, float fVolume )
 {
 	char szQuery[LSCP_BUFSIZ];
 	struct _locale_t locale;
@@ -1685,7 +1803,8 @@ lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChan
 		return LSCP_FAILED;
 
 	_save_and_set_c_locale(&locale);
-	sprintf(szQuery, "SET CHANNEL VOLUME %d %g\r\n", iSamplerChannel, fVolume);
+	sprintf(szQuery, "SET CHANNEL VOLUME %d %g\r\n",
+		iSamplerChannel, fVolume);
 	_restore_locale(&locale);
 
 	return lscp_client_query(pClient, szQuery);
@@ -1704,14 +1823,16 @@ lscp_status_t lscp_set_channel_volume ( lscp_client_t *pClient, int iSamplerChan
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_mute ( lscp_client_t *pClient, int iSamplerChannel, int iMute )
+lscp_status_t lscp_set_channel_mute ( lscp_client_t *pClient,
+	int iSamplerChannel, int iMute )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iMute < 0 || iMute > 1)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL MUTE %d %d\r\n", iSamplerChannel, iMute);
+	sprintf(szQuery, "SET CHANNEL MUTE %d %d\r\n",
+		iSamplerChannel, iMute);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1728,14 +1849,16 @@ lscp_status_t lscp_set_channel_mute ( lscp_client_t *pClient, int iSamplerChanne
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_channel_solo ( lscp_client_t *pClient, int iSamplerChannel, int iSolo )
+lscp_status_t lscp_set_channel_solo ( lscp_client_t *pClient,
+	int iSamplerChannel, int iSolo )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iSolo < 0 || iSolo > 1)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET CHANNEL SOLO %d %d\r\n", iSamplerChannel, iSolo);
+	sprintf(szQuery, "SET CHANNEL SOLO %d %d\r\n",
+		iSamplerChannel, iSolo);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -1952,6 +2075,7 @@ lscp_status_t lscp_set_volume ( lscp_client_t *pClient, float fVolume )
 	return lscp_client_query(pClient, szQuery);
 }
 
+
 /**
  *  Get global voice limit setting:
  *  @code
@@ -1966,7 +2090,7 @@ lscp_status_t lscp_set_volume ( lscp_client_t *pClient, float fVolume )
  *           negative value on error (e.g. if sampler doesn't support
  *           this command).
  */
-int lscp_get_voices(lscp_client_t *pClient)
+int lscp_get_voices ( lscp_client_t *pClient )
 {
 	int iVoices = -1;
 
@@ -1984,6 +2108,7 @@ int lscp_get_voices(lscp_client_t *pClient)
 
 	return iVoices;
 }
+
 
 /**
  *  Setting global voice limit setting:
@@ -2003,7 +2128,7 @@ int lscp_get_voices(lscp_client_t *pClient)
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_voices(lscp_client_t *pClient, int iMaxVoices)
+lscp_status_t lscp_set_voices ( lscp_client_t *pClient, int iMaxVoices )
 {
 	char szQuery[LSCP_BUFSIZ];
 
@@ -2013,6 +2138,7 @@ lscp_status_t lscp_set_voices(lscp_client_t *pClient, int iMaxVoices)
 	sprintf(szQuery, "SET VOICES %d\r\n", iMaxVoices);
 	return lscp_client_query(pClient, szQuery);
 }
+
 
 /**
  *  Get global disk streams limit setting:
@@ -2028,7 +2154,7 @@ lscp_status_t lscp_set_voices(lscp_client_t *pClient, int iMaxVoices)
  *           or a negative value on error (e.g. if sampler doesn't
  *           support this command).
  */
-int lscp_get_streams(lscp_client_t *pClient)
+int lscp_get_streams ( lscp_client_t *pClient )
 {
 	int iStreams = -1;
 
@@ -2046,6 +2172,7 @@ int lscp_get_streams(lscp_client_t *pClient)
 
 	return iStreams;
 }
+
 
 /**
  *  Setting global disk streams limit setting:
@@ -2065,7 +2192,7 @@ int lscp_get_streams(lscp_client_t *pClient)
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_streams(lscp_client_t *pClient, int iMaxStreams)
+lscp_status_t lscp_set_streams ( lscp_client_t *pClient, int iMaxStreams )
 {
 	char szQuery[LSCP_BUFSIZ];
 
@@ -2076,20 +2203,22 @@ lscp_status_t lscp_set_streams(lscp_client_t *pClient, int iMaxStreams)
 	return lscp_client_query(pClient, szQuery);
 }
 
+
 /**
  *  Add an effect send to a sampler channel:
- *  CREATE FX_SEND <sampler-channel> <midi-ctrl> [<name>]
+ *  CREATE FX_SEND <sampler-channel> <midi-ctrl> [<fx-name>]
  *
  *  @param pClient          Pointer to client instance structure.
  *  @param iSamplerChannel  Sampler channel number.
  *  @param iMidiController  MIDI controller used to alter the effect,
  *                          usually a number between 0 and 127.
- *  @param pszName          Optional name for the effect send entity,
+ *  @param pszFxName        Optional name for the effect send entity,
  *                          does not have to be unique.
  *
  *  @returns The new effect send number identifier, or -1 in case of failure.
  */
-int lscp_create_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iMidiController, const char *pszFxName )
+int lscp_create_fxsend ( lscp_client_t *pClient,
+	int iSamplerChannel, int iMidiController, const char *pszFxName )
 {
 	int iFxSend = -1;
 	char szQuery[LSCP_BUFSIZ];
@@ -2102,7 +2231,8 @@ int lscp_create_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iMidiC
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
 
-	sprintf(szQuery, "CREATE FX_SEND %d %d", iSamplerChannel, iMidiController);
+	sprintf(szQuery, "CREATE FX_SEND %d %d",
+		iSamplerChannel, iMidiController);
 
 	if (pszFxName)
 		sprintf(szQuery + strlen(szQuery), " '%s'", pszFxName);
@@ -2129,14 +2259,16 @@ int lscp_create_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iMidiC
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_destroy_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend )
+lscp_status_t lscp_destroy_fxsend ( lscp_client_t *pClient,
+	int iSamplerChannel, int iFxSend )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iFxSend < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "DESTROY FX_SEND %d %d\r\n", iSamplerChannel, iFxSend);
+	sprintf(szQuery, "DESTROY FX_SEND %d %d\r\n",
+		iSamplerChannel, iFxSend);
 
 	return lscp_client_query(pClient, szQuery);
 }
@@ -2226,7 +2358,8 @@ int *lscp_list_fxsends ( lscp_client_t *pClient, int iSamplerChannel )
  *  @returns A pointer to a @ref lscp_fxsend_info_t structure, with the
  *  information of the given FX send, or NULL in case of failure.
  */
-lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend )
+lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient,
+	int iSamplerChannel, int iFxSend )
 {
 	lscp_fxsend_info_t *pFxSendInfo;
 	char szQuery[LSCP_BUFSIZ];
@@ -2291,6 +2424,7 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
 	return pFxSendInfo;
 }
 
+
 /**
  *  Alter effect send's name:
  *  @code
@@ -2304,16 +2438,19 @@ lscp_fxsend_info_t *lscp_get_fxsend_info ( lscp_client_t *pClient, int iSamplerC
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_fxsend_name ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, const char *pszFxName )
+lscp_status_t lscp_set_fxsend_name ( lscp_client_t *pClient,
+	int iSamplerChannel, int iFxSend, const char *pszFxName )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (!pClient || iSamplerChannel < 0 || iFxSend < 0 || !pszFxName)
 		return LSCP_FAILED;
 
-	snprintf(szQuery, LSCP_BUFSIZ, "SET FX_SEND NAME %d %d '%s'\r\n", iSamplerChannel, iFxSend, pszFxName);
+	snprintf(szQuery, LSCP_BUFSIZ, "SET FX_SEND NAME %d %d '%s'\r\n",
+		iSamplerChannel, iFxSend, pszFxName);
 	return lscp_client_query(pClient, szQuery);
 }
+
 
 /**
  *  Alter effect send's audio routing:
@@ -2328,14 +2465,16 @@ lscp_status_t lscp_set_fxsend_name ( lscp_client_t *pClient, int iSamplerChannel
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_fxsend_audio_channel ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iAudioSrc, int iAudioDst )
+lscp_status_t lscp_set_fxsend_audio_channel ( lscp_client_t *pClient,
+	int iSamplerChannel, int iFxSend, int iAudioSrc, int iAudioDst )
 {
 	char szQuery[LSCP_BUFSIZ];
 
 	if (iSamplerChannel < 0 || iFxSend < 0 || iAudioSrc < 0 || iAudioDst < 0)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET FX_SEND AUDIO_OUTPUT_CHANNEL %d %d %d %d\r\n", iSamplerChannel, iFxSend, iAudioSrc, iAudioDst);
+	sprintf(szQuery, "SET FX_SEND AUDIO_OUTPUT_CHANNEL %d %d %d %d\r\n",
+		iSamplerChannel, iFxSend, iAudioSrc, iAudioDst);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -2352,14 +2491,17 @@ lscp_status_t lscp_set_fxsend_audio_channel ( lscp_client_t *pClient, int iSampl
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_fxsend_midi_controller ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, int iMidiController )
+lscp_status_t lscp_set_fxsend_midi_controller ( lscp_client_t *pClient,
+	int iSamplerChannel, int iFxSend, int iMidiController )
 {
 	char szQuery[LSCP_BUFSIZ];
 
-	if (iSamplerChannel < 0 || iFxSend < 0 || iMidiController < 0 || iMidiController > 127)
+	if (iSamplerChannel < 0 || iFxSend < 0 ||
+		iMidiController < 0 || iMidiController > 127)
 		return LSCP_FAILED;
 
-	sprintf(szQuery, "SET FX_SEND MIDI_CONTROLLER %d %d %d\r\n", iSamplerChannel, iFxSend, iMidiController);
+	sprintf(szQuery, "SET FX_SEND MIDI_CONTROLLER %d %d %d\r\n",
+		iSamplerChannel, iFxSend, iMidiController);
 	return lscp_client_query(pClient, szQuery);
 }
 
@@ -2375,7 +2517,8 @@ lscp_status_t lscp_set_fxsend_midi_controller ( lscp_client_t *pClient, int iSam
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_set_fxsend_level ( lscp_client_t *pClient, int iSamplerChannel, int iFxSend, float fLevel )
+lscp_status_t lscp_set_fxsend_level ( lscp_client_t *pClient,
+	int iSamplerChannel, int iFxSend, float fLevel )
 {
 	char szQuery[LSCP_BUFSIZ];
 	struct _locale_t locale;
@@ -2384,7 +2527,8 @@ lscp_status_t lscp_set_fxsend_level ( lscp_client_t *pClient, int iSamplerChanne
 		return LSCP_FAILED;
 
 	_save_and_set_c_locale(&locale);
-	sprintf(szQuery, "SET FX_SEND LEVEL %d %d %f\r\n", iSamplerChannel, iFxSend, fLevel);
+	sprintf(szQuery, "SET FX_SEND LEVEL %d %d %f\r\n",
+		iSamplerChannel, iFxSend, fLevel);
 	_restore_locale(&locale);
 
 	return lscp_client_query(pClient, szQuery);
@@ -2615,7 +2759,10 @@ lscp_status_t lscp_set_midi_instrument_map_name ( lscp_client_t *pClient, int iM
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName, const char *pszFileName, int iInstrIndex, float fVolume, lscp_load_mode_t load_mode, const char *pszName )
+lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient,
+	lscp_midi_instrument_t *pMidiInstr, const char *pszEngineName,
+	const char *pszFileName, int iInstrIndex, float fVolume,
+	lscp_load_mode_t load_mode, const char *pszName )
 {
 	char szQuery[LSCP_BUFSIZ];
 	struct _locale_t locale;
@@ -2671,7 +2818,8 @@ lscp_status_t lscp_map_midi_instrument ( lscp_client_t *pClient, lscp_midi_instr
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
-lscp_status_t lscp_unmap_midi_instrument ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr )
+lscp_status_t lscp_unmap_midi_instrument ( lscp_client_t *pClient,
+	lscp_midi_instrument_t *pMidiInstr )
 {
 	char szQuery[LSCP_BUFSIZ];
 
@@ -2764,7 +2912,8 @@ lscp_midi_instrument_t *lscp_list_midi_instruments ( lscp_client_t *pClient, int
 	strcat(szQuery, "\r\n");
 
 	if (lscp_client_call(pClient, szQuery, 0) == LSCP_OK)
-		pClient->midi_instruments = lscp_midi_instruments_create(lscp_client_get_result(pClient));
+		pClient->midi_instruments = lscp_midi_instruments_create(
+			lscp_client_get_result(pClient));
 
 	// Unlock this section down.
 	lscp_mutex_unlock(pClient->mutex);
@@ -2784,7 +2933,8 @@ lscp_midi_instrument_t *lscp_list_midi_instruments ( lscp_client_t *pClient, int
  *  with all the information of the given MIDI instrument map entry,
  *  or NULL in case of failure.
  */
-lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pClient, lscp_midi_instrument_t *pMidiInstr )
+lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pClient,
+	lscp_midi_instrument_t *pMidiInstr )
 {
 	lscp_midi_instrument_info_t *pInstrInfo;
 	char szQuery[LSCP_BUFSIZ];
@@ -2902,6 +3052,7 @@ lscp_status_t lscp_clear_midi_instruments  ( lscp_client_t *pClient, int iMidiMa
 
 	return lscp_client_query(pClient, szQuery);
 }
+
 
 /**
  * Open an instrument editor application for the instrument

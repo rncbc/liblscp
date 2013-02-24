@@ -3,7 +3,9 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-SVN TRUNK          Update on newer autoconf macros (m4).
+SVN TRUNK          Use getaddrinffo() instead of deprecated gethostbyname().
+
+                   Update on newer autoconf macros (m4).
 
                    Fixes for building for Windows with configure and make.
 
