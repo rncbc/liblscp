@@ -271,15 +271,15 @@ the server destructor:<pre>
 
 Nuff said. If you care or dare, track the revolving under:
 
-- http://www.rncbc.org/ls/
+- http://www.rncbc.org/linuxsampler/
 
 Please note that the code is known to compile and run on Linux AND on
 win32 (!). On Linux the main target is a shared library (liblscp.so) so
-remember to set your LS_LIBRARY_PATH accordingly before running the test
+remember to set your LD_LIBRARY_PATH accordingly before running the test
 programs.
 
 A final disclaimer goes to the fact that I AM NOT a socket nor thread
-programming guru, whatsoever. So fundamental mistakes may be lying around,
+programming guru, whatsoever. So fundamental mistakes may be laying around,
 somewhere. Besides that ItJustWorks(tm:).
 
 I'm eager to hear your feedback and comments. As usual, destructive
