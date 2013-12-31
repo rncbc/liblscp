@@ -1,3 +1,9 @@
+liblscp (0.5.7-1) unstable; urgency=low
+
+  * A fifth of a Jubilee release.
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Tue, 31 Dec 2013 12:00:00 +0100
+
 liblscp (0.5.6-1) unstable; urgency=low
 
   * new release

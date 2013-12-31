@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-SVN TRUNK          Use getaddrinfo() instead of deprecated gethostbyname().
+0.5.7  2013-12-31  Use getaddrinfo() instead of deprecated gethostbyname().
 
                    Update on newer autoconf macros (m4).
 
