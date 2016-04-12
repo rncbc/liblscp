@@ -1,3 +1,11 @@
+liblscp (0.5.7-1+svn1) unreleased; urgency=low
+
+  * Updated to compat 7 (was 4).
+  * Assigned linuxsampler-devel@lists.sourceforge.net as maintainer of
+    this package.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 21:09:06 +0200
+
 liblscp (0.5.7-1) unstable; urgency=low
 
   * A fifth of a Jubilee release.

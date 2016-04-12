@@ -3,5 +3,4 @@ debian/tmp/usr/lib*/lib*.a
 debian/tmp/usr/lib*/lib*.la
 debian/tmp/usr/lib*/lib*.so
 debian/tmp/usr/lib*/pkgconfig/lscp.pc
-debian/tmp/usr/share/aclocal/*
 doc/html/* usr/share/doc/liblscp-dev/html

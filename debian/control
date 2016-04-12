@@ -1,7 +1,7 @@
 Source: liblscp
 Section: sound
 Priority: optional
-Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
+Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
 Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 
