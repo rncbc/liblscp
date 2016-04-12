@@ -1,4 +1,4 @@
-liblscp (0.5.7-1+svn1) unreleased; urgency=low
+liblscp (0.5.7.1) unreleased; urgency=low
 
   * Updated to compat 7 (was 4).
   * Assigned linuxsampler-devel@lists.sourceforge.net as maintainer of
