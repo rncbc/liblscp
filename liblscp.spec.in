@@ -15,8 +15,13 @@ URL:		http://www.linuxsampler.org/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #Packager:	rncbc.org
 
-BuildRequires:	doxygen, pkg-config
-BuildRequires:	glibc-devel
+BuildRequires: doxygen
+%if %{defined fedora}
+BuildRequires: pkgconfig
+%else
+BuildRequires: pkg-config
+%endif
+BuildRequires: glibc-devel
 
 %description
 LinuxSampler control protocol API.
