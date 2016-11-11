@@ -15,6 +15,7 @@ branches:
   - master
 
 before_script:
+- git fetch --unshallow --tags -q
 - ./autogen.sh
 
 script:
