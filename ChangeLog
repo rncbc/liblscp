@@ -3,6 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.5.8  2016-11-14  A Fall'16 release.
+
 0.5.7  2013-12-31  Use getaddrinfo() instead of deprecated gethostbyname().
 
                    Update on newer autoconf macros (m4).

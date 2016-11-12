@@ -3,7 +3,7 @@ AC_INIT(src/client.c)
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIR([.m4])
 
-AM_INIT_AUTOMAKE(liblscp, 0.5.7.4)
+AM_INIT_AUTOMAKE(liblscp, 0.5.8)
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:
