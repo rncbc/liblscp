@@ -15,5 +15,5 @@ clean:
 	@rm -rvf lscp/Makefile.in
 	@rm -rvf src/Makefile.in src/config.h.in src/config.h src/stamp-h.*
 	@rm -rvf Makefile.in config.* stamp-h.*
-	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh
+	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh compile
 	@rm -rvf configure *.spec

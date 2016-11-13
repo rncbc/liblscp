@@ -1,7 +1,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	21
+%define release	20
 
 %define _prefix	@prefix@
 
@@ -48,17 +48,17 @@ LinuxSampler control protocol API libraries and include files.
 %prep
 
 %setup
-[ -f Makefile.git ] && %__make -f Makefile.git
+[ -x ./autogen.sh ] && ./autogen.sh
 
 %build
 %configure
-%__make
+%__make %{?_smp_mflags}
 
 %install
-%makeinstall
+%__make DESTDIR="%{buildroot}" install
 
 %clean
-[ -d %{buildroot} -a "%{buildroot}" != "" ] && %__rm -rf %{buildroot}
+[ -d "%{buildroot}" -a "%{buildroot}" != "" ] && %__rm -rf "%{buildroot}"
 
 %post -n %{name}6
 /sbin/ldconfig
@@ -114,31 +114,31 @@ LinuxSampler control protocol API libraries and include files.
 * Tue Nov 28 2006 Rui Nuno Capela <rncbc@rncbc.org> 0.4.1
 - Bumped directly to 0.4.1 release.
 - Getting ready for the new MIDI instrument mapping features.
-* Thu Jun 01 2006 Rui Nuno Capela <rncbc@rncbc.org> 0.3.3
+* Thu Jun  1 2006 Rui Nuno Capela <rncbc@rncbc.org> 0.3.3
 - Take a chance for a new 0.3.3 release.
 - Changed deprecated copyright attribute to license.
 - Added ldconfig to post-(un)install steps.
 * Mon Aug 29 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.3.2
 - Fixed for 0.3.2 release.
-* Tue Aug 10 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.3.1
+* Wed Aug 10 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.3.1
 - Prepare 0.3.1 release for sampler channel mute/solo support.
-* Thu Jun 10 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.3.0
+* Fri Jun 10 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.3.0
 - Prepare 0.3.0 release featuring timeout flush idiosyncrasies.
 * Sun May 22 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.9
 - Prepare 0.2.9 release due to event subscription LSCP command changes.
-* Tue May  6 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.8
+* Fri May  6 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.8
 - Prepare 0.2.8 release in response to [bug #9].
-* Tue Mar 10 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.7
+* Thu Mar 10 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.7
 - Prepare 0.2.7 yet another bug-fix release.
 * Tue Mar  1 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.6
 - Prepare 0.2.6 bug-fix release.
-* Tue Feb 14 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.5
+* Mon Feb 14 2005 Rui Nuno Capela <rncbc@rncbc.org> 0.2.5
 - Prepare 0.2.5 release.
-* Tue Oct 11 2004 Rui Nuno Capela <rncbc@rncbc.org> 0.2.4
+* Mon Oct 11 2004 Rui Nuno Capela <rncbc@rncbc.org> 0.2.4
 - Fixed 0.2.4 release.
 * Tue Sep 28 2004 Rui Nuno Capela <rncbc@rncbc.org> 0.2.3
 - Fixed 0.2.3 release.
-* Tue Jul 29 2004 Rui Nuno Capela <rncbc@rncbc.org> 0.2.2
+* Thu Jul 29 2004 Rui Nuno Capela <rncbc@rncbc.org> 0.2.2
 - Prepare 0.2.2 release.
 * Tue Jul 13 2004 Christian Schoenebeck <cuse@users.sourceforge.net>
 - renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
