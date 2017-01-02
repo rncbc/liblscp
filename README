@@ -11,11 +11,17 @@ License: GNU Lesser General Public License (LGPL)
 Installation
 ------------
 
-From the untarred directory:
+If checking out from Git:
+
+    ./autogen.sh
+
+From the extracted source directory:
 
     ./configure
     make
     make install
+
+
 
 Enjoy.
 --
