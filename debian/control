@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 Package: liblscp-dev
 Section: libdevel
 Architecture: any
-Depends: liblscp6 (= ${Source-Version})
+Depends: liblscp6 (= ${source:Version})
 Description: LinuxSampler Control Protocol wrapper library
  This package is for use with the LinuxSampler audio sampling
  engine / library and packages.
