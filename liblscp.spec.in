@@ -1,7 +1,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	22
+%define release	24
 
 %define _prefix	@prefix@
 
@@ -82,8 +82,8 @@ LinuxSampler control protocol API libraries and include files.
 %{_includedir}/lscp/*.h
 
 %changelog
-* Tue Dec 12 2017 Rui Nuno Capela <rncbc@rncbc.org> 0.6.1
-- An Autumn'17 release: bumped directly to 0.6.1.
+* Tue Dec 12 2017 Rui Nuno Capela <rncbc@rncbc.org> 0.6.0
+- An Autumn'17 release: bumped directly to 0.6.0.
 * Mon Nov 14 2016 Rui Nuno Capela <rncbc@rncbc.org> 0.5.8
 - A Fall'16 release.
 * Tue Dec 31 2013 Rui Nuno Capela <rncbc@rncbc.org> 0.5.7

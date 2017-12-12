@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2017, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -352,13 +352,13 @@ typedef lscp_fxsend_info_t *         fxsend_info;
 typedef lscp_midi_instrument_t *     midi_instruments;
 typedef lscp_midi_instrument_info_t *midi_instrument_info;
 
-#define CLIENT_TEST(p, t, x) { clock_t c; void *v; g_test_count++; \
-	printf("\n" #x ":\n"); client_test_start(&c); v = (void *) (x); \
+#define CLIENT_TEST(p, t, x) { clock_t c; g_test_count++; \
+	printf("\n" #x ":\n"); client_test_start(&c); \
 	printf("  elapsed=%gs  errno=%d  result='%s...' ret=", \
 		client_test_elapsed(&c), \
 		lscp_client_get_errno(p), \
 		lscp_client_get_result(p)); \
-	if (client_test_##t((t)(v))) { g_test_fails++; getchar(); } \
+	if (client_test_##t((t)(x))) { g_test_fails++; getchar(); } \
 	else if (g_test_step) getchar(); }
 
 
