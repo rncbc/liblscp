@@ -2,8 +2,8 @@ Source: liblscp
 Section: sound
 Priority: optional
 Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
-Build-Depends: debhelper (>= 5), automake, pkg-config
-Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 5), automake, pkg-config, doxygen
+Standards-Version: 3.9.7
 
 Package: liblscp-dev
 Section: libdevel

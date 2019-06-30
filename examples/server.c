@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2007, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2019, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -405,8 +405,8 @@ const char* lscp_server_package (void) { return LSCP_PACKAGE; }
 /** Retrieve the current server library version string. */
 const char* lscp_server_version (void) { return LSCP_VERSION; }
 
-/** Retrieve the current server library build timestamp string. */
-const char* lscp_server_build   (void) { return __DATE__ " " __TIME__; }
+/** Retrieve the current server library build string. */
+const char* lscp_server_build   (void) { return LSCP_BUILD; }
 
 
 //-------------------------------------------------------------------------
