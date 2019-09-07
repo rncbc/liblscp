@@ -15,6 +15,7 @@ URL:		http://www.linuxsampler.org/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #Packager:	rncbc.org
 
+BuildRequires: libtool
 BuildRequires: doxygen
 %if %{defined fedora}
 BuildRequires: pkgconfig
