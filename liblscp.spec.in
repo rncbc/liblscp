@@ -3,6 +3,8 @@
 %define version	@VERSION@
 %define release	24
 
+%define _soname %{name}6
+
 %define _prefix	@prefix@
 
 Summary:	LinuxSampler control protocol API
@@ -28,12 +30,12 @@ BuildRequires: glibc-devel
 LinuxSampler control protocol API.
 
 
-%package -n %{name}6
+%package -n %{_soname}
 Summary:	LinuxSampler control protocol API library
 Group:		Productivity/Multimedia/Sound
 Provides:	%{name}
 
-%description -n %{name}6
+%description -n %{_soname}
 LinuxSampler control protocol API library.
 
 
@@ -57,17 +59,18 @@ LinuxSampler control protocol API libraries and include files.
 
 %install
 %__make DESTDIR="%{buildroot}" install
+find %{buildroot} -name "lib*.*a" -ls -delete
 
 %clean
 [ -d "%{buildroot}" -a "%{buildroot}" != "/" ] && %__rm -rf "%{buildroot}"
 
-%post -n %{name}6
+%post -n %{_soname}
 /sbin/ldconfig
 
-%postun -n %{name}6
+%postun -n %{_soname}
 /sbin/ldconfig
 
-%files -n %{name}6
+%files -n %{_soname}
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
 %{_libdir}/liblscp.so.*
@@ -76,8 +79,8 @@ LinuxSampler control protocol API libraries and include files.
 %defattr(-,root,root)
 %doc doc/html/*
 %{_libdir}/liblscp.so
-%{_libdir}/liblscp.a
-%{_libdir}/liblscp.la
+#{_libdir}/liblscp.a
+#{_libdir}/liblscp.la
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
 %{_includedir}/lscp/*.h
