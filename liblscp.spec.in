@@ -29,6 +29,12 @@ BuildRequires: glibc-devel
 %description
 LinuxSampler control protocol API.
 
+#-----------------------------------
+%if %{defined fedora}
+%global debug_package %{nil}
+%endif
+
+#-----------------------------------
 
 %package -n %{_soname}
 Summary:	LinuxSampler control protocol API library
@@ -54,7 +60,9 @@ LinuxSampler control protocol API libraries and include files.
 [ -x ./autogen.sh ] && ./autogen.sh
 
 %build
-CFLAGS="-ffat-lto-objects" \
+%if %{undefined fedora}
+export CFLAGS="-ffat-lto-objects"
+%endif
 %configure
 %__make %{?_smp_mflags}
 
