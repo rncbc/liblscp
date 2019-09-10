@@ -7,6 +7,10 @@
 
 %define _prefix	@prefix@
 
+%if %{defined fedora}
+%global debug_package %{nil}
+%endif
+
 Summary:	LinuxSampler control protocol API
 Name:		%{name}
 Version:	%{version}
@@ -29,12 +33,6 @@ BuildRequires: glibc-devel
 %description
 LinuxSampler control protocol API.
 
-#-----------------------------------
-%if %{defined fedora}
-%global debug_package %{nil}
-%endif
-
-#-----------------------------------
 
 %package -n %{_soname}
 Summary:	LinuxSampler control protocol API library
