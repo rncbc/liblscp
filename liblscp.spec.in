@@ -1,7 +1,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	24
+%define release	25
 
 %define _soname %{name}6
 
