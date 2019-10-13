@@ -11,7 +11,7 @@
 %global debug_package %{nil}
 %endif
 
-Summary:	LinuxSampler control protocol API
+Summary:	LinuxSampler Control Protocol API library
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -31,25 +31,47 @@ BuildRequires: pkg-config
 BuildRequires: glibc-devel
 
 %description
-LinuxSampler control protocol API.
+LinuxSampler control protocol API library.
 
 
 %package -n %{_soname}
-Summary:	LinuxSampler control protocol API library
+Summary:	LinuxSampler Control Protocol API library
 Group:		System/Libraries
 Provides:	%{name}
 
 %description -n %{_soname}
-LinuxSampler control protocol API library.
+  LinuxSampler Control Protocol C API library - development files.
+  .
+  This package is for use with the LinuxSampler audio sampling
+  engine / library and packages. Wraps the LinuxSampler network
+  protocol and offers a convenient API in form of a C library.
+  .
+  For further informations visit
+  http://www.linuxsampler.org
+  .
+  This package contains the header files needed for
+  development with liblscp. You will need this only if you
+  intend to compile programs that use this library.
 
 
 %package devel
-Summary:	LinuxSampler control protocol API libraries and include files
+Summary:	LinuxSampler Control Protocol API library - development files
 Group:		Development/Libraries/C and C++
-Requires:	%{name} = %{version}
+Requires:	%{name} >= %{version}
 
 %description devel
-LinuxSampler control protocol API libraries and include files.
+LinuxSampler Control Protocol C API library - development files.
+
+This package is for use with the LinuxSampler audio sampling
+engine / library and packages. Wraps the LinuxSampler network
+protocol and offers a convenient API in form of a C library.
+
+For further informations visit
+http://www.linuxsampler.org
+
+This package contains the header files needed for
+development with liblscp. You will need this only if you
+intend to compile programs that use this library.
 
 
 %prep
