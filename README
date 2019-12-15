@@ -4,7 +4,7 @@ liblscp - LinuxSampler Control Protocol API
 liblscp is an implementation of the LinuxSampler control protocol,
 proposed as a C language API.
 
-Homepage: http://www.linuxsampler.org
+Homepage: https://www.linuxsampler.org
 
 License: GNU Lesser General Public License (LGPL)
 
@@ -22,9 +22,9 @@ From the extracted source directory:
     make install
 
 
-
 Enjoy.
 --
 rncbc aka Rui Nuno Capela
-rncbc@rncbc.org
+rncbc at rncbc.org
+https://www.rncbc.org
 
