@@ -271,7 +271,8 @@ the server destructor:<pre>
 
 Nuff said. If you care or dare, track the revolving under:
 
-- http://www.rncbc.org/linuxsampler/
+- https://www.rncbc.org/snapshots/#liblscp
+- https://www.rncbc.org/archive/#liblscp
 
 Please note that the code is known to compile and run on Linux AND on
 win32 (!). On Linux the main target is a shared library (liblscp.so) so
@@ -292,8 +293,8 @@ Otherwise sorry for the bandwidth waste.
 Cheers.
 
 rncbc aka Rui Nuno Capela
-rncbc@rncbc.org
+rncbc at rncbc.org
 
-@see http://www.linuxsampler.org
+@see https://www.linuxsampler.org
 
 */
