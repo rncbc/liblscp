@@ -3,7 +3,18 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.6.1  2019-12-22  The Winter'19 release.
+GIT HEAD           Fixed compile errors on macOS.
+
+                   Expose actual system error codes via client interface
+                   instead of just -1 whenever a syscall failed.
+
+                   Added new client interface function:
+                     lscp_client_connection_lost();
+                   for checking whether client lost connection to server.
+
+                   Fixed potential missing NULL termination of locale strings.
+
+0.6.1  2019-12-22  The Winter'19 Release.
 
 0.6.0  2017-12-12  An Autumn'17 release.
 

@@ -23,6 +23,12 @@
 #include "common.h"
 
 #include <ctype.h>
+#include <sys/time.h>
+#ifdef WIN32
+# include <errno.h>
+#else
+# include <sys/errno.h>
+#endif
 
 
 // Split chunk size magic:
@@ -119,6 +125,7 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery, i
 	int    iErrno;
 	char  *pszResult;
 	int    cchResult;
+	ssize_t sz;
 	
 	lscp_status_t ret = LSCP_FAILED;
 	
@@ -155,9 +162,12 @@ lscp_status_t lscp_client_call ( lscp_client_t *pClient, const char *pszQuery, i
 
 	// Send data, and then, wait for the result...
 	cchQuery = strlen(pszQuery);
-	if (send(pClient->cmd.sock, pszQuery, cchQuery, 0) < cchQuery) {
+	sz = send(pClient->cmd.sock, pszQuery, cchQuery, 0);
+	if (sz < cchQuery) {
 		lscp_socket_perror("lscp_client_call: send");
 		pszResult = "Failure during send operation";
+		if (sz < 0)
+			iErrno = -errno;
 		lscp_client_set_result(pClient, pszResult, iErrno);
 		return ret;
 	}

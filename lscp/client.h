@@ -25,6 +25,7 @@
 
 #include "lscp/socket.h"
 #include "lscp/event.h"
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -186,6 +187,7 @@ lscp_status_t           lscp_client_destroy             (lscp_client_t *pClient)
 
 lscp_status_t           lscp_client_set_timeout         (lscp_client_t *pClient, int iTimeout);
 int                     lscp_client_get_timeout         (lscp_client_t *pClient);
+bool                    lscp_client_connection_lost     (lscp_client_t *pClient);
 
 //-------------------------------------------------------------------------
 // Client common protocol functions.
