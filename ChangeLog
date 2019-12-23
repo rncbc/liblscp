@@ -1,0 +1,277 @@
+liblscp - LinuxSampler Control Protocol API
+-------------------------------------------
+
+ChangeLog
+
+GIT HEAD           Fixed compile errors on macOS.
+
+                   Expose actual system error codes via client interface
+                   instead of just -1 whenever a syscall failed.
+
+                   Added new client interface function:
+                     lscp_client_connection_lost();
+                   for checking whether client lost connection to server.
+
+                   Fixed potential missing NULL termination of locale strings.
+
+0.6.1  2019-12-22  The Winter'19 Release.
+
+0.6.0  2017-12-12  An Autumn'17 release.
+
+0.5.8  2016-11-14  A Fall'16 release.
+
+0.5.7  2013-12-31  Use getaddrinfo() instead of deprecated gethostbyname().
+
+                   Update on newer autoconf macros (m4).
+
+                   Fixes for building for Windows with configure and make.
+
+                   Makefile fixes for building in separate directory.
+
+                   Autoconf fix: AC_CONFIG_HEADER obsolete error (fixes #194).
+
+0.5.6  2009-08-01  Fixed locale related parser bug (fixes #59).
+
+                   Added new client interface functions, for managing
+                   the global limit of maximum voices and disk streams:
+                   lscp_get_voices(), lscp_set_voices(), lscp_get_streams(),
+                   lscp_set_streams().
+
+                   _lscp_device_port_info_query(): take port parameter
+                   "NAME" into the result list.
+
+                   Bugfix: _lscp_client_evt_proc() dropped LSCP events.
+
+                   Bugfix in lscp_client_subscribe(): only the first
+                   lscp_client_subscribe() call succeeded (per client),
+                   all subsequent ones failed.
+
+                   Added support for new (un)subscribable events:
+                     LSCP_EVENT_CHANNEL_MIDI
+                     LSCP_EVENT_DEVICE_MIDI
+                   Caution: the bitflag approach for the event variable
+                   is now abondoned, since otherwise we would soon hit the
+                   limit of the bit range. The bitflag approach will
+                   remain for events older at this point (that is all
+                   events which occupy the lower 16 bits), but this new
+                   and all following events will simply be enumared along
+                   the upper 16 bits.
+
+                   Added new client interface function, for renaming
+                   effect send entities:
+                     lscp_set_fxsend_name();
+
+                   Added new client interface functions, for managing the
+                   global limit of maximum voices and disk streams:
+                     lscp_get_voices();
+                     lscp_set_voices();
+                     lscp_get_streams();
+                     lscp_set_streams();
+
+                   Bugfix: fixed buggy behavior on different locale
+                   settings (e.g. when parsing floating point numbers).
+
+0.5.5  2007-10-12  Changed client interface function, for editing
+                   instrument, from:
+                     lscp_edit_instrument();
+                   to:
+                     lscp_edit_channel_instrument();
+
+0.5.4  2007-10-02  Added new client interface function, for editing
+                   instrument:
+                     lscp_edit_instrument();
+
+                   Fixed some minor bugs in:
+                     lscp_set_fxsend_midi_controller();
+                     lscp_set_fxsend_level();
+
+0.5.3  2007-01-15  Added new client interface functions, for sampler
+                   channel effect sends control:
+                     lscp_set_fxsend_midi_controller();
+                     lscp_set_fxsend_level();
+
+                   Added new field member to lscp_fxsend_info_t (level).
+
+0.5.2  2007-01-11  Added new client interface functions, for sampler
+                   channel effect sends control:
+                     lscp_create_fxsend();
+                     lscp_destroy_fxsend();
+                     lscp_get_fxsends();
+                     lscp_list_fxsends();
+                     lscp_get_fxsend_info();
+                     lscp_set_fxsend_audio_channel();
+                   and for global volume:
+                     lscp_get_volume();
+                     lscp_set_volume();
+
+                   Audio routing representation changed to integer array.
+
+0.5.1  2006-12-22  Added support for new (un)subscribable events:
+                     LSCP_EVENT_AUDIO_OUTPUT_DEVICE_COUNT,
+                     LSCP_EVENT_AUDIO_OUTPUT_DEVICE_INFO,
+                     LSCP_EVENT_MIDI_INPUT_DEVICE_COUNT,
+                     LSCP_EVENT_MIDI_INPUT_DEVICE_INFO,
+                     LSCP_EVENT_MIDI_INSTRUMENT_MAP_COUNT,
+                     LSCP_EVENT_MIDI_INSTRUMENT_MAP_INFO,
+                     LSCP_EVENT_MIDI_INSTRUMENT_COUNT,
+                     LSCP_EVENT_MIDI_INSTRUMENT_INFO.
+
+                   Updated examples.
+
+0.5.0  2006-12-17  MIDI instrument mapping, second round, according to
+                   LSCP 1.2 draft document as of December 15, 2006.
+
+                   New client interface functions:
+                     lscp_set_channel_midi_map();
+                     lscp_add_midi_instrument_map();
+                     lscp_remove_midi_instrument_map();
+                     lscp_get_midi_instrument_maps();
+                     lscp_list_midi_instrument_maps();
+                     lscp_get_midi_instrument_map_name();
+                     lscp_set_midi_instrument_map_name();
+
+
+0.4.2  2006-12-04  MIDI instrument mapping fixed, previously missing
+                   the regular ON_DEMAND load mode.
+
+                   Server error reporting is now effective; all server
+                   numerical error and warning codes are added to 100,
+                   thus giving a proper non-zero lscp_client_get_errno()
+                   return value.
+
+0.4.1  2006-11-28  Fixed the flush timeout operation to be issued only
+                   once, avoiding recurrent client failure after receive
+                   timeout.
+
+                   Support for very long command result sets have been
+                   introduced, with the downside of strictly obeying
+                   the LSCP draft.
+
+                   list_midi_instruments() is now being implemented.
+
+                   LGPL text is now back in COPYING.
+
+0.4.0  2006-11-27  As of the LSCP 1.2 working draft document, added
+                   some missing client interface functions:
+                     lscp_get_total_voice_count();
+                     lscp_get_total_voice_count_max();
+                   and for the new MIDI instrumenbt mapping features:
+                     lscp_map_midi_instrument();
+                     lscp_unmap_midi_instrument();
+                     lscp_get_midi_instruments();
+                     lscp_get_midi_instrument_info();
+                     lscp_clear_midi_instruments();
+
+
+0.3.4  2006-09-24  GPL address update.
+
+0.3.3  2006-06-01  Fixed some compilation warnings due to suspicious type
+                   casting and unsused header macros.
+
+                   Changed deprecated copyright attribute to license
+                   and added ldconfig to post-(un)install steps
+                   to liblscp.spec (RPM).
+
+0.3.2  2005-08-29  Fixed missing initialization bug on lscp_channel_info_t
+                   new struct fields (mute/solo).
+
+                   Include debian files into distribution.
+
+                   Renamed configure.in to newer configure.ac.
+
+0.3.1  2005-08-16  [bug #21] Fixed automake support for separate build
+                   directory.
+
+                   Added support to sampler channel MUTE/SOLO states:
+                     lscp_set_channel_mute();
+                     lscp_set_channel_solo();
+                   with corresponding new lscp_channel_info_t fields.
+
+0.3.0  2005-06-10  [bug #11] Timeout flush idiosyncrasy is now a feature;
+                   this just tries to flush the receive buffer whenever
+                   any previous transaction has failed due to a timeout.
+
+                   Fixed an off-by-one timeout quirk, that has been a real
+                   showstopper on Mac OS X at least, which is incidental
+                   to qsampler's default timeout setting of 1000 msecs,
+                   giving up systematically on select() due to "Invalid
+                   argument" (EINVAL).
+
+
+0.2.8  2005-05-22  More LSCP command syntax changes, particularly on the
+                   event subscription ones: the LSCP_EVENT_CHANNELS event
+                   definition were renamed to LSCP_EVENT_CHANNEL_COUNT,
+                   as to be more meaningful. Added support for the newest
+                   LSCP command: GET SERVER INFO; lscp_get_server_info().
+
+0.2.8  2005-05-08  [bug #9] Fixed for a LSCP command syntax convention
+                   consistency, regarding the enumeration of available
+                   sampler engines, Audio and MIDI drivers; this has
+                   affected the signature of the following functions:
+                     lscp_get_available_engines();
+                     lscp_get_available_audio_drivers();
+                     lscp_get_available_midi_drivers();
+                   which are now returning an integer count of engines
+                   and drivers, respectively, while the following
+                   functions are now being introduced:
+                     lscp_list_available_engines();
+                     lscp_list_available_audio_drivers();
+                     lscp_list_available_midi_drivers();
+                   taking on the previous functionality, returning
+                   a comma separated list of names.
+
+0.2.7  2005-03-10  Mini bitsy regression; a severe crash (segfault)
+                   was fixed on the device configuration functions:
+                     lscp_set_audio_device_param();
+                     lscp_set_midi_device_param();
+                     lscp_set_audio_channel_param();
+                     lscp_set_midi_port_param();
+
+0.2.6  2005-03-01  Fixed nasty off-by-one bug on internal helpers.
+
+0.2.5  2005-02-14  Added support for the new INSTRUMENT_NAME field
+                   of GET CHANNEL INFO command.
+
+0.2.4  2004-10-11  Fixed lscp_set_channel_midi_channel() again, MIDI
+                   channels should be given in the range 0-15, and omni
+                   mode with the LSCP_MIDI_CHANNEL_ALL symbol (16).
+
+                   Fixed lscp_get_channel_info() to parse MIDI omni
+                   (ALL) channels mode.
+
+0.2.3  2004-09-28  Fixed lscp_set_channel_midi_channel() where MIDI
+                   channels should be given in the range 1-16, and
+                   omni mode with the new LSCP_MIDI_CHANNEL_ALL
+                   symbol (0).
+
+                   Rearrangement on main command requester executive.
+
+0.2.2  2004-07-29  In sync with LSCP document draf (v.12).
+
+                   New functions added: lscp_client_get_events() and
+                   lscp_reset_sampler().
+
+                   Added support for generating Debian packages;
+                   renamed pkg-config lib name 'liblscp' -> 'lscp' as
+                   it's common practice to omit the 'lib' prefix.
+
+0.2.1  2004-07-09  Potential cripling defects habve been fixed.
+
+0.2.0  2004-07-06  New LSCP extension draft (v.11) initial support.
+                   (still a work in progress...)
+
+
+0.1.9  2004-05-18  More fixes for MSVC++ example build.
+
+0.1.8  2004-05-17  Fix for MSVC++ example build; snprintf replaced by
+                   buffer overflow friendlier sprintf.
+
+0.1.7  2004-05-10  Missing version.h now included on install; WIN32 is
+                   only now conditionally defined.
+
+0.1.6  2004-05-04  WIN32 build support; LPGL disclaimer consistency;
+                   versioning functions introduced.
+
+0.1.5  2004-04-26  Server stuff moved into examples.
+
+0.1.4  2004-04-24  Initial auto/libtool preparation.

@@ -1,0 +1,300 @@
+/**
+
+@mainpage liblscp
+
+
+@section Intro
+
+Hi all,
+
+On the path to a GUI for linuxsampler, I've been taking some of my spare
+time by writing an early implementation for the LSCP (the LinuxSampler
+Control Protocol), as defined from the current available draft document
+(http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html).
+
+My implementation, while still rather crude, is taking the form of a
+programming library for plain conventional C, codenamed liblscp.
+
+One of my objectives is that liblscp evolves as the implementation for a
+linuxsampler API, while being a fair abstraction for the network and/or
+IPC aspects of LSCP.
+
+For the facts, liblscp is actually a wrapper for the LSCP specification,
+taking all the TCP/UDP socket communication into it's main control, hiding
+all or some of the protocol bureoucracy from the user and exposing a
+simple and opaque C programming language interface, mainly by mapping
+events to user function callback handlers.
+
+The design of liblscp assumed that the programming interface provided is
+useable and applicable either for server (linuxsampler itself) and/or
+client (gui's) development.
+
+Some design features (no rocket-sci here :)
+
+- Multi-threaded or multiplexed server; clients block for synchronous
+  request calls.
+- Multi-client; one server instance serves many clients, local and/or
+  remote.
+- Server events broadcasted and delivered to client callbacks.
+- Client requests processed on server supplied callback.
+
+Please note that (as usual :) documentation is none at this stage but I'll
+challenge you to look at the source code provided on the tarball below. A
+barebones server and client test programs are included (lscp_server_test
+and lscp_client_test).
+
+
+@section Client
+
+As a quick reference for the client programming, one links to liblscp to
+create a client instance handle, just like this:<pre>
+
+    #include <lscp/@ref:client.h>
+
+    @ref lscp_client_t *client;
+
+    client = @ref lscp_client_create (server_host, server_port,
+        client_callback, client_data);
+
+</pre>where server_host is the hostname of the server we wish to connect, and
+server_port is the respective port number; client_callback is the client
+supplied callback function that will handle every server notification
+event; client_data is intended for client context and will be fed to
+client_callback without intervention.
+
+The client may issue a request to server by use of:<pre>
+
+    @ref lscp_client_query (client, query);
+
+</pre>where you'll submit a single command to the server and wait for it's response.
+The query string must be null terminated. The server response result maybe
+retrieved by:<pre>
+
+    char *result;
+
+    result = @ref lscp_client_get_result(client);
+
+</pre>and the eventual error status code:<pre>
+
+    int errno;
+
+    errno = @ref lscp_client_get_errno(client);
+
+</pre>The client callback function must have the following prototype (@ref lscp_client_proc_t):
+
+- @ref lscp_status_t <i>client_callback</i> ( @ref lscp_client_t *client,
+        @ref lscp_event_t event, const char *buf, int buflen, void *client_data );
+
+where event is the specific event type notification, buf will be a pointer to
+the event text which is buflen bytes in length; client_data is exactly the same
+value given on @ref lscp_client_create call.
+
+This callback function is the place to handle all server notifications and
+will be only called if the client is currently subscribed. No response
+from the client is expected while processing an event within
+client_callback.
+
+A client subscribes to receive event notifications by calling:<pre>
+
+    @ref lscp_client_subscribe (client, events);
+
+</pre>after which it will start receiving events by means of the supplied
+client_callback function. To unsubscribe and stop this deliverance:<pre>
+
+    @ref lscp_client_unsubscribe (client, events);
+
+</pre>Finally, when a client is about to quit, the proper terminator is in order:<pre>
+
+    @ref lscp_client_destroy (client);
+
+</pre>As for the current protocol draft (11), the client interface already maps
+the following functions defined in <lscp/@ref:client.h>, one for each corresponding
+LSCP comand, and regarding the sampler channel space:<pre>
+
+    @ref lscp_get_available_engines (client);
+    @ref lscp_list_available_engines (client);
+    @ref lscp_get_engine_info (client, engine_name);
+    @ref lscp_get_channels (client);
+    @ref lscp_list_channels (client);
+    @ref lscp_add_channel (client);
+    @ref lscp_load_engine (client, engine_name, channel);
+    @ref lscp_set_channel_audio_device (client, channel, audio_device);
+    @ref lscp_set_channel_audio_type (client, channel, audio_type);
+    @ref lscp_set_channel_audio_channel (client, channel, audio_in, audio_out);
+    @ref lscp_set_channel_midi_device (client, channel, midi_device);
+    @ref lscp_set_channel_midi_type (client, channel, midi_type);
+    @ref lscp_set_channel_midi_port (client, channel, midi_port);
+    @ref lscp_set_channel_midi_channel (client, channel, midi_channel);
+    @ref lscp_set_channel_midi_map (client, channel, midi_map);
+    @ref lscp_set_channel_mute (client, channel, mute);
+    @ref lscp_set_channel_solo (client, channel, solo);
+    @ref lscp_set_channel_volume (client, channel, volume);
+    @ref lscp_load_instrument (client, file_name, instr_index, channel);
+    @ref lscp_load_instrument_non_modal (client, file_name, instr_index, channel);
+    @ref lscp_get_channel_info (client, channel);
+    @ref lscp_get_channel_voice_count (client, channel);
+    @ref lscp_get_channel_stream_count (client, channel);
+    @ref lscp_get_channel_buffer_fill (client, usage_type, channel);
+    @ref lscp_reset_channel (client, channel);
+    @ref lscp_remove_channel (client, channel);
+    @ref lscp_reset_sampler (client);
+    @ref lscp_get_server_info (client);
+    @ref lscp_get_server_info (client);
+    @ref lscp_get_total_voice_count (client);
+    @ref lscp_get_total_voice_count_max (client);
+    @ref lscp_get_volume (client);
+    @ref lscp_set_volume (client);
+
+</pre>Specific for sampler channel effect sends control:<pre>
+
+    @ref lscp_create_fxsend (client, channel, midi_controller, name);
+    @ref lscp_destroy_fxsend (client, channel, fxsend);
+    @ref lscp_get_fxsends (client, channel);
+    @ref lscp_list_fxsends (client, channel);
+    @ref lscp_get_fxsend_info (client, channel, fxsend);
+    @ref lscp_set_fxsend_name (client, channel, fxsend, name);
+    @ref lscp_set_fxsend_midi_controller (client, channel, fxsend, midi_controller);
+    @ref lscp_set_fxsend_audio_channel (client, channel, fxsend, audio_src, audio_dst);
+    @ref lscp_set_fxsend_level (client, channel, fxsend, level);
+
+</pre>Specific to MIDI instrument mapping interface:<pre>
+
+    @ref lscp_add_midi_instrument_map (client, map_name);
+    @ref lscp_remove_midi_instrument_map (client, midi_map);
+    @ref lscp_get_midi_instrument_maps (client);
+    @ref lscp_list_midi_instrument_maps (client);
+    @ref lscp_get_midi_instrument_map_name (client, midi_map);
+    @ref lscp_set_midi_instrument_map_name (client, midi_map, map_name);
+    @ref lscp_map_midi_instrument (client, midi_instr, engine_name, file_name, instr_index, volume, load_mode, name);
+    @ref lscp_unmap_midi_instrument (client, midi_instr);
+    @ref lscp_get_midi_instruments (client, midi_map);
+    @ref lscp_list_midi_instruments (client, midi_map);
+    @ref lscp_get_midi_instrument_info (client, midi_instr);
+    @ref lscp_clear_midi_instruments (client, midi_map);
+
+</pre>For the audio output and MIDI input device configuration interface,
+the following functions are respectively defined in <lscp/@ref:device.h>:<pre>
+
+    @ref lscp_get_available_audio_drivers (client);
+    @ref lscp_list_available_audio_drivers (client);
+    @ref lscp_get_audio_driver_info (client, audio_driver);
+    @ref lscp_get_audio_driver_param_info (client, audio_driver, param_key, deplist);
+    @ref lscp_create_audio_device (client, audio_driver, params);
+    @ref lscp_destroy_audio_device (client, audio_device);
+    @ref lscp_get_audio_devices (client);
+    @ref lscp_list_audio_devices (client);
+    @ref lscp_get_audio_device_info (client, audio_device);
+    @ref lscp_set_audio_device_param (client, audio_device, param);
+    @ref lscp_get_audio_channel_info (client, audio_device, audio_channel);
+    @ref lscp_get_audio_channel_param_info (client, audio_device, audio_channel, param);
+    @ref lscp_set_audio_channel_param (client, audio_device, audio_channel, param);
+
+    @ref lscp_get_available_midi_drivers (client);
+    @ref lscp_list_available_midi_drivers (client);
+    @ref lscp_get_midi_driver_info (client, midi_driver);
+    @ref lscp_get_midi_driver_param_info (client, midi_driver, param_key, deplist);
+    @ref lscp_create_midi_device (client, midi_driver, params);
+    @ref lscp_destroy_midi_device (client, midi_device);
+    @ref lscp_get_midi_devices (client);
+    @ref lscp_list_midi_devices (client);
+    @ref lscp_get_midi_device_info (client, midi_device);
+    @ref lscp_set_midi_device_param (client, midi_device, param);
+    @ref lscp_get_midi_port_info (client, midi_device, midi_port);
+    @ref lscp_get_midi_port_param_info (client, midi_device, midi_port, param);
+    @ref lscp_set_midi_port_param (client, midi_device, midi_port, param);
+
+</pre>For editing instruments while playing them with the sampler:<pre>
+
+    @ref lscp_edit_channel_instrument (client, channel);
+
+</pre>Most of these functions are wrappers to @ref lscp_client_query, and some will handle
+and change the result string accordingly.
+
+
+@section Server
+
+Likewise, and least important yet as for server programming, you create a server
+instance handle just like that:<pre>
+
+    #include <lscp/@ref:server.h>
+
+    @ref lscp_server_t *server;
+
+    server = @ref lscp_server_create (server_port, server_callback, server_data);
+
+</pre>where server_port is the port number where the server will be
+listening for connections; server_callback is the server supplied
+callback function that will handle every client request; server_data is
+any reference to data that will be fed into server_callback without
+modification.
+
+The server callback function prototype is very similar to the client one
+(@ref lscp_server_proc_t):
+
+- @ref lscp_status_t <i>server_callback</i> ( @ref lscp_connect_t *conn,
+        const char *request, int reqlen, void *server_data );
+
+where conn is just a client connection handle, that shall be used for the
+server responses; the request text which has a length of reqlen bytes;
+server_data is the same value given on lscp_server_create.
+
+There's two special server callback cases, flagged by a null request pointer
+and described with reqlen as a boolean value: when zero it announces a new
+client connection, otherwise it tells that a client connection has closed.
+
+While handling each request the server must cook it's response and
+eventually issue the following:<pre>
+
+    @ref lscp_server_result (conn, result, reslen);
+
+</pre>where conn is the client handle, and result is a pointer to the server
+response literal text of reslen bytes. Of course the response shall obey
+to the protocol specification.
+
+The server issues a broadcast to its subscribers by simply issuing:<pre>
+
+    @ref lscp_server_broadcast (server, buf, buflen);
+
+</pre>which will trigger the client callback function, which will be fed with an
+exact copy of buf/len; this is the intended way to deliver all
+notifications to each subscribed client.
+
+When its time to shutdown the server instance, just don't forget to call
+the server destructor:<pre>
+
+    @ref lscp_server_destroy (server);
+
+</pre>and we're done with the server.
+
+
+@section Outro
+
+Nuff said. If you care or dare, track the revolving under:
+
+- https://www.rncbc.org/snapshots/#liblscp
+- https://www.rncbc.org/archive/#liblscp
+
+Please note that the code is known to compile and run on Linux AND on
+win32 (!). On Linux the main target is a shared library (liblscp.so) so
+remember to set your LD_LIBRARY_PATH accordingly before running the test
+programs.
+
+A final disclaimer goes to the fact that I AM NOT a socket nor thread
+programming guru, whatsoever. So fundamental mistakes may be laying around,
+somewhere. Besides that ItJustWorks(tm:).
+
+I'm eager to hear your feedback and comments. As usual, destructive
+criticism will be sent to /dev/null ;)
+
+Hope to be on the right track, and towards linuxsampler integration.
+
+Otherwise sorry for the bandwidth waste.
+
+Cheers.
+
+rncbc aka Rui Nuno Capela
+rncbc at rncbc.org
+
+@see https://www.linuxsampler.org
+
+*/

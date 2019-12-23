@@ -1,0 +1,40 @@
+Source: liblscp
+Section: libs
+Priority: optional
+Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
+Build-Depends: debhelper (>= 9), automake, libtool, pkg-config, doxygen
+Standards-Version: 3.9.7
+
+Package: liblscp-dev
+Section: libdevel
+Architecture: any
+Depends: liblscp6 (>= ${source:Version}),
+  ${shlibs:Depends}, ${misc:Depends}
+Description: LinuxSampler Control Protocol API library - development files
+  LinuxSampler Control Protocol C API library - development files.
+  .
+  This package is for use with the LinuxSampler audio sampling
+  engine / library and packages. Wraps the LinuxSampler network
+  protocol and offers a convenient API in form of a C library.
+  .
+  For further informations visit
+  http://www.linuxsampler.org
+  .
+  This package contains the header files needed for
+  development with liblscp. You will need this only if you
+  intend to compile programs that use this library.
+
+Package: liblscp6
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: LinuxSampler Control Protocol API library
+  LinuxSampler Control Protocol C API library.
+  .
+  This package is for use with the LinuxSampler audio sampling
+  engine / library and packages. Wraps the LinuxSampler network
+  protocol and offers a convenient API in form of a C library.
+  .
+  For further informations visit
+  http://www.linuxsampler.org
+

@@ -1,0 +1,30 @@
+liblscp - LinuxSampler Control Protocol API
+-------------------------------------------
+
+liblscp is an implementation of the LinuxSampler control protocol,
+proposed as a C language API.
+
+Homepage: https://www.linuxsampler.org
+
+License: GNU Lesser General Public License (LGPL)
+
+Installation
+------------
+
+If checking out from Git:
+
+    ./autogen.sh
+
+From the extracted source directory:
+
+    ./configure
+    make
+    make install
+
+
+Enjoy.
+--
+rncbc aka Rui Nuno Capela
+rncbc at rncbc.org
+https://www.rncbc.org
+

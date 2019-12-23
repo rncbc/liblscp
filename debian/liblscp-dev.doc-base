@@ -1,0 +1,11 @@
+Document: liblscp
+Title: Debian liblscp Manual
+Author: Christian Schoenebeck <cuse@users.sourceforge.net>
+Abstract: This is a programming manual for the liblscp library.
+Section: Programming
+
+Format: HTML
+Index: /usr/share/doc/liblscp-dev/html/index.html
+Files: /usr/share/doc/liblscp-dev/html/*.html
+
+

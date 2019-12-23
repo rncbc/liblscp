@@ -1,0 +1,24 @@
+language: c
+
+sudo: required
+dist: trusty
+
+notifications: 
+  email:
+    recipients:
+    - rncbc@rncbc.org
+    on_success: change
+    on_failure: always
+
+branches:
+  only:
+  - master
+
+before_script:
+- git fetch --unshallow --tags -q
+- ./autogen.sh
+
+script:
+- ./configure
+  && make
+  && sudo make install

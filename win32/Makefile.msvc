@@ -1,0 +1,87 @@
+# Makefile.msvc - liblscp.lib
+# For Microsoft Visual C++ 4.0 and later.
+#
+# Usage: nmake /f Makefile.msvc
+#
+
+CC = cl
+LD = link
+AR = $(LD) /LIB
+RM = del
+
+LIBNAME = liblscp
+
+INCDIR = ..\lscp
+SRCDIR = ..\src
+
+CCFLAGS = -O -W3 -nologo -I..
+LDFLAGS =
+LDLIBS  = $(LIBNAME).lib wsock32.lib
+
+all:	$(LIBNAME).lib examples
+
+#
+# Static library build rules.
+#
+
+thread.obj:	$(SRCDIR)\thread.c $(INCDIR)\thread.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\thread.c
+
+socket.obj:	$(SRCDIR)\socket.c $(INCDIR)\socket.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\socket.c
+
+client.obj:	$(SRCDIR)\client.c $(INCDIR)\client.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\client.c
+
+device.obj:	$(SRCDIR)\device.c $(INCDIR)\device.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\device.c
+
+common.obj:	$(SRCDIR)\common.c $(SRCDIR)\common.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\common.c
+
+event.obj:	$(SRCDIR)\event.c  $(SRCDIR)\event.h
+	$(CC) $(CCFLAGS) -c $(SRCDIR)\event.c
+
+$(LIBNAME).lib:	thread.obj socket.obj client.obj device.obj common.obj event.obj
+	echo dummy > $(LIBNAME).lib
+	$(RM) $(LIBNAME).lib
+	$(AR) /OUT:$(LIBNAME).lib thread.obj socket.obj client.obj device.obj common.obj event.obj
+
+
+#
+# Examples build rules.
+#
+
+EXDIR = ..\examples
+
+examples:	example_client.exe example_server.exe
+
+server.obj:	$(EXDIR)\server.c $(EXDIR)\server.h
+	$(CC) $(CCFLAGS) -c $(EXDIR)\server.c
+
+parser.obj:	$(EXDIR)\parser.c $(EXDIR)\parser.h
+	$(CC) $(CCFLAGS) -c $(EXDIR)\parser.c
+
+example_client.obj:	$(EXDIR)\example_client.c
+	$(CC) $(CCFLAGS) -I$(EXDIR) -c $(EXDIR)\example_client.c
+
+example_server.obj:	$(EXDIR)\example_server.c
+	$(CC) $(CCFLAGS) -I$(EXDIR) -c $(EXDIR)\example_server.c
+
+example_client.exe:	example_client.obj $(LIBNAME).lib
+	$(LD) $(LDFLAGS) example_client.obj $(LDLIBS) /OUT:example_client.exe /SUBSYSTEM:CONSOLE
+
+example_server.exe:	example_server.obj server.obj parser.obj $(LIBNAME).lib
+	$(LD) $(LDFLAGS) example_server.obj server.obj parser.obj $(LDLIBS) /OUT:example_server.exe /SUBSYSTEM:CONSOLE
+
+
+#
+# Common rules.
+#
+
+clean:
+	del *.obj
+	del *.lib
+	del *.exe
+	del *.bak
+

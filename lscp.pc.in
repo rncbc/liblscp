@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: lscp
+Description: LinuxSampler control protocol API
+Version: @VERSION@
+Libs: -L${libdir} -llscp
+Cflags: -I${includedir}

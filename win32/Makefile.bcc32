@@ -1,0 +1,75 @@
+# Makefile.bcc32 - liblscp.lib
+# For Borland C++ 5.0 and later.
+#
+# Usage: make -f Makefile.bcc32
+#
+.AUTODEPEND
+
+CC = bcc32
+LD = ilink32
+AR = tlib /C
+RM = del
+
+LIBNAME = liblscp
+
+INCDIR = ..\lscp
+SRCDIR = ..\src
+
+CCFLAGS = -tWR -w -w-hid -tWM -tWC -x- -RT- -I..
+!ifdef DEBUG
+CCFLAGS = -v -y -DDEBUG $(CCFLAGS)
+!else
+CCFLAGS = -O2 -Z $(CCFLAGS)
+!endif
+
+all:	$(LIBNAME).lib examples
+
+#
+# Static library build rules.
+#
+
+$(LIBNAME).lib:	thread.obj socket.obj client.obj device.obj common.obj event.obj
+	- $(RM) $(LIBNAME).lib
+	$(AR) $(LIBNAME).lib +thread.obj +socket.obj +client.obj +device.obj +common.obj +event.obj
+
+thread.obj:	$(SRCDIR)\thread.c $(INCDIR)\thread.h
+socket.obj:	$(SRCDIR)\socket.c $(INCDIR)\socket.h
+client.obj:	$(SRCDIR)\client.c $(INCDIR)\client.h
+device.obj:	$(SRCDIR)\device.c $(INCDIR)\device.h
+common.obj:	$(SRCDIR)\common.c $(SRCDIR)\common.h
+event.obj:	$(SRCDIR)\event.c  $(INCDIR)\event.h
+
+
+#
+# Examples build rules.
+#
+
+EXDIR = ..\examples
+
+examples:	example_client.exe example_server.exe
+
+LDFLAGS = -L.
+LDLIBS  = $(LIBNAME).lib
+
+example_client.exe:	$(EXDIR)\example_client.c $(LIBNAME).lib
+	$(CC) $(CCFLAGS) -I$(EXDIR) $(EXDIR)\example_client.c $(LDFLAGS) $(LDLIBS)
+
+example_server.exe:	$(EXDIR)\example_server.c server.obj parser.obj $(LIBNAME).lib
+	$(CC) $(CCFLAGS) -I$(EXDIR) $(EXDIR)\example_server.c server.obj parser.obj $(LDFLAGS) $(LDLIBS)
+
+server.obj:	$(EXDIR)\server.c $(EXDIR)\server.h
+parser.obj:	$(EXDIR)\parser.c $(EXDIR)\parser.h
+
+#
+# Common rules.
+#
+
+.c.obj:
+	$(CC) $(CCFLAGS) -c {$< }
+
+clean:
+	- $(RM) *.obj
+	- $(RM) *.lib
+	- $(RM) *.exe
+	- $(RM) *.td?
+

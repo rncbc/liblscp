@@ -1,0 +1,137 @@
+liblscp (0.6.1-40) unstable; urgency=low
+
+  * Winter'19 release.
+
+ -- Rui Nuno Capela <rncbc@rncbc.org>  Sun, 22 Dec 2019 19:00:00 +0000
+
+liblscp (0.6.0-25) unstable; urgency=low
+
+  * An Autumn'17 release.
+
+ -- Rui Nuno Capela <rncbc@rncbc.org>  Tue, 12 Dec 2017 19:00:00 +0000
+
+liblscp (0.5.8-21) unstable; urgency=low
+
+  * A Fall'16 release.
+
+ -- Rui Nuno Capela <rncbc@rncbc.org>  Mon, 14 Nov 2016 12:00:00 +0000
+
+liblscp (0.5.7.1) unreleased; urgency=low
+
+  * Updated to compat 7 (was 4).
+  * Assigned linuxsampler-devel@lists.sourceforge.net as maintainer of
+    this package.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 21:09:06 +0200
+
+liblscp (0.5.7-1) unstable; urgency=low
+
+  * A fifth of a Jubilee release.
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Tue, 31 Dec 2013 12:00:00 +0100
+
+liblscp (0.5.6-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Sat,  1 Aug 2009 17:14:01 +0000
+
+liblscp (0.5.5-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Fri, 12 Oct 2007 23:52:01 +0000
+
+liblscp (0.5.4-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Tue,  2 Oct 2007 18:32:01 +0000
+
+liblscp (0.5.3-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Mon, 15 Jan 2007 10:57:04 +0000
+
+liblscp (0.5.2-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Thu, 11 Jan 2007 11:15:03 +0000
+
+liblscp (0.5.1-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Fri, 22 Dec 2006 09:01:02 +0000
+
+liblscp (0.5.0-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Sun, 17 Dec 2006 00:39:01 +0000
+
+liblscp (0.4.2-1) unstable; urgency=low
+
+  * new release
+
+ -- Rui Nuno Capela <rncbc@users.sourceforge.net>  Mon,  4 Dec 2006 23:25:02 +0000
+
+liblscp (0.4.1-1) unstable; urgency=low
+
+  * new release
+  * fixed debian rules file to work with official tarball releases as well
+    (expected a Makefile.cvs file)
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 29 Nov 2006 00:26:32 +0100
+
+liblscp (0.3.2-1) unstable; urgency=low
+
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Mon, 29 Aug 2005 00:13:25 +0200
+
+liblscp (0.3.1-1) unstable; urgency=low
+
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Tue, 16 Aug 2005 19:54:04 +0200
+
+liblscp (0.3.0-1) unstable; urgency=low
+
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 10 Jun 2005 13:33:26 +0200
+
+liblscp (0.2.cvs20050602-1) unstable; urgency=low
+
+  * another fix to multiple port build error
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Thu,  2 Jun 2005 17:42:00 +1000
+
+liblscp (0.2.cvs20050524-3) unstable; urgency=low
+
+  * Properly fixed multuple port build error
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Thu,  2 Jun 2005 17:27:48 +1000
+
+liblscp (0.2.cvs20050524-2) unstable; urgency=low
+
+  * Fixed multiple port build error (Closes: #311062)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Sun, 29 May 2005 23:08:28 +1000
+
+liblscp (0.2.cvs20050524-1) unstable; urgency=low
+
+  * Incorperating new upstream changes (Closes: #280580)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Tue, 24 May 2005 15:20:23 +1000
+
+liblscp (0.2.1-1) unstable; urgency=low
+
+  * renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
+  * Altered Christian's original changelog (Closes: #280580)
+  * altered rules to gen. configure script
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Tue, 13 Jul 2004 20:19:13 +0200
