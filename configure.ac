@@ -1,9 +1,11 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(src/client.c)
-AC_CONFIG_HEADERS([src/config.h])
-AC_CONFIG_MACRO_DIR([.m4])
+AC_INIT(liblscp, 0.6.2, rncbc@rncbc.org, liblscp)
 
-AM_INIT_AUTOMAKE(liblscp, 0.6.2)
+AC_CONFIG_SRCDIR(src/client.c)
+AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_MACRO_DIRS([.m4])
+
+AM_INIT_AUTOMAKE
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:
@@ -21,7 +23,7 @@ AM_INIT_AUTOMAKE(liblscp, 0.6.2)
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-SHARED_VERSION_INFO="6:1:1"
+SHARED_VERSION_INFO="6:2:0"
 
 AC_SUBST(SHARED_VERSION_INFO)
 
