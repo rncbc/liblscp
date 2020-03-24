@@ -3,7 +3,9 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-GIT HEAD           Fixed compile errors on macOS.
+0.6.2  2019-03-24  A Spring'20 release.
+
+                   Fixed compile errors on macOS.
 
                    Expose actual system error codes via client interface
                    instead of just -1 whenever a syscall failed.

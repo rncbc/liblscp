@@ -1,7 +1,7 @@
 #
 # spec file for package liblscp
 #
-# Copyright (C) 2004-2019, rncbc aka Rui Nuno Capela. All rights reserved.
+# Copyright (C) 2004-2020, rncbc aka Rui Nuno Capela. All rights reserved.
 # Copyright (C) 2007,2008,2015 Christian Schoenebeck
 #
 # All modifications and additions to the file contributed by third parties
@@ -18,7 +18,7 @@
 
 %define name	@PACKAGE@
 %define version	@VERSION@
-%define release	40
+%define release	42
 
 %define _soname %{name}6
 
@@ -131,6 +131,8 @@ export CFLAGS="-ffat-lto-objects"
 %{_includedir}/lscp/*.h
 
 %changelog
+* Tue Mar 24 2020 Rui Nuno Capela <rncbc@rncbc.org> 0.6.2
+- A Spring'20 release.
 * Sun Dec 22 2019 Rui Nuno Capela <rncbc@rncbc.org> 0.6.1
 - Winter'19 release.
 * Tue Dec 12 2017 Rui Nuno Capela <rncbc@rncbc.org> 0.6.0
