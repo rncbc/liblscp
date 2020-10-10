@@ -10,7 +10,7 @@ Hi all,
 On the path to a GUI for linuxsampler, I've been taking some of my spare
 time by writing an early implementation for the LSCP (the LinuxSampler
 Control Protocol), as defined from the current available draft document
-(http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html).
+(https://www.linuxsampler.org/api/draft-linuxsampler-protocol.html).
 
 My implementation, while still rather crude, is taking the form of a
 programming library for plain conventional C, codenamed liblscp.
@@ -138,7 +138,6 @@ LSCP comand, and regarding the sampler channel space:<pre>
     @ref lscp_reset_channel (client, channel);
     @ref lscp_remove_channel (client, channel);
     @ref lscp_reset_sampler (client);
-    @ref lscp_get_server_info (client);
     @ref lscp_get_server_info (client);
     @ref lscp_get_total_voice_count (client);
     @ref lscp_get_total_voice_count_max (client);
@@ -275,7 +274,7 @@ Nuff said. If you care or dare, track the revolving under:
 - https://www.rncbc.org/archive/#liblscp
 
 Please note that the code is known to compile and run on Linux AND on
-win32 (!). On Linux the main target is a shared library (liblscp.so) so
+Windows (!). On Linux the main target is a shared library (liblscp.so) so
 remember to set your LD_LIBRARY_PATH accordingly before running the test
 programs.
 
