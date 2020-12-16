@@ -1,3 +1,9 @@
+liblscp (0.9.0-44) unstable; urgency=low
+
+  * A Winter'20 release.
+
+ -- Rui Nuno Capela <rncbc@rncbc.org>  Thu, 17 Dec 2020 20:00:00 +0000
+
 liblscp (0.6.2-42) unstable; urgency=low
 
   * A Spring'20 release.

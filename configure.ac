@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(liblscp, 0.6.2, rncbc@rncbc.org, liblscp)
+AC_INIT(liblscp, 0.9.0, rncbc@rncbc.org, liblscp)
 
 AC_CONFIG_SRCDIR(src/client.c)
 AC_CONFIG_HEADERS([src/config.h])
@@ -23,7 +23,7 @@ AM_INIT_AUTOMAKE
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-SHARED_VERSION_INFO="6:2:0"
+SHARED_VERSION_INFO="6:3:0"
 
 AC_SUBST(SHARED_VERSION_INFO)
 
