@@ -38,14 +38,11 @@ URL:		http://www.linuxsampler.org/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #Packager:	rncbc.org
 
-BuildRequires: libtool
-BuildRequires: doxygen
-%if %{defined fedora}
-BuildRequires: pkgconfig
-%else
-BuildRequires: pkg-config
-%endif
-BuildRequires: glibc-devel
+BuildRequires:	coreutils
+BuildRequires:	pkgconfig
+BuildRequires:	glibc-devel
+BuildRequires:	autoconf automake libtool
+BuildRequires:	doxygen
 
 %description
 LinuxSampler control protocol API library.
@@ -74,6 +71,7 @@ Provides:	%{name}
 %package devel
 Summary:	LinuxSampler Control Protocol API library - development files
 Group:		Development/Libraries/C and C++
+Requires:	pkgconfig
 Requires:	%{name} >= %{version}
 
 %description devel
