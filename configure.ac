@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(liblscp, 0.9.1, rncbc@rncbc.org, liblscp)
+AC_INIT(liblscp, 0.9.2, rncbc@rncbc.org, liblscp)
 
 AC_CONFIG_SRCDIR(src/client.c)
 AC_CONFIG_HEADERS([src/config.h])
