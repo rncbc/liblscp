@@ -1,0 +1,96 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(liblscp
+  VERSION 0.9.3
+  DESCRIPTION "LinuxSampler Control Protocol API library"
+  LANGUAGES C)
+
+set (CONFIG_VERSION ${PROJECT_VERSION})
+execute_process (
+  COMMAND git describe --tags --dirty --abbrev=6
+  OUTPUT_VARIABLE GIT_DESCRIBE_OUTPUT
+  RESULT_VARIABLE GIT_DESCRIBE_RESULT
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+if (GIT_DESCRIBE_RESULT EQUAL 0)
+  set (VERSION "${GIT_DESCRIBE_OUTPUT}")
+  string (REGEX REPLACE "^[^0-9]+" "" VERSION "${VERSION}")
+  string (REGEX REPLACE "-g"   "git." VERSION "${VERSION}")
+  string (REGEX REPLACE "[_|-]+"  "." VERSION "${VERSION}")
+  execute_process (
+    COMMAND git rev-parse --abbrev-ref HEAD
+    OUTPUT_VARIABLE GIT_REVPARSE_OUTPUT
+    RESULT_VARIABLE GIT_REVPARSE_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if (GIT_REVPARSE_RESULT EQUAL 0 AND NOT GIT_REVPARSE_OUTPUT STREQUAL "master")
+    set (VERSION "${VERSION} [${GIT_REVPARSE_OUTPUT}]")
+  endif ()
+else ()
+  set (VERSION "${PROJECT_VERSION}")
+endif ()
+
+set (PACKAGE_NAME "liblscp")
+set (PACKAGE_VERSION "${PROJECT_VERSION}")
+set (PACKAGE_BUGREPORT "rncbc@rncbc.org")
+set (PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
+set (PACKAGE_TARNAME "liblscp")
+
+set (ac_build_version "${VERSION}")
+
+#------------------------------------------------------------------------------------
+# Rules for library version information:
+#
+#  1. Start with version information of `0:0:0' for each libtool library.
+#  2. Update the version information only immediately before a public release of
+#     your software. More frequent updates are unnecessary, and only guarantee
+#     that the current interface number gets larger faster.
+#  3. If the library source code has changed at all since the last update, then
+#     increment revision (`c:r:a' becomes `c:r+1:a').
+#  4. If any interfaces have been added, removed, or changed since the last update,
+#     increment current, and set revision to 0.
+#  5. If any interfaces have been added since the last public release, then increment
+#     age.
+#  6. If any interfaces have been removed since the last public release, then set age
+#     to 0.
+#
+#set (BUILD_SHARED_LIBS ON)
+
+set (SHARED_VERSION_CURRENT  6)
+set (SHARED_VERSION_AGE      3)
+set (SHARED_VERSION_REVISION 0)
+set (SHARED_VERSION_INFO "${SHARED_VERSION_CURRENT}.${SHARED_VERSION_AGE}.${SHARED_VERSION_REVISION}")
+
+if (CMAKE_BUILD_TYPE)
+  set (CONFIG_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+else ()
+  set (CONFIG_BUILD_TYPE "release")
+endif ()
+
+set (CONFIG_DEBUG 0)
+if (CONFIG_BUILD_TYPE MATCHES "debug")
+  set (CONFIG_DEBUG 1)
+endif ()
+
+set (CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
+
+include (GNUInstallDirs)
+set (CONFIG_BINDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_BINDIR}")
+set (CONFIG_LIBDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set (CONFIG_DATADIR "${CONFIG_PREFIX}/${CMAKE_INSTALL_DATADIR}")
+set (CONFIG_INCLUDEDIR "${CONFIG_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+
+
+# No options.
+
+
+# Fix for new CMAKE_REQUIRED_LIBRARIES policy.
+if (POLICY CMP0075)
+  cmake_policy (SET CMP0075 NEW)
+endif ()
+
+
+# No checks for packages, libraries or header files.
+
+
+add_subdirectory (src)
+
+configure_file (liblscp.spec.in liblscp.spec IMMEDIATE @ONLY)

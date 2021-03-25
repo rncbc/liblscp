@@ -3,6 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+GIT HEAD           Introducing cmake build option. (EXPERIMENTAL)
+
 0.9.2  2021-03-14  An End-of-Winter'21 release.
 
 0.9.1  2021-02-07  A Winter'21 release.
