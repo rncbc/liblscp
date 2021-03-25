@@ -78,19 +78,26 @@ set (CONFIG_LIBDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set (CONFIG_DATADIR "${CONFIG_PREFIX}/${CMAKE_INSTALL_DATADIR}")
 set (CONFIG_INCLUDEDIR "${CONFIG_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 
-
-# No options.
-
+#
+# No special build options...
+#
 
 # Fix for new CMAKE_REQUIRED_LIBRARIES policy.
 if (POLICY CMP0075)
   cmake_policy (SET CMP0075 NEW)
 endif ()
 
-
-# No checks for packages, libraries or header files.
-
+#
+# No checks for packages, libraries or header files...
+#
 
 add_subdirectory (src)
+add_subdirectory (doc)
 
 configure_file (liblscp.spec.in liblscp.spec IMMEDIATE @ONLY)
+
+configure_file (lscp.pc.in lscp.pc IMMEDIATE @ONLY)
+
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/lscp.pc
+  DESTINATION ${CONFIG_LIBDIR}/pkgconfig)
+

@@ -11,7 +11,11 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
 endif()
 configure_file (cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
+if (EXISTS ${CMAKE_SOURCE_DIR}/lscp/version.h)
+    file(REMOVE ${CMAKE_SOURCE_DIR}/lscp/version.h)
+endif()
 configure_file (${CMAKE_SOURCE_DIR}/lscp/version.h.in ${CMAKE_SOURCE_DIR}/lscp/version.h)
+
 
 set (PUBLIC_HEADERS
   ${CMAKE_SOURCE_DIR}/lscp/client.h
