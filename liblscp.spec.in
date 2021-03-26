@@ -42,7 +42,6 @@ BuildRequires:	coreutils
 BuildRequires:	cmake
 BuildRequires:	pkgconfig
 BuildRequires:	glibc-devel
-BuildRequires:	autoconf automake libtool
 BuildRequires:	doxygen
 
 %description
