@@ -18,6 +18,6 @@ before_script:
 - git fetch --unshallow --tags -q
 
 script:
-- cmake .
-  && make
-  && sudo make install
+- cmake
+- make
+- sudo make install
