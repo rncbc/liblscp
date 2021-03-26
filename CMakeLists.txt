@@ -29,12 +29,13 @@ else ()
 endif ()
 
 set (PACKAGE_NAME "liblscp")
-set (PACKAGE_VERSION "${PROJECT_VERSION}")
+set (PACKAGE_VERSION "${VERSION}")
 set (PACKAGE_BUGREPORT "rncbc@rncbc.org")
 set (PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set (PACKAGE_TARNAME "liblscp")
 
-set (ac_build_version "${VERSION}")
+set (ac_version "${PROJECT_VERSION}")
+set (ac_prefix "${CMAKE_INSTALL_PREFIX}")
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:

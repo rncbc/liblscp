@@ -16,4 +16,10 @@
 /* Define to the one symbol short name of this package. */
 #cmakedefine PACKAGE_TARNAME "@PACKAGE_TARNAME@"
 
+/* Define to the version of this package. */
+#cmakedefine CONFIG_VERSION "@CONFIG_VERSION@"
+
+/* Define to the build version of this package. */
+#cmakedefine CONFIG_BUILD_VERSION "@CONFIG_BUILD_VERSION@"
+
 #endif /* CONFIG_H */

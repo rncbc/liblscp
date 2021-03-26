@@ -43,7 +43,26 @@ AC_CACHE_VAL([ac_cv_build_version], [
    fi
 ])
 ac_build_version="$ac_cv_build_version"
-AC_SUBST(ac_build_version)
+AC_DEFINE_UNQUOTED(CONFIG_BUILD_VERSION, ["$ac_build_version"], [Build version string.])
+
+# Sanitized version string.
+AC_CACHE_VAL([ac_cv_version], [
+   ac_cv_version=$(echo $PACKAGE_VERSION | sed -r 's/^([[0-9|\.]]+).*$/\1/')
+])
+ac_version="$ac_cv_version"
+AC_DEFINE_UNQUOTED(CONFIG_VERSION, ["$ac_version"], [Version string.])
+AC_SUBST(ac_version)
+
+# Set default installation prefix.
+AC_PREFIX_DEFAULT(/usr/local)
+if test "x$prefix" = "xNONE"; then
+   prefix=$ac_default_prefix
+fi
+if test "x$exec_prefix" = "xNONE"; then
+   exec_prefix=$prefix
+fi
+eval ac_prefix=$prefix
+AC_SUBST(ac_prefix)
 
 # Enable debugging argument option.
 AC_ARG_ENABLE(debug,

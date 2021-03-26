@@ -25,7 +25,7 @@
 
 #define LSCP_PACKAGE    "@PACKAGE_NAME@"
 #define LSCP_VERSION    "@PACKAGE_VERSION@"
-#define LSCP_BUILD      "@ac_build_version@"
+#define LSCP_BUILD      "@ac_version@"
 
 #endif // __LSCP_VERSION_H
 

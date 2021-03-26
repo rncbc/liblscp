@@ -16,9 +16,8 @@ branches:
 
 before_script:
 - git fetch --unshallow --tags -q
-- ./autogen.sh
 
 script:
-- ./configure
+- cmake .
   && make
   && sudo make install

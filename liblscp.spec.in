@@ -16,13 +16,13 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-%define name	@PACKAGE@
-%define version	@VERSION@
+%define name	@PACKAGE_TARNAME@
+%define version	@PACKAGE_VERSION@
 %define release	46
 
 %define _soname %{name}6
 
-%define _prefix	@prefix@
+%define _prefix	@ac_prefix@
 
 %if %{defined fedora}
 %global debug_package %{nil}
@@ -39,6 +39,7 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #Packager:	rncbc.org
 
 BuildRequires:	coreutils
+BuildRequires:	cmake
 BuildRequires:	pkgconfig
 BuildRequires:	glibc-devel
 BuildRequires:	autoconf automake libtool
@@ -90,15 +91,10 @@ intend to compile programs that use this library.
 
 
 %prep
-
-%setup
-[ -x ./autogen.sh ] && ./autogen.sh
+%setup -q
 
 %build
-%if %{undefined fedora}
-export CFLAGS="-ffat-lto-objects"
-%endif
-%configure
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} .
 %__make %{?_smp_mflags}
 
 %install
@@ -122,13 +118,15 @@ export CFLAGS="-ffat-lto-objects"
 %defattr(-,root,root)
 %doc doc/html/*
 %{_libdir}/liblscp.so
-%{_libdir}/liblscp.a
-%{_libdir}/liblscp.la
+#{_libdir}/liblscp.a
+#{_libdir}/liblscp.la
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
 %{_includedir}/lscp/*.h
 
 %changelog
+* Fri Mar 26 2021 Rui Nuno Capela <rncbc@rncbc.org> 0.9.3
+- Introducing CMake build system.
 * Sun Mar 14 2021 Rui Nuno Capela <rncbc@rncbc.org> 0.9.2
 - End-of-Winter'21 release.
 * Sun Feb  7 2021 Rui Nuno Capela <rncbc@rncbc.org> 0.9.1
