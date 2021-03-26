@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2019, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2021, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -192,7 +192,7 @@ static lscp_connect_t *_lscp_connect_create ( lscp_server_t *pServer, lscp_socke
 	pConnect->server = pServer;
 	pConnect->events = LSCP_EVENT_NONE;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_connect_create: pConnect=%p: sock=%d addr=%s port=%d.\n", pConnect, sock, inet_ntoa(pAddr->sin_addr), ntohs(pAddr->sin_port));
 #endif
 
@@ -217,7 +217,7 @@ static lscp_status_t _lscp_connect_destroy ( lscp_connect_t *pConnect )
 	if (pConnect == NULL)
 		return ret;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_connect_destroy: pConnect=%p.\n", pConnect);
 #endif
 
@@ -263,7 +263,7 @@ static void _lscp_server_thread_proc ( lscp_server_t *pServer )
 	socklen_t cAddr;
 	lscp_connect_t *pConnect;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_server_thread_proc: Server listening for connections.\n");
 #endif
 
@@ -282,7 +282,7 @@ static void _lscp_server_thread_proc ( lscp_server_t *pServer )
 		}
 	}
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_server_thread_proc: Server closing.\n");
 #endif
 }
@@ -301,7 +301,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
 	socklen_t cAddr;
 	lscp_connect_t *pConnect;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_server_select_proc: Server listening for connections.\n");
 #endif
 	FD_ZERO(&master_fds);
@@ -379,7 +379,7 @@ static void _lscp_server_select_proc ( lscp_server_t *pServer )
 		}
 	}
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_server_select_proc: Server closing.\n");
 #endif
 }
@@ -478,7 +478,7 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 	pServer->pfnCallback = pfnCallback;
 	pServer->pvData = pvData;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "lscp_server_create: pServer=%p: iPort=%d.\n", pServer, iPort);
 #endif
 
@@ -498,7 +498,7 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 		lscp_socket_perror("lscp_server_create: setsockopt(SO_DONTLINGER)");
 #endif
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	lscp_socket_getopts("lscp_server_create", sock);
 #endif
 
@@ -532,7 +532,7 @@ lscp_server_t* lscp_server_create_ex ( int iPort, lscp_server_proc_t pfnCallback
 
 	lscp_socket_agent_init(&(pServer->agent), sock, &addr, cAddr);
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "lscp_server_create: sock=%d addr=%s port=%d.\n", pServer->agent.sock, inet_ntoa(pServer->agent.addr.sin_addr), ntohs(pServer->agent.addr.sin_port));
 #endif
 
@@ -560,7 +560,7 @@ lscp_status_t lscp_server_join ( lscp_server_t *pServer )
 	if (pServer == NULL)
 		return LSCP_FAILED;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "lscp_server_join: pServer=%p.\n", pServer);
 #endif
 
@@ -580,7 +580,7 @@ lscp_status_t lscp_server_destroy ( lscp_server_t *pServer )
 	if (pServer == NULL)
 		return LSCP_FAILED;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "lscp_server_destroy: pServer=%p.\n", pServer);
 #endif
 

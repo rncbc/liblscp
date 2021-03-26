@@ -44,6 +44,8 @@ add_library (${PROJECT_NAME} SHARED
   ${SOURCES}
 )
 
+target_link_libraries (${PROJECT_NAME} PUBLIC pthread)
+
 set_target_properties (${PROJECT_NAME} PROPERTIES
   PUBLIC_HEADER "${PUBLIC_HEADERS}"
   PREFIX "lib"

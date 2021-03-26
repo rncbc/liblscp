@@ -23,7 +23,7 @@ AM_INIT_AUTOMAKE
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-SHARED_VERSION_INFO="6:3:0"
+SHARED_VERSION_INFO="6:4:0"
 
 AC_SUBST(SHARED_VERSION_INFO)
 
@@ -45,22 +45,41 @@ AC_CACHE_VAL([ac_cv_build_version], [
 ac_build_version="$ac_cv_build_version"
 AC_SUBST(ac_build_version)
 
+# Enable debugging argument option.
+AC_ARG_ENABLE(debug,
+   AS_HELP_STRING([--enable-debug], [enable debugging (default=no)]),
+   [ac_debug="$enableval"])
+if test "x$ac_debug" = "xyes"; then
+   AC_DEFINE(CONFIG_DEBUG, 1, [Define if debugging is enabled.])
+fi
+
 # Checks for programs.
 AC_PROG_CC
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AM_PROG_LIBTOOL
 
-# Checks for header files.
+# Checks for standard header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(stdlib.h string.h netdb.h arpa/inet.h netinet/tcp.h netinet/in.h sys/socket.h unistd.h)
+
+AC_CHECK_HEADERS(
+  [stdlib.h string.h netdb.h arpa/inet.h netinet/tcp.h netinet/in.h sys/socket.h unistd.h],
+  [], [ac_headers_h="no"])
+if test "x$ac_headers_h" = "xno"; then
+  AC_MSG_ERROR([*** Standard headers not found.])
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-# Checks for library functions.
-AC_CHECK_FUNCS(strdup strtok_r memset memmove socket connect bind listen setsockopt getsockopt getsockname gethostbyname)
+# Checks for standard functions.
+AC_CHECK_FUNCS(
+  [strdup strtok_r memset memmove socket connect bind listen setsockopt getsockopt getsockname gethostbyname],
+  [], [ac_funcs_c="no"])
+if test "x$ac_funcs_c" = "xno"; then
+  AC_MSG_ERROR([*** Standard functions not found.])
+fi
 
 case $host in
     *mingw*|*cygwin*) windows=yes ;;

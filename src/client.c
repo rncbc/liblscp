@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2020, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2021, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -108,7 +108,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
 
 	lscp_event_t event;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_client_evt_proc: Client waiting for events.\n");
 #endif
 
@@ -177,7 +177,7 @@ static void _lscp_client_evt_proc ( void *pvClient )
 		lscp_cond_signal(pClient->cond);
 	}
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "_lscp_client_evt_proc: Client closing.\n");
 #endif
 }
@@ -209,7 +209,7 @@ static lscp_status_t _lscp_client_evt_connect ( lscp_client_t *pClient )
 		lscp_socket_perror("lscp_client_evt_connect: setsockopt(SO_DONTLINGER)");
 #endif
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	lscp_socket_getopts("_lscp_client_evt_connect:", sock);
 #endif
 
@@ -364,7 +364,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort,
 	pClient->pfnCallback = pfnCallback;
 	pClient->pvData = pvData;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr,
 		"lscp_client_create: pClient=%p: pszHost=%s iPort=%d.\n",
 		 pClient, pszHost, iPort);
@@ -389,7 +389,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort,
 				(char *) &iSockOpt, sizeof(int)) == SOCKET_ERROR)
 			lscp_socket_perror("lscp_client_create: cmd: setsockopt(SO_DONTLINGER)");
 	#endif
-	#ifdef DEBUG
+	#ifdef CONFIG_DEBUG
 		lscp_socket_getopts("lscp_client_create: cmd", sock);
 	#endif
 		if (connect(sock, res->ai_addr, res->ai_addrlen) != SOCKET_ERROR)
@@ -431,7 +431,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort,
 		lscp_socket_perror("lscp_client_create: cmd: setsockopt(SO_DONTLINGER)");
 #endif
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	lscp_socket_getopts("lscp_client_create: cmd", sock);
 #endif
 
@@ -453,7 +453,7 @@ lscp_client_t* lscp_client_create ( const char *pszHost, int iPort,
 
 #endif	/* !USE_GETADDRINFO */
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr,
 		"lscp_client_create: cmd: pClient=%p: sock=%d addr=%s port=%d.\n",
 		pClient, pClient->cmd.sock,
@@ -520,7 +520,7 @@ lscp_status_t lscp_client_join ( lscp_client_t *pClient )
 	if (pClient == NULL)
 		return LSCP_FAILED;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "lscp_client_join: pClient=%p.\n", pClient);
 #endif
 
@@ -543,7 +543,7 @@ lscp_status_t lscp_client_destroy ( lscp_client_t *pClient )
 	if (pClient == NULL)
 		return LSCP_FAILED;
 
-#ifdef DEBUG
+#ifdef CONFIG_DEBUG
 	fprintf(stderr, "lscp_client_destroy: pClient=%p.\n", pClient);
 #endif
 

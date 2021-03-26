@@ -55,8 +55,8 @@ set (ac_build_version "${VERSION}")
 #set (BUILD_SHARED_LIBS ON)
 
 set (SHARED_VERSION_CURRENT  6)
-set (SHARED_VERSION_AGE      3)
-set (SHARED_VERSION_REVISION 0)
+set (SHARED_VERSION_AGE      0)
+set (SHARED_VERSION_REVISION 4)
 set (SHARED_VERSION_INFO "${SHARED_VERSION_CURRENT}.${SHARED_VERSION_AGE}.${SHARED_VERSION_REVISION}")
 
 if (CMAKE_BUILD_TYPE)
@@ -87,12 +87,35 @@ if (POLICY CMP0075)
   cmake_policy (SET CMP0075 NEW)
 endif ()
 
+include (CheckIncludeFiles)
+include (CheckFunctionExists)
+
+# Checks for standard header files.
+if (UNIX AND NOT APPLE)
+  check_include_files ("stdlib.h;string.h;netdb.h;arpa/inet.h;netinet/tcp.h;netinet/in.h;sys/socket.h;unistd.h" HAVE_HEADERS_H)
+  if (NOT HAVE_HEADERS_H)
+    message (FATAL_ERROR "*** Standard headers not found.")
+  endif ()
+endif ()
+
+# Checks for standard functions.
+if (UNIX AND NOT APPLE)
+  set (FUNCS "strdup;strtok_r;memset;memmove;socket;connect;bind;listen;setsockopt;getsockopt;getsockname;gethostbyname")
+  foreach (FUNC ${FUNCS})
+     check_function_exists (${FUNC} HAVE_${FUNC}_C)
+     if (NOT HAVE_${FUNC}_C)
+       message (FATAL_ERROR "*** Standard functions not found.")
+     endif ()
+  endforeach ()
+endif ()
+
 #
-# No checks for packages, libraries or header files...
+# No additional packages or libraries...
 #
 
 add_subdirectory (src)
 add_subdirectory (doc)
+add_subdirectory (examples)
 
 configure_file (liblscp.spec.in liblscp.spec IMMEDIATE @ONLY)
 
