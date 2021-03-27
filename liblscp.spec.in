@@ -117,8 +117,6 @@ cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} .
 %defattr(-,root,root)
 %doc doc/html/*
 %{_libdir}/liblscp.so
-#{_libdir}/liblscp.a
-#{_libdir}/liblscp.la
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
 %{_includedir}/lscp/*.h
