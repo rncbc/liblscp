@@ -2,9 +2,7 @@
 
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories (
-  ${CMAKE_SOURCE_DIR}/lscp
-)
+include_directories (${CMAKE_SOURCE_DIR})
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
     file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
