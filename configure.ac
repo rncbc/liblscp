@@ -80,19 +80,30 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AM_PROG_LIBTOOL
 
-# Checks for standard header files.
-AC_HEADER_STDC
-
-AC_CHECK_HEADERS(
-  [stdlib.h string.h netdb.h arpa/inet.h netinet/tcp.h netinet/in.h sys/socket.h unistd.h],
-  [], [ac_headers_h="no"])
-if test "x$ac_headers_h" = "xno"; then
-  AC_MSG_ERROR([*** Standard headers not found.])
-fi
-
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
+
+# Check for a windows build.
+case $host in
+    *mingw*|*cygwin*) windows=yes ;;
+    *)                windows=no  ;;
+esac
+AM_CONDITIONAL(WINDOWS, test "x$windows" = "xyes")
+
+# Checks for standard header files.
+AC_HEADER_STDC
+
+if test "x$windows" = "xno"; then
+   AC_CHECK_HEADERS(
+     [netdb.h arpa/inet.h netinet/tcp.h netinet/in.h sys/socket.h unistd.h],
+     [], [ac_headers_h="no"])
+else
+   AC_CHECK_HEADERS([winsock.h], [], [ac_headers_h="no"])
+fi
+if test "x$ac_headers_h" = "xno"; then
+   AC_MSG_ERROR([*** Standard headers not found.])
+fi
 
 # Checks for standard functions.
 AC_CHECK_FUNCS(
@@ -101,12 +112,6 @@ AC_CHECK_FUNCS(
 if test "x$ac_funcs_c" = "xno"; then
   AC_MSG_ERROR([*** Standard functions not found.])
 fi
-
-case $host in
-    *mingw*|*cygwin*) windows=yes ;;
-    *)                windows=no ;;
-esac
-AM_CONDITIONAL(WINDOWS, test "$windows" = "yes")
 
 # Checks for pthread library.
 AC_CHECK_LIB(pthread, pthread_create)
