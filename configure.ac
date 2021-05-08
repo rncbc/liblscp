@@ -106,11 +106,13 @@ if test "x$ac_headers_h" = "xno"; then
 fi
 
 # Checks for standard functions.
-AC_CHECK_FUNCS(
-  [strdup strtok_r memset memmove socket connect bind listen setsockopt getsockopt getsockname gethostbyname],
-  [], [ac_funcs_c="no"])
-if test "x$ac_funcs_c" = "xno"; then
-  AC_MSG_ERROR([*** Standard functions not found.])
+if test "x$windows" = "xno"; then
+   AC_CHECK_FUNCS(
+     [socket connect bind listen setsockopt getsockopt getsockname gethostbyname],
+     [], [ac_funcs_c="no"])
+   if test "x$ac_funcs_c" = "xno"; then
+      AC_MSG_ERROR([*** Standard functions not found.])
+   fi
 fi
 
 # Checks for pthread library.
