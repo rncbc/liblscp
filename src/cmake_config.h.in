@@ -22,4 +22,11 @@
 /* Define to the build version of this package. */
 #cmakedefine CONFIG_BUILD_VERSION "@CONFIG_BUILD_VERSION@"
 
+/* Default installation prefix. */
+#cmakedefine CONFIG_PREFIX "@CONFIG_PREFIX@"
+
+/* Define to target installation dirs. */
+#cmakedefine CONFIG_LIBDIR "@CONFIG_LIBDIR@"
+#cmakedefine CONFIG_INCLUDEDIR "@CONFIG_INCLUDEDIR@"
+
 #endif /* CONFIG_H */

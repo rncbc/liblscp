@@ -65,6 +65,16 @@ if test "x$exec_prefix" = "xNONE"; then
 fi
 eval ac_prefix=$prefix
 AC_SUBST(ac_prefix)
+AC_DEFINE_UNQUOTED(CONFIG_PREFIX, ["$ac_prefix"], [Default installation prefix.])
+
+# Set default installation directories.
+eval ac_libdir=$libdir
+AC_SUBST(ac_libdir)
+AC_DEFINE_UNQUOTED(CONFIG_LIBDIR, ["$ac_libdir"], [Default object library path.])
+
+eval ac_includedir=$includedir
+AC_SUBST(ac_includedir)
+AC_DEFINE_UNQUOTED(CONFIG_INCLUDEDIR, ["$ac_includedir"], [Default headers include path.])
 
 # Enable debugging argument option.
 AC_ARG_ENABLE(debug,
