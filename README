@@ -11,15 +11,16 @@ License: GNU Lesser General Public License (LGPL)
 Installation
 ------------
 
-If checking out from Git:
+Unpack the tarball and in the extracted source directory:
 
-    ./autogen.sh
+    cmake [-DCMAKE_INSTALL_PREFIX=/usr/local] -B build -S .
+    make -C build
 
-From the extracted source directory:
+and optionally as root:
 
-    ./configure
-    make
-    make install
+    sudo make -C build install
+
+See also the README.cmake file in the source distribution.
 
 
 Enjoy.
