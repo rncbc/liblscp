@@ -2,7 +2,7 @@ Source: liblscp
 Section: libs
 Priority: optional
 Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
-Build-Depends: debhelper (>= 10), cmake, pkg-config, doxygen
+Build-Depends: debhelper (>= 11), cmake, pkg-config, doxygen
 Standards-Version: 3.9.7
 
 Package: liblscp-dev
