@@ -93,12 +93,11 @@ intend to compile programs that use this library.
 %setup -q
 
 %build
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -Wno-dev -B build
-cmake --build build %{?_smp_mflags}
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -Wno-dev
+%__make %{?_smp_mflags}
 
 %install
-DESTDIR="%{buildroot}" \
-cmake --install build
+%__make DESTDIR="%{buildroot}" install
 
 %clean
 [ -d "%{buildroot}" -a "%{buildroot}" != "/" ] && %__rm -rf "%{buildroot}"
