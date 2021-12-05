@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(liblscp
-  VERSION 0.9.4
+  VERSION 0.9.5
   DESCRIPTION "LinuxSampler Control Protocol API library"
   LANGUAGES C)
 

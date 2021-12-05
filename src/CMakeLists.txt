@@ -5,9 +5,9 @@ set (CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories (${CMAKE_SOURCE_DIR})
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
-    file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
-endif()
-configure_file (cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+  file (REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
+endif ()
+configure_file (config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lscp/version.h)
     file(REMOVE ${CMAKE_SOURCE_DIR}/lscp/version.h)

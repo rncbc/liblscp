@@ -3,6 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+GIT HEAD           Dropped autotools (autoconf, automake, etc.) build system.
+
 0.9.4  2021-07-04  An Early-Summer'21 release.
 
 0.9.3  2021-05-11  A Spring'21 release.
