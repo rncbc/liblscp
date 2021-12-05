@@ -110,7 +110,7 @@ cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -Wno-dev
 
 %files -n %{_soname}
 %defattr(-,root,root)
-%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%doc README LICENSE ChangeLog
 %{_libdir}/liblscp.so.*
 
 %files devel
