@@ -10,9 +10,9 @@ endif ()
 configure_file (config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/lscp/version.h)
-    file(REMOVE ${CMAKE_SOURCE_DIR}/lscp/version.h)
+  file(REMOVE ${CMAKE_SOURCE_DIR}/lscp/version.h)
 endif()
-configure_file (${CMAKE_SOURCE_DIR}/lscp/version.h.in ${CMAKE_SOURCE_DIR}/lscp/version.h)
+configure_file (${CMAKE_SOURCE_DIR}/lscp/version.h.cmake ${CMAKE_SOURCE_DIR}/lscp/version.h)
 
 
 set (PUBLIC_HEADERS
