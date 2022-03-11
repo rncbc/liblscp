@@ -120,7 +120,9 @@ cmake --install build
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
 %{_includedir}/lscp/*.h
-%doc %{_datadir}/doc/%{name}/html/*
+%dir %{_datadir}/doc/%{name}
+%dir %{_datadir}/doc/%{name}/html
+%{_datadir}/doc/%{name}/html/*
 
 
 %changelog
