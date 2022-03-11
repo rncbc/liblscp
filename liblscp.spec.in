@@ -120,9 +120,8 @@ cmake --install build
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
 %{_includedir}/lscp/*.h
-%dir %{_docdir}/%{name}
-%dir %{_docdir}/%{name}/html
-%{_docdir}/%{name}/html/*
+%doc %{_datadir}/doc/%{name}/html/*
+
 
 %changelog
 * Sun Jan  9 2022 Rui Nuno Capela <rncbc@rncbc.org> 0.9.5
