@@ -93,11 +93,12 @@ intend to compile programs that use this library.
 %setup -q
 
 %build
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -Wno-dev
-%__make %{?_smp_mflags}
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -Wno-dev -B build
+cmake --build build %{?_smp_mflags}
 
 %install
-%__make DESTDIR="%{buildroot}" install
+DESTDIR="%{buildroot}" \
+cmake --install build
 
 %clean
 [ -d "%{buildroot}" -a "%{buildroot}" != "/" ] && %__rm -rf "%{buildroot}"
@@ -115,11 +116,13 @@ cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -Wno-dev
 
 %files devel
 %defattr(-,root,root)
-%doc doc/html/*
 %{_libdir}/liblscp.so
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
 %{_includedir}/lscp/*.h
+%dir %{_docdir}/%{name}
+%dir %{_docdir}/%{name}/html
+%{_docdir}/%{name}/html/*
 
 %changelog
 * Sun Jan  9 2022 Rui Nuno Capela <rncbc@rncbc.org> 0.9.5

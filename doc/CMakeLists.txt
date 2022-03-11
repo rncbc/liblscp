@@ -8,4 +8,6 @@ if (DOXYGEN_FOUND)
   add_custom_target (doxygen ALL
     COMMAND ${DOXYGEN_EXECUTABLE} liblscp.doxygen
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
+    DESTINATION ${CMAKE_INSTALL_DOCDIR})
 endif ()

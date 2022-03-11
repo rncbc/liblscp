@@ -3,7 +3,7 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-GIT HEAD           Prepping bump to next v0.9.6...
+GIT HEAD           Install doxygen (doc/html) files again (via cmake).
 
 0.9.5  2022-01-09  Dropped autotools (autoconf, automake, etc.) build system.
 

@@ -1,4 +1,4 @@
 debian/tmp/usr/include/*
 debian/tmp/usr/lib*/lib*.so
 debian/tmp/usr/lib*/pkgconfig/lscp.pc
-doc/html/* usr/share/doc/liblscp-dev/html
+debian/tmp/usr/share/doc/liblscp/html/*
