@@ -14,6 +14,11 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/lscp/version.h)
 endif()
 configure_file (${CMAKE_SOURCE_DIR}/lscp/version.h.cmake ${CMAKE_SOURCE_DIR}/lscp/version.h)
 
+if (EXISTS ${CMAKE_SOURCE_DIR}/lscp.pc)
+  file(REMOVE ${CMAKE_SOURCE_DIR}/lscp.pc)
+endif()
+configure_file (lscp.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lscp.pc)
+
 
 set (PUBLIC_HEADERS
   ${CMAKE_SOURCE_DIR}/lscp/client.h
@@ -55,3 +60,8 @@ install (TARGETS ${PROJECT_NAME} LIBRARY
   DESTINATION ${CONFIG_LIBDIR}
   PUBLIC_HEADER
   DESTINATION ${CONFIG_INCLUDEDIR}/lscp)
+
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/lscp.pc
+  DESTINATION ${CONFIG_LIBDIR}/pkgconfig)
+
+

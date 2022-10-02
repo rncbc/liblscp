@@ -132,10 +132,3 @@ add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (examples)
 
-configure_file (liblscp.spec.in liblscp.spec IMMEDIATE @ONLY)
-
-configure_file (lscp.pc.in lscp.pc IMMEDIATE @ONLY)
-
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/lscp.pc
-  DESTINATION ${CONFIG_LIBDIR}/pkgconfig)
-
