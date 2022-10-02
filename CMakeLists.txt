@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.13)
 
 project (liblscp
-  VERSION 0.9.6
+  VERSION 0.9.7
   DESCRIPTION "LinuxSampler Control Protocol API library"
   LANGUAGES C)
 
@@ -70,7 +70,7 @@ set (ac_includedir "${CONFIG_INCLUDEDIR}")
 
 set (SHARED_VERSION_CURRENT  6)
 set (SHARED_VERSION_AGE      0)
-set (SHARED_VERSION_REVISION 4)
+set (SHARED_VERSION_REVISION 5)
 set (SHARED_VERSION_INFO "${SHARED_VERSION_CURRENT}.${SHARED_VERSION_AGE}.${SHARED_VERSION_REVISION}")
 
 if (CONFIG_DEBUG)

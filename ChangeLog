@@ -3,6 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+0.9.7  2022-10-03  An Early-Autumn'22 release.
+
 0.9.6  2022-04-02  Install doxygen (doc/html) files again (via cmake).
 
 0.9.5  2022-01-09  Dropped autotools (autoconf, automake, etc.) build system.
