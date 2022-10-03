@@ -22,7 +22,7 @@
 
 %define _soname %{name}6
 
-%define _prefix	@ac_prefix@
+%define _prefix	/usr
 
 %if %{defined fedora}
 %global debug_package %{nil}
