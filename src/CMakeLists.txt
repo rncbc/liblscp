@@ -17,7 +17,7 @@ configure_file (${CMAKE_SOURCE_DIR}/lscp/version.h.cmake ${CMAKE_SOURCE_DIR}/lsc
 if (EXISTS ${CMAKE_SOURCE_DIR}/lscp.pc)
   file(REMOVE ${CMAKE_SOURCE_DIR}/lscp.pc)
 endif()
-configure_file (lscp.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lscp.pc)
+configure_file (lscp.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lscp.pc IMMEDIATE @ONLY)
 
 
 set (PUBLIC_HEADERS

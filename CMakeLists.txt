@@ -44,8 +44,6 @@ include (GNUInstallDirs)
 set (CONFIG_LIBDIR  "${CONFIG_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set (CONFIG_INCLUDEDIR "${CONFIG_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 
-set (ac_libdir "${CONFIG_LIBDIR}")
-set (ac_includedir "${CONFIG_INCLUDEDIR}")
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:

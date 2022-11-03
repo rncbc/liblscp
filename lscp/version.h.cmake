@@ -2,7 +2,7 @@
 //
 /****************************************************************************
    liblscp - LinuxSampler Control Protocol API
-   Copyright (C) 2004-2021, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2004-2022, rncbc aka Rui Nuno Capela. All rights reserved.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,9 +23,9 @@
 #ifndef __LSCP_VERSION_H
 #define __LSCP_VERSION_H
 
-#define LSCP_PACKAGE    "@PACKAGE_NAME@"
-#define LSCP_VERSION    "@PACKAGE_VERSION@"
-#define LSCP_BUILD      "@ac_version@"
+#define LSCP_PACKAGE    "@PROJECT_NAME@"
+#define LSCP_VERSION    "@PROJECT_VERSION@"
+#define LSCP_BUILD      "@PACKAGE_VERSION@"
 
 #endif // __LSCP_VERSION_H
 

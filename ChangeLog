@@ -3,7 +3,8 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-0.9.8  GIT HEAD   Bumping into the next develop cycle/season...
+0.9.8  GIT HEAD    Fixed broken pkg-config file (lscp.pc) generation (thanks
+                   to Konstantin Voinov while on OBS multimedia::proaudio).
 
 0.9.7  2022-10-03  An Early-Autumn'22 release.
 
