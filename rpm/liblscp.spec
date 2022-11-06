@@ -39,9 +39,9 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #Packager:	rncbc.org
 
 BuildRequires:	coreutils
-BuildRequires:	cmake
 BuildRequires:	pkgconfig
 BuildRequires:	glibc-devel
+BuildRequires:	cmake >= 3.15
 BuildRequires:	doxygen
 
 %description
