@@ -111,7 +111,8 @@ cmake --install build
 
 %files -n %{_soname}
 %defattr(-,root,root)
-%doc README LICENSE ChangeLog
+%license LICENSE
+%doc README ChangeLog
 %{_libdir}/liblscp.so.*
 
 %files devel
