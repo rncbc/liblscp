@@ -127,7 +127,7 @@ cmake --install build
 
 
 %changelog
-* Wed Mar 23 2023 Rui Nuno Capela <rncbc@rncbc.org> 0.9.9
+* Thu Mar 23 2023 Rui Nuno Capela <rncbc@rncbc.org> 0.9.9
 - An Early-Spring'23 Release.
 * Wed Dec 28 2022 Rui Nuno Capela <rncbc@rncbc.org> 0.9.8
 - An End-of-Year'22 Release.
