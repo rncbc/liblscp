@@ -17,8 +17,8 @@
 #
 
 %define name	liblscp
-%define version	0.9.9
-%define release	53.1
+%define version	0.9.10
+%define release	54.1
 
 %define _soname %{name}6
 
@@ -127,6 +127,8 @@ cmake --install build
 
 
 %changelog
+* Thu Jun  1 2023 Rui Nuno Capela <rncbc@rncbc.org> 0.9.10
+- A Spring'23 Release.
 * Thu Mar 23 2023 Rui Nuno Capela <rncbc@rncbc.org> 0.9.9
 - An Early-Spring'23 Release.
 * Wed Dec 28 2022 Rui Nuno Capela <rncbc@rncbc.org> 0.9.8
