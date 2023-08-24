@@ -1,9 +1,10 @@
 Source: liblscp
 Section: libs
 Priority: optional
-Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
+Maintainer: Rui Nuno Capela <rncbc@rncbc.org>
 Build-Depends: debhelper (>= 11), cmake, pkg-config, doxygen
-Standards-Version: 3.9.7
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
 
 Package: liblscp-dev
 Section: libdevel
