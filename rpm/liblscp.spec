@@ -16,9 +16,9 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-%define name	liblscp
-%define version	0.9.11
-%define release	55.1
+%define name    liblscp
+%define version 0.9.11
+%define release 55.1
 
 %define _soname %{name}6
 
