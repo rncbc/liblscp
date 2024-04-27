@@ -12,30 +12,19 @@
 # case the license is the MIT License). An "Open Source License" is a
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
-#
+
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-%define name    liblscp
-%define version 0.9.90
-%define release 1.1
-
-%define _soname %{name}6
-
-%define _prefix	/usr
-
-%if %{defined fedora}
-%global debug_package %{nil}
-%endif
+%define sover 6
 
 Summary:	LinuxSampler Control Protocol API library
-Name:		%{name}
-Version:	%{version}
-Release:	%{release}
-License:	LGPL-2.0+
-Source0:	%{name}-%{version}.tar.gz
+Name:		liblscp
+Version:	0.9.90
+Release:	1.1
+License:	LGPL-2.0-or-later
+Source: 	%{name}-%{version}.tar.gz
 URL:		http://www.linuxsampler.org/
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 #Packager:	rncbc.org
 
 BuildRequires:	coreutils
@@ -48,41 +37,37 @@ BuildRequires:	doxygen
 LinuxSampler control protocol API library.
 
 
-%package -n %{_soname}
+%package -n %{name}%{sover}
 Summary:	LinuxSampler Control Protocol API library
 Group:		System/Libraries
 Provides:	%{name}
 
-%description -n %{_soname}
-  LinuxSampler Control Protocol C API library - development files.
-  .
-  This package is for use with the LinuxSampler audio sampling
-  engine / library and packages. Wraps the LinuxSampler network
-  protocol and offers a convenient API in form of a C library.
-  .
-  For further informations visit
-  http://www.linuxsampler.org
-  .
-  This package contains the header files needed for
-  development with liblscp. You will need this only if you
-  intend to compile programs that use this library.
+%description -n %{name}%{sover}
+This package is for use with the LinuxSampler audio sampling
+engine / library and packages. Wraps the LinuxSampler network
+protocol and offers a convenient API in form of a C library.
+
+For further informations visit
+https://www.linuxsampler.org
+
+This package contains the header files needed for
+development with liblscp. You will need this only if you
+intend to compile programs that use this library.
 
 
 %package devel
 Summary:	LinuxSampler Control Protocol API library - development files
 Group:		Development/Libraries/C and C++
 Requires:	pkgconfig
-Requires:	%{name} >= %{version}
+Requires:	%{name}%{sover} = %{version}
 
 %description devel
-LinuxSampler Control Protocol C API library - development files.
-
 This package is for use with the LinuxSampler audio sampling
 engine / library and packages. Wraps the LinuxSampler network
 protocol and offers a convenient API in form of a C library.
 
 For further informations visit
-http://www.linuxsampler.org
+https://www.linuxsampler.org
 
 This package contains the header files needed for
 development with liblscp. You will need this only if you
@@ -100,23 +85,14 @@ cmake --build build %{?_smp_mflags}
 DESTDIR="%{buildroot}" \
 cmake --install build
 
-%clean
-[ -d "%{buildroot}" -a "%{buildroot}" != "/" ] && %__rm -rf "%{buildroot}"
+%ldconfig_scriptlets -n %{name}%{sover}
 
-%post -n %{_soname}
-/sbin/ldconfig
-
-%postun -n %{_soname}
-/sbin/ldconfig
-
-%files -n %{_soname}
-%defattr(-,root,root)
+%files -n %{name}%{sover}
 %license LICENSE
-%doc README ChangeLog
-%{_libdir}/liblscp.so.*
+%{_libdir}/liblscp.so.%{sover}
+%{_libdir}/liblscp.so.%{sover}.*
 
 %files devel
-%defattr(-,root,root)
 %{_libdir}/liblscp.so
 %{_libdir}/pkgconfig/lscp.pc
 %dir %{_includedir}/lscp
