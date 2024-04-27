@@ -85,7 +85,15 @@ cmake --build build %{?_smp_mflags}
 DESTDIR="%{buildroot}" \
 cmake --install build
 
+%if 0%{?sle_version} == 150200 && 0%{?is_opensuse}
+%post -n %{name}%{sover}
+/sbin/ldconfig
+%postun -n %{name}%{sover}
+/sbin/ldconfig
+%else
 %ldconfig_scriptlets -n %{name}%{sover}
+%endif
+
 
 %files -n %{name}%{sover}
 %license LICENSE
