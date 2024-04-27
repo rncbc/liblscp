@@ -4,6 +4,8 @@ liblscp - LinuxSampler Control Protocol API
 ChangeLog
 
 
+GIT HEAD           Prepping the unthinkable (aka. v1.0.0-rc2)
+
 0.9.90 2024-04-10  A Spring'24 release candidate.
 
                    Prepping the unthinkable (aka. v1.0.0-rc1)

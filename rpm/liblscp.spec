@@ -24,7 +24,7 @@ Version:	0.9.90
 Release:	1.1
 License:	LGPL-2.0-or-later
 Source: 	%{name}-%{version}.tar.gz
-URL:		http://www.linuxsampler.org/
+URL:		https://www.linuxsampler.org/
 #Packager:	rncbc.org
 
 BuildRequires:	coreutils
