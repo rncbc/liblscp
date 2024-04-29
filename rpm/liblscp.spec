@@ -16,16 +16,16 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-%define sover 6
-
 Summary:	LinuxSampler Control Protocol API library
 Name:		liblscp
-Version:	0.9.90
+Version:	0.9.91
 Release:	1.1
 License:	LGPL-2.0-or-later
 Source: 	%{name}-%{version}.tar.gz
 URL:		https://www.linuxsampler.org/
 #Packager:	rncbc.org
+
+%define sover 6
 
 BuildRequires:	coreutils
 BuildRequires:	pkgconfig
@@ -86,10 +86,8 @@ DESTDIR="%{buildroot}" \
 cmake --install build
 
 %if 0%{?sle_version} == 150200 && 0%{?is_opensuse}
-%post -n %{name}%{sover}
-/sbin/ldconfig
-%postun -n %{name}%{sover}
-/sbin/ldconfig
+%post -n %{name}%{sover} -p /sbin/ldconfig
+%postun -n %{name}%{sover} -p /sbin/ldconfig
 %else
 %ldconfig_scriptlets -n %{name}%{sover}
 %endif
@@ -111,6 +109,8 @@ cmake --install build
 
 
 %changelog
+* Wed May  1 2024 Rui Nuno Capela <rncbc@rncbc.org> 0.9.91
+- A Spring'24 Release Candidate 2.
 * Wed Apr 10 2024 Rui Nuno Capela <rncbc@rncbc.org> 0.9.90
 - A Spring'24 Release Candidate.
 * Wed Jan 24 2024 Rui Nuno Capela <rncbc@rncbc.org> 0.9.12
