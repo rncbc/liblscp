@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.13)
 
 project (liblscp
-  VERSION 0.9.99
+  VERSION 1.0.0
   DESCRIPTION "LinuxSampler Control Protocol API library"
   HOMEPAGE_URL "https://qsampler.sourceforge.io"
   LANGUAGES C)
