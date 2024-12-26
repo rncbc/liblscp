@@ -18,3 +18,12 @@ add_executable (example_client
 
 target_link_libraries (example_server PRIVATE ${PROJECT_NAME})
 target_link_libraries (example_client PRIVATE ${PROJECT_NAME})
+
+if (MICROSOFT)
+  target_link_libraries(example_server PRIVATE ws2_32.lib)
+  target_link_libraries(example_client PRIVATE ws2_32.lib)
+elseif (MINGW)
+  target_link_libraries(example_server PRIVATE wsock32 ws2_32)
+  target_link_libraries(example_client PRIVATE wsock32 ws2_32)
+endif()
+

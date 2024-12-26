@@ -49,6 +49,12 @@ add_library (${PROJECT_NAME} SHARED
 
 target_link_libraries (${PROJECT_NAME} PUBLIC pthread)
 
+if (MICROSOFT)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32.lib)
+elseif (MINGW)
+  target_link_libraries(${PROJECT_NAME} PRIVATE wsock32 ws2_32)
+endif()
+
 set_target_properties (${PROJECT_NAME} PROPERTIES
   PUBLIC_HEADER "${PUBLIC_HEADERS}"
   PREFIX "lib"
