@@ -6,7 +6,7 @@ project (liblscp
   HOMEPAGE_URL "https://qsampler.sourceforge.io"
   LANGUAGES C)
 
-set (PROJECT_COPYRIGHT "Copyright (C) 2004-2024, rncbc aka Rui Nuno Capela. All rights reserved.")
+set (PROJECT_COPYRIGHT "Copyright (C) 2004-2025, rncbc aka Rui Nuno Capela. All rights reserved.")
 set (PROJECT_DOMAIN    "linuxsampler.org")
 
 execute_process (
